@@ -12,6 +12,7 @@ import PoincareChapterVI.Section103.ReducedCurve
 import PoincareChapterVI.Section103.ReducedCurveSource
 import PoincareChapterVI.Section103.LocalIntersection
 import PoincareChapterVI.Section103.IntersectionResultant
+import PoincareChapterVI.Section103.ResultantSoundness
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

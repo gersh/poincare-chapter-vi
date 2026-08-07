@@ -17,10 +17,10 @@ factorial duplication of a Laplace expansion.  LeanCompCert verifies that coeffi
 degree eight vanish and that the degree-eight coefficient is nonzero in both charts.
 
 The sparse operations discard terms above degree eight; this is sound for the reported low
-coefficients because exponents are nonnegative.  The generic semantic bridge identifying the
-subset determinant with `Polynomial.resultant` remains a separate local-algebra infrastructure
-task.  Accordingly, the theorems below are named as finite Sylvester certificates rather than
-as completed local intersection-multiplicity theorems.
+coefficients because exponents are nonnegative. The independent LeanCompCert certificates in this
+file are supplemented in `ResultantSoundness` by a coefficient-jet calculation whose semantics
+are proved against Mathlib's verified Bird determinant and genuine polynomial resultants. Local
+intersection multiplicity and projective Bézout remain separate geometric steps.
 -/
 
 namespace PoincareChapterVI.Section103Resultant

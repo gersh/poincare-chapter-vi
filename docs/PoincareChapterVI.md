@@ -48,7 +48,7 @@ transcription of the 1892 text.
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`; `ChapterVI.lean` supplies only a conditional restricted-problem interface | Formalize the Chapter V input, analytic dependence/enumeration of singular roots, prove the required ratio Jacobian is nonzero, and justify the passage from coefficient relations to singular-locus relations |
-| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` proves the homogeneous sextic irreducible; `Section103/ReducedCurve.lean` records the exact cleared septic and proves the two curves have no common component; `Section103/ReducedCurveSource.lean` uses LeanCompCert to prove the displayed source formula clears to that septic; `LocalIntersection.lean` proves the origin transversality and exact initial forms in both infinity charts; `IntersectionResultant.lean` checks both sparse Sylvester determinants through order eight; the rotation minor excludes infinitesimal projective invariance | Prove the subset-determinant/resultant semantic bridge, formalize local intersection multiplicities and projective Bézout, then prove persistence under deformation and the final parameter-rank contradiction |
+| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` proves the homogeneous sextic irreducible; `Section103/ReducedCurve.lean` records the exact cleared septic and proves the two curves have no common component; `Section103/ReducedCurveSource.lean` uses LeanCompCert to prove the displayed source formula clears to that septic; `LocalIntersection.lean` proves the origin transversality and exact initial forms in both infinity charts; `IntersectionResultant.lean` checks both sparse Sylvester determinants, and `ResultantSoundness.lean` proves the genuine Mathlib resultants have trailing degree eight; the rotation minor excludes infinitesimal projective invariance | Formalize local intersection multiplicities and projective Bézout, then prove persistence under deformation and the final parameter-rank contradiction |
 
 ## What the current Lean files actually establish
 
@@ -87,13 +87,15 @@ The source-facing files added after the standalone-project commit are deliberate
   with a LeanCompCert-backed sparse computation proving that `438750` times Poincaré's displayed
   source formula is exactly that projective polynomial. The coefficient table is also connected
   to the cubic vectors derived from the physical ellipse data in `Geometry.lean`.
-- `Section103/LocalIntersection.lean` and `Section103/IntersectionResultant.lean`: exact
+- `Section103/LocalIntersection.lean`, `Section103/IntersectionResultant.lean`, and
+  `Section103/ResultantSoundness.lean`: exact
   dehomogenizations at the affine origin and the two projective axis points; initial degrees
   `(2,1)` at the origin and `(2,3)` at each infinity point; non-divisibility of the origin tangent
   line in the sextic tangent cone; and LeanCompCert certificates that the two sparse `8 × 8`
   Sylvester determinants have zero coefficients below degree eight and nonzero degree-eight
-  coefficients. A generic proof relating the subset dynamic program to Mathlib's polynomial
-  resultant is still required before calling these local intersection multiplicities.
+  coefficients. A coefficientwise jet proof linked to Mathlib's verified Bird determinant
+  identifies the genuine polynomial resultants and proves that both have trailing degree eight.
+  Interpreting these orders as local intersection multiplicities remains.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 
@@ -313,8 +315,8 @@ certificate for squarefreeness over `ℂ(x)`, and the conclusion that the exact 
 irreducible over `ℂ`; the projective module transfers that theorem to the homogeneous sextic.
 Lean also proves the cleared septic table has no common component with the sextic, and a
 LeanCompCert-backed sparse certificate now derives that table from the displayed source formula.
-The remaining algebraic-geometric tasks are the subset-determinant/resultant correctness bridge,
-projective Bézout and local intersection-multiplicity theorems, followed by the deformation/rank implication. Those steps now
+The remaining algebraic-geometric tasks are projective Bézout and local intersection-multiplicity
+theorems, followed by the deformation/rank implication. Those steps now
 form the gap in the repair of Poincaré's jump from "more than 36 intersections" to "the curves
 coincide."
 

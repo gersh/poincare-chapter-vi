@@ -38,14 +38,15 @@ The strongest newly completed component is the finite algebra in §103:
   source formula and the physical cubic vectors;
 - the affine-origin tangent cone and tangent line are derived from the source curves and proved
   transverse; both points at infinity are placed in explicit affine charts with initial degrees
-  `(2,3)`, and LeanCompCert checks the corresponding sparse Sylvester determinants vanish to
-  exactly order eight;
+  `(2,3)`; LeanCompCert checks the corresponding sparse Sylvester determinants, and a
+  coefficientwise sound jet implementation linked to Mathlib's verified Bird determinant proves
+  that the genuine polynomial resultants have trailing degree exactly eight;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the semantic local-intersection/Bézout bridge in
-§103 (including correctness of the finite subset determinant as a polynomial resultant). The detailed
+complex contour-pinch theorem in §§95–100 and the geometric local-intersection/projective-Bézout
+bridge in §103. The finite determinant/resultant correctness gap is now closed. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
 ## Build
