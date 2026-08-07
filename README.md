@@ -28,6 +28,9 @@ The strongest newly completed component is the finite algebra in §103:
 - an explicit Bézout identity after specialization to `ZMod 17` proves that the quartic is
   squarefree over `ℂ(x)`; this excludes the repeated-factor exception and proves that the exact
   affine polynomial is irreducible over `ℂ`;
+- the affine certificate is transferred to the exact homogeneous sextic: homogeneous factors are
+  recovered through a scaling-variable argument, and the nonzero `x⁴y²` coefficient rules out a
+  factor hidden on the line `z = 0`, proving projective irreducibility over `ℂ`;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
