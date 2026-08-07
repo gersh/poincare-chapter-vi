@@ -33,6 +33,9 @@ The strongest newly completed component is the finite algebra in §103:
   factor hidden on the line `z = 0`, proving projective irreducibility over `ℂ`;
 - the cleared degree-seven reduced curve is formalized, proved homogeneous, and proved to share no
   component with the sextic by an exact restriction to the line `x = 0`;
+- a sparse `ℚ[i]` evaluator, checked through LeanCompCert and proved correct with respect to
+  `MvPolynomial`, derives every coefficient of that septic directly from Poincaré's reduced
+  source formula and the physical cubic vectors;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 

@@ -70,6 +70,33 @@ private def coordinateCoefficient : Fin 5 → Vec3 :=
       (secondMajorAxis i / 2 + Complex.I * (12 / 13 : ℂ) * secondMinorAxis i / 2),
     fun i ↦ firstMajorAxis i / 2 + Complex.I * (4 / 5 : ℂ) * firstMinorAxis i / 2]
 
+/-- Public access to the five coefficient vectors of the homogenized coordinate difference.
+This is the source-level input used to derive the reduced degree-seven equation below. -/
+def chapterVISection103CubicCoefficient (slot : Fin 5) (coordinate : Fin 3) : ℂ :=
+  coordinateCoefficient slot coordinate
+
+/-- Explicit complex presentation of the cubic coefficients, convenient for exact finite
+normalization certificates. -/
+def chapterVISection103CubicComplexCoefficient : Fin 5 → Fin 3 → ℂ :=
+  ![![1 / 2, -(2 / 5) * Complex.I, 0],
+    ![2 / 3 + (8 / 65) * Complex.I, -2 / 3 - (4 / 13) * Complex.I,
+      -1 / 3 + (56 / 65) * Complex.I],
+    ![-217 / 195, 20 / 39, 10 / 39],
+    ![2 / 3 - (8 / 65) * Complex.I, -2 / 3 + (4 / 13) * Complex.I,
+      -1 / 3 - (56 / 65) * Complex.I],
+    ![1 / 2, (2 / 5) * Complex.I, 0]]
+
+/-- Kernel-checked normalization of the physical ellipse data to the explicit cubic table. -/
+theorem chapterVISection103_cubicCoefficient_eq_complexTable
+    (slot : Fin 5) (coordinate : Fin 3) :
+    chapterVISection103CubicCoefficient slot coordinate =
+      chapterVISection103CubicComplexCoefficient slot coordinate := by
+  fin_cases slot <;> fin_cases coordinate <;> apply Complex.ext <;>
+    norm_num [chapterVISection103CubicCoefficient,
+      chapterVISection103CubicComplexCoefficient, coordinateCoefficient,
+      firstMajorAxis, firstMinorAxis, secondMajorAxis, secondMinorAxis,
+      Complex.mul_re, Complex.mul_im]
+
 /-- Derivative of the five coefficient vectors under one infinitesimal rotation of the second
 ellipse. -/
 private def coordinateCoefficientDerivative (axis : Fin 3) : Fin 5 → Vec3 :=
