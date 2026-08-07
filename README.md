@@ -45,7 +45,8 @@ The strongest newly completed component is the finite algebra in §103:
   dehomogenized projective chart pairs;
 - local intersection multiplicity is defined intrinsically as the module length of the quotient
   by the two curve equations in the plane's local ring, with named specializations for the affine
-  origin and both points at infinity;
+  origin and both points at infinity; the affine-origin length is proved to be two, and the
+  eight-dimensional triangular quotient model needed at infinity is constructed explicitly;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
@@ -74,7 +75,9 @@ prove the rank result.
 
 - `PoincareChapterVI/ChapterVI*.lean`: formal reductions corresponding to §§90–103.
 - `PoincareChapterVI/Section103/`: ellipse geometry, Ruppert machinery, finite certificate, and
-  its exact polynomial-kernel, irreducibility, resultant, and local-algebra consequences.
+  its exact polynomial-kernel, irreducibility, resultant, and local-algebra consequences.  The
+  infinity-chart standard basis is represented by an explicit eight-dimensional algebra with
+  basis `1, z, z^2, z^3, z^4, z^5, y, yz`.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
 - `docs/PoincareChapterVI.md`: passage-by-passage source audit and open mathematical gaps.
 - `research/chapter_vi_section_103_audit.py`: exact untrusted research audit.

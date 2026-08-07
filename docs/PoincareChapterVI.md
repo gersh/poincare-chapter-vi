@@ -100,8 +100,12 @@ The source-facing files added after the standalone-project commit are deliberate
   that their inputs are exactly the iterated-polynomial forms of the source chart equations, and
   proves trailing degree eight for those geometric resultants. Local multiplicity itself is now
   defined as the length of the quotient by the curve equations in the local ring, and the three
-  source instances are named. Proving that the origin length is two via the tangent-cone theorem,
-  and that the two infinity lengths equal the resultant orders, remains.
+  source instances are named. `OriginMultiplicity.lean` proves intrinsically that the affine
+  origin has length two. `TriangularAlgebra.lean` constructs the finite local normal form shared
+  by the two infinity charts, proves its relations
+  `y² + a z⁴ + b z⁵ = 0`, `y z² + c z⁴ + d z⁵ = 0`, `z⁶ = 0`, and proves that its displayed
+  basis `1,z,z²,z³,z⁴,z⁵,y,yz` has dimension eight. Identifying each certified chart ideal with
+  its corresponding triangular local ideal remains.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 
@@ -323,8 +327,10 @@ Lean also proves the cleared septic table has no common component with the sexti
 LeanCompCert-backed sparse certificate now derives that table from the displayed source formula.
 The two order-eight resultant certificates are formally identified with the exact complex
 dehomogenized chart pairs, rather than only with parallel coefficient tables.
-The remaining algebraic-geometric tasks are projective Bézout and local intersection-multiplicity
-theorems, followed by the deformation/rank implication. Those steps now
+The affine-origin local multiplicity is proved to be two, and the common eight-dimensional
+triangular algebra for the two infinity germs is formalized. The remaining algebraic-geometric
+tasks are the exact chart-to-normal-form certificates, projective Bézout, and then the
+deformation/rank implication. Those steps now
 form the gap in the repair of Poincaré's jump from "more than 36 intersections" to "the curves
 coincide."
 

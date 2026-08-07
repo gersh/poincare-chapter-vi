@@ -29,4 +29,8 @@ import PoincareChapterVI
 #print axioms PoincareChapterVI.Section103Resultant.yGeometricChartResultant_natTrailingDegree
 #print axioms PoincareChapterVI.chapterVI_origin_localIntersectionIdeal_eq
 #print axioms PoincareChapterVI.chapterVIOriginLocalIntersectionMultiplicity_eq_two
+#print axioms PoincareChapterVI.TriangularAlgebra.finrank_eq_eight
+#print axioms PoincareChapterVI.TriangularAlgebra.Z_pow_six
+#print axioms PoincareChapterVI.TriangularAlgebra.Y_sq
+#print axioms PoincareChapterVI.TriangularAlgebra.Y_mul_Z_sq
 #print axioms PoincareChapterVI.chapterVISection103_no_projective_infinitesimal_rotation
