@@ -1,0 +1,10 @@
+import PoincareChapterVI
+
+/-! Kernel trust audit for the principal exported results. -/
+
+#print axioms PoincareChapterVI.classicalPlanarRestrictedThreeBodyNonintegrability
+#print axioms PoincareChapterVI.chapterVISection103_affineCoefficient_eq_gaussian
+#print axioms PoincareChapterVI.chapterVIRuppertInverse_mul_minor
+#print axioms PoincareChapterVI.chapterVIRuppertGaussianMinor_det_ne_zero
+#print axioms PoincareChapterVI.chapterVIComplexRuppertMatrix_mulVec_eq_zero
+#print axioms PoincareChapterVI.chapterVISection103_no_projective_infinitesimal_rotation

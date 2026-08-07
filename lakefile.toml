@@ -1,0 +1,21 @@
+name = "poincare-chapter-vi"
+version = "0.1.0"
+defaultTargets = ["PoincareChapterVI"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "51e6992efd06126df61a496bebf8f49482a4e129"
+
+[[require]]
+name = "leancompcert"
+git = "https://github.com/gersh/leancompcert"
+rev = "5ea090f16e1609b0d2db4137cd2ef07a0c195e8a"
+
+[[require]]
+name = "lean-pool"
+git = "https://github.com/Vilin97/lean-pool"
+rev = "2e5c2609a7caca149208d736288cdffff7871b70"
+
+[[lean_lib]]
+name = "PoincareChapterVI"
