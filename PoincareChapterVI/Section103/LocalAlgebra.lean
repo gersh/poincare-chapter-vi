@@ -85,6 +85,67 @@ theorem localIntersectionMultiplicity_comm (K : Type*) [Field K] (p : Fin 2 → 
   unfold localIntersectionMultiplicity LocalIntersectionAlgebra
   rw [localIntersectionIdeal_comm K p f g]
 
+/-- A two-by-two local change of generators.  If
+
+`f = x₂ * c + l * u` and `g = x₂ * t + l * s`,
+
+and the determinant `c * s - u * t` does not vanish at the point, then `(f,g)` and
+`(x₂,l)` generate the same ideal in the local ring.  This is the exact algebraic core of the
+smooth-tangent-line calculation at the affine origin. -/
+theorem localIntersectionIdeal_eq_of_matrixFactorization
+    (K : Type*) [Field K] (p : Fin 2 → K)
+    (f g x₂ l c u t s : PlanePolynomial K)
+    (hf : f = x₂ * c + l * u) (hg : g = x₂ * t + l * s)
+    (hdet : MvPolynomial.eval p (c * s - u * t) ≠ 0) :
+    localIntersectionIdeal K p f g =
+      Ideal.span {
+        algebraMap (PlanePolynomial K) (PlaneLocalRing K p) x₂,
+        algebraMap (PlanePolynomial K) (PlaneLocalRing K p) l} := by
+  let φ : PlanePolynomial K →+* PlaneLocalRing K p := algebraMap _ _
+  let Δ : PlanePolynomial K := c * s - u * t
+  have hΔmem : Δ ∈ affinePointComplement K p := by
+    simpa [Δ, affinePointComplement] using hdet
+  have hΔunit : IsUnit (φ Δ) :=
+    IsLocalization.map_units (PlaneLocalRing K p) ⟨Δ, hΔmem⟩
+  apply le_antisymm
+  · rw [localIntersectionIdeal]
+    refine Ideal.span_le.2 ?_
+    intro z hz
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hz
+    rcases hz with rfl | rfl
+    · rw [hf, map_add, map_mul, map_mul]
+      exact (Ideal.mem_span_pair.2 ⟨φ c, φ u, by ring⟩)
+    · rw [hg, map_add, map_mul, map_mul]
+      exact (Ideal.mem_span_pair.2 ⟨φ t, φ s, by ring⟩)
+  · refine Ideal.span_le.2 ?_
+    intro z hz
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hz
+    have hfmem : φ f ∈ localIntersectionIdeal K p f g :=
+      Ideal.subset_span (Set.mem_insert _ _)
+    have hgmem : φ g ∈ localIntersectionIdeal K p f g :=
+      Ideal.subset_span (Set.mem_insert_of_mem _ (Set.mem_singleton _))
+    rcases hz with rfl | rfl
+    · apply (Ideal.unit_mul_mem_iff_mem _ hΔunit).1
+      have hcomb : φ Δ * φ x₂ = φ s * φ f - φ u * φ g := by
+        rw [hf, hg]
+        simp only [map_add, map_mul, Δ]
+        rw [map_sub, map_mul, map_mul]
+        ring
+      rw [hcomb]
+      exact (localIntersectionIdeal K p f g).sub_mem
+        ((localIntersectionIdeal K p f g).mul_mem_left _ hfmem)
+        ((localIntersectionIdeal K p f g).mul_mem_left _ hgmem)
+    · apply (Ideal.unit_mul_mem_iff_mem _ hΔunit).1
+      have hcomb : φ Δ * φ l = -φ t * φ f + φ c * φ g := by
+        rw [hf, hg]
+        simp only [map_add, map_mul, Δ]
+        rw [map_sub, map_mul, map_mul]
+        ring
+      rw [hcomb]
+      exact (localIntersectionIdeal K p f g).add_mem
+        ((localIntersectionIdeal K p f g).mul_mem_left _ hfmem)
+        ((localIntersectionIdeal K p f g).mul_mem_left _ hgmem)
+
 /-- The intrinsic local-algebra length for the affine-origin contribution in §103. -/
 def chapterVIOriginLocalIntersectionMultiplicity : ℕ∞ :=
   localIntersectionMultiplicity ℂ 0 chapterVISection103AffinePolynomial
