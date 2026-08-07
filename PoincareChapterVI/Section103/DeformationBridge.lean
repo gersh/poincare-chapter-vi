@@ -6,7 +6,7 @@ Authors: Gershon Bialer
 
 import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
-import PoincareChapterVI.Section103.RotationSource
+import PoincareChapterVI.Section103.RotationFamily
 
 /-!
 # The differential step in Poincaré's Chapter VI, §103
@@ -34,6 +34,7 @@ open scoped Topology
 open Filter
 open AffineIntersectionCount
 open RotationSource
+open RotationFamily
 
 private abbrev State := Fin 3 → ℂ
 private abbrev Bivar := MvPolynomial (Fin 2) ℂ
@@ -99,6 +100,89 @@ structure PersistentSingularDeformation (variation : Bivar) where
   parameterDerivative_eq_eval : ∀ point ∈ finiteIntersectionPoints,
     dDelta point parameterVelocity = MvPolynomial.eval point variation
 
+/-- The straight parameter slice through the base state, holding Poincaré's `t` and `z`
+coordinates fixed and varying only `γ₃`. -/
+def parameterLine (base : State) (γ : ℂ) : State :=
+  base + γ • parameterVelocity
+
+theorem hasDerivAt_parameterLine (base : State) :
+    HasDerivAt (parameterLine base) parameterVelocity 0 := by
+  rw [hasDerivAt_pi]
+  intro i
+  have h := (hasDerivAt_const (0 : ℂ) (base i)).add
+    ((hasDerivAt_id (𝕜 := ℂ) (0 : ℂ)).mul_const (parameterVelocity i))
+  convert h using 1
+  · funext γ
+    rfl
+  · simp
+
+/-- Poincaré's local analytic deformation data with the source identification stated
+geometrically: on the straight `γ₃` slice, the local distance equation agrees near the base
+point with the actual squared-distance sextic obtained by rotating the second ellipse.
+
+Unlike `PersistentSingularDeformation`, this structure does not assume a coefficient-level
+derivative equality.  That equality is derived from `RotationFamily` below. -/
+structure PhysicalPersistentSingularDeformation (rotation : Fin 3 → ℂ) where
+  delta : (point : Fin 2 → ℂ) → State → ℂ
+  state : (point : Fin 2 → ℂ) → ℂ → State
+  dDelta : (point : Fin 2 → ℂ) → State →L[ℂ] ℂ
+  timeDerivative : (point : Fin 2 → ℂ) → ℂ
+  delta_hasFDerivAt : ∀ point ∈ finiteIntersectionPoints,
+    HasFDerivAt (delta point) (dDelta point) (state point 0)
+  state_hasDerivAt : ∀ point ∈ finiteIntersectionPoints,
+    HasDerivAt (state point) (fixedSingularValueVelocity (timeDerivative point)) 0
+  persistent_zero : ∀ point ∈ finiteIntersectionPoints,
+    (fun γ ↦ delta point (state point γ)) =ᶠ[𝓝 0] (fun _ ↦ 0)
+  stationary_in_time : ∀ point ∈ finiteIntersectionPoints,
+    dDelta point (timeVelocity (timeDerivative point)) = 0
+  parameter_slice_agrees : ∀ point ∈ finiteIntersectionPoints,
+    (fun γ ↦ delta point (parameterLine (state point 0) γ)) =ᶠ[𝓝 0]
+      (fun γ ↦ movingAffineDistance rotation γ point)
+
+theorem physical_parameterDerivative_eq_eval
+    (rotation : Fin 3 → ℂ) (deformation : PhysicalPersistentSingularDeformation rotation)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    deformation.dDelta point parameterVelocity =
+      MvPolynomial.eval point
+        (∑ axis, rotation axis • affineDirectionalPolynomial axis) := by
+  have hDeltaLine :
+      HasFDerivAt (deformation.delta point) (deformation.dDelta point)
+        (parameterLine (deformation.state point 0) 0) := by
+    simpa [parameterLine] using deformation.delta_hasFDerivAt point hpoint
+  have hsliceComposition :=
+    HasFDerivAt.comp_hasDerivAt
+      (f := parameterLine (deformation.state point 0)) 0
+      hDeltaLine
+      (hasDerivAt_parameterLine (deformation.state point 0))
+  have hslice :
+      HasDerivAt (fun γ ↦ deformation.delta point
+        (parameterLine (deformation.state point 0) γ))
+        (deformation.dDelta point parameterVelocity) 0 :=
+    by simpa [Function.comp_def] using hsliceComposition
+  have hphysical :
+      HasDerivAt (fun γ ↦ deformation.delta point
+        (parameterLine (deformation.state point 0) γ))
+        (MvPolynomial.eval point
+          (∑ axis, rotation axis • affineDirectionalPolynomial axis)) 0 :=
+    (hasDerivAt_movingAffineDistance_eq_source rotation point).congr_of_eventuallyEq
+      (deformation.parameter_slice_agrees point hpoint)
+  exact hslice.unique hphysical
+
+/-- Forget the geometric presentation after deriving its source polynomial equality. -/
+def PhysicalPersistentSingularDeformation.toPersistent
+    (rotation : Fin 3 → ℂ) (deformation : PhysicalPersistentSingularDeformation rotation) :
+    PersistentSingularDeformation
+      (∑ axis, rotation axis • affineDirectionalPolynomial axis) where
+  delta := deformation.delta
+  state := deformation.state
+  dDelta := deformation.dDelta
+  timeDerivative := deformation.timeDerivative
+  delta_hasFDerivAt := deformation.delta_hasFDerivAt
+  state_hasDerivAt := deformation.state_hasDerivAt
+  persistent_zero := deformation.persistent_zero
+  stationary_in_time := deformation.stationary_in_time
+  parameterDerivative_eq_eval := physical_parameterDerivative_eq_eval rotation deformation
+
 /-- Poincaré's equation (2), simultaneously at the twenty-four certified singular points. -/
 theorem eval_eq_zero_of_persistentSingularDeformation
     {variation : Bivar} (deformation : PersistentSingularDeformation variation)
@@ -124,6 +208,16 @@ theorem rotation_eq_zero_of_persistentSingularDeformation
   apply rotation_eq_zero_of_source_vanishes rotation
   intro point hpoint
   exact eval_eq_zero_of_persistentSingularDeformation deformation point hpoint
+
+/-- Fully source-identified §103 conclusion: the local analytic persistence data need only
+agree with the genuine rotating-ellipse distance equation; the coefficient derivative is then
+proved rather than supplied as an assumption. -/
+theorem rotation_eq_zero_of_physicalPersistentSingularDeformation
+    (rotation : Fin 3 → ℂ)
+    (deformation : PhysicalPersistentSingularDeformation rotation) :
+    rotation = 0 :=
+  rotation_eq_zero_of_persistentSingularDeformation rotation
+    (deformation.toPersistent rotation)
 
 /-- The §102 dimension count joined to the §103 finite certificate.  The map
 `essentialCoordinates` represents Poincaré's assertion that, after fixing the eccentricities,
@@ -154,5 +248,18 @@ theorem not_twoParameter_persistentSingularFamily
     rotation_eq_zero_of_persistentSingularDeformation rotation
       (deformation_of_kernel rotation hcoordinates)
   exact hrotationNonzero hrotationZero
+
+/-- The §102 dimension contradiction with the physical source bridge built in.  The remaining
+input is now exactly the analytic singular-locus persistence asserted by Poincaré, together with
+local agreement of its distance equation with the rotating Kepler ellipses. -/
+theorem not_twoParameter_physicalPersistentSingularFamily
+    (essentialCoordinates : (Fin 3 → ℂ) →L[ℂ] (Fin 2 → ℂ))
+    (deformation_of_kernel : ∀ rotation,
+      essentialCoordinates rotation = 0 →
+        PhysicalPersistentSingularDeformation rotation) :
+    False := by
+  apply not_twoParameter_persistentSingularFamily essentialCoordinates
+  intro rotation hrotation
+  exact (deformation_of_kernel rotation hrotation).toPersistent rotation
 
 end PoincareChapterVI.DeformationBridge

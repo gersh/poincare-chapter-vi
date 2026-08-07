@@ -52,6 +52,10 @@ transcription of the 1892 text.
 
 ## What the current Lean files actually establish
 
+Update to the §103 row: `RotationFamily.lean` now closes the physical parameter-derivative
+identification. The remaining §102–103 obligation is the persistent analytic singular-branch
+construction and its local agreement with the rotating-ellipse distance equation.
+
 The source-facing files added after the standalone-project commit are deliberately small lemmas:
 
 - `ChapterVILatticeReduction.lean`: exact lattice/shear identities for finite tables and summable
@@ -346,15 +350,21 @@ shape ideal. Their remainders have degree at most 23, while a checked three-by-t
 minor is nonsingular modulo 53; hence a derivative combination vanishing at all 24 roots has zero
 rotation vector. `RotationSource.lean` proves that the certified cleared sextics are exactly the
 source derivatives obtained from rotating the physical second ellipse.
+`RotationFamily.lean` integrates those infinitesimal generators to an explicit rational Cayley
+family. It proves complex orthogonality wherever the Cayley denominators are nonzero,
+differentiates the moving axes and all cubic coefficients, and proves that the derivative of the
+actual affine squared-distance sextic is evaluation of the certified source polynomial.
 `DeformationBridge.lean` now proves the differential passage that Poincaré writes as equation
 (2). For a differentiable persistent zero `Δ(t(γ₃),z(γ₃),γ₃)=0`, its exact chain rule uses
 `∂Δ/∂t=0` and `dz/dγ₃=0` to conclude `∂Δ/∂γ₃=0`. The file applies this simultaneously to the
 24 certified points and then proves the final rank-nullity contradiction: a continuous linear
 map from three rotation directions to two essential singular coordinates has a nonzero kernel,
 while the exact rotation certificate forces every kernel direction admitting those local
-deformations to be zero. The remaining source-level task is narrower but still substantive:
-construct the analytic singular branches asserted in §102 and prove that their local derivatives
-are the physical rotation sextics already identified in `RotationSource.lean`.
+deformations to be zero. Its physical deformation structure derives the coefficient-level
+parameter derivative from local agreement with the genuine rotation family; it no longer assumes
+that derivative equality. The remaining source-level task is narrower but still substantive:
+construct the persistent analytic singular branches asserted in §102 and prove their local
+agreement with the rotating-ellipse distance equation.
 
 ## LeanCompCert trust boundary
 
