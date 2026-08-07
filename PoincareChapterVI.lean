@@ -8,6 +8,7 @@ import PoincareChapterVI.Section103.RuppertBounds
 import PoincareChapterVI.Section103.RuppertNormalization
 import PoincareChapterVI.Section103.RuppertIrreducibility
 import PoincareChapterVI.Section103.ProjectiveIrreducibility
+import PoincareChapterVI.Section103.ReducedCurve
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

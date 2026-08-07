@@ -121,6 +121,36 @@ r_polynomial = sym.expand(
     * sum(second_reduced[index] * coordinate_differences[index] for index in range(3))
 )
 
+# This is the exact cleared table copied into `Section103/ReducedCurve.lean`.
+# Keeping the independent derivation here makes transcription errors observable without placing
+# SymPy in Lean's trusted proof path.
+expected_cleared_r_coefficients = {
+    (4, 3, 0): -90285 - 99840 * I,
+    (4, 2, 1): 136890,
+    (4, 1, 2): 112515 + 62400 * I,
+    (3, 4, 0): -106500 - 96000 * I,
+    (3, 3, 1): 1051430 + 914464 * I,
+    (3, 2, 2): -1041300 - 468000 * I,
+    (3, 1, 3): 38470 + 186464 * I,
+    (3, 0, 4): -88500 - 60000 * I,
+    (2, 4, 1): 150000,
+    (2, 3, 2): -1388400 - 112320 * I,
+    (2, 1, 4): 1388400 - 112320 * I,
+    (2, 0, 5): -150000,
+    (1, 4, 2): 88500 - 60000 * I,
+    (1, 3, 3): -38470 + 186464 * I,
+    (1, 2, 4): 1041300 - 468000 * I,
+    (1, 1, 5): -1051430 + 914464 * I,
+    (1, 0, 6): 106500 - 96000 * I,
+    (0, 3, 4): -112515 + 62400 * I,
+    (0, 2, 5): -136890,
+    (0, 1, 6): 90285 - 99840 * I,
+}
+assert (
+    dict(sym.Poly(438750 * r_polynomial, x, y, z).terms())
+    == expected_cleared_r_coefficients
+)
+
 assert sym.Poly(p_polynomial, x, y, z).total_degree() == 6
 assert sym.Poly(r_polynomial, x, y, z).total_degree() == 7
 assert sym.gcd(

@@ -48,7 +48,7 @@ transcription of the 1892 text.
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`; `ChapterVI.lean` supplies only a conditional restricted-problem interface | Formalize the Chapter V input, analytic dependence/enumeration of singular roots, prove the required ratio Jacobian is nonzero, and justify the passage from coefficient relations to singular-locus relations |
-| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` defines the homogeneous sextic, proves its `z = 1` chart is the certified affine polynomial, proves homogeneous-factor and dehomogenization lemmas, rules out a hidden `z` factor, and proves the projective polynomial irreducible; the rotation minor excludes infinitesimal projective invariance | Formalize projective Bézout, local intersection multiplicities, persistence under deformation, and the final implication to Poincaré's parameter-rank contradiction |
+| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` proves the homogeneous sextic irreducible; `Section103/ReducedCurve.lean` records the exact cleared septic, proves it homogeneous, and proves the sextic and septic have no common component; the rotation minor excludes infinitesimal projective invariance | Kernel-check the full source-formula-to-septic-table normalization, then formalize projective Bézout, local intersection multiplicities, persistence under deformation, and the final implication to Poincaré's parameter-rank contradiction |
 
 ## What the current Lean files actually establish
 
@@ -82,6 +82,10 @@ The source-facing files added after the standalone-project commit are deliberate
   an exact mod-17 Bézout/resultant certificate that closes the exceptional case and proves
   irreducibility of the affine polynomial over `ℂ`; and a source-facing homogenization proof
   that transfers this result to the projective sextic while excluding a factor at infinity.
+- `Section103/ReducedCurve.lean`: the reduced septic's exact cleared Gaussian coefficient table,
+  homogeneity of that table, and a proof that the table curve has no common component with the
+  sextic. The independent audit derives the table from the source
+  formula; turning that last normalization into a scalable kernel-checked computation remains open.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 
@@ -298,10 +302,11 @@ ellipse convolution, checks a modular inverse for a 35-row minor with LeanCompCe
 `verified_decide`, proves that the Gaussian determinant is nonzero, and lifts full column rank to
 `ℂ`. The Ruppert files verify the quotient-rule identity, sharp factor bounds, a mod-17 Bézout
 certificate for squarefreeness over `ℂ(x)`, and the conclusion that the exact affine polynomial is
-irreducible over `ℂ`. The remaining algebraic-geometric tasks are the precise affine/projective
-transfer, projective Bézout, and local intersection-multiplicity theorems. Those steps, rather than
-the finite rank or affine irreducibility calculation, now form the gap in the repair of Poincaré's
-jump from "more than 36 intersections" to "the curves coincide."
+irreducible over `ℂ`; the projective module transfers that theorem to the homogeneous sextic.
+Lean also proves the cleared septic table has no common component with the sextic. The remaining
+algebraic-geometric tasks are a kernel-checked derivation of that table from the displayed source
+formula, projective Bézout, and local intersection-multiplicity theorems. Those steps now form the
+gap in the repair of Poincaré's jump from "more than 36 intersections" to "the curves coincide."
 
 ## LeanCompCert trust boundary
 

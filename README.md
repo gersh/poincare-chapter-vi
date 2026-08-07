@@ -31,6 +31,8 @@ The strongest newly completed component is the finite algebra in §103:
 - the affine certificate is transferred to the exact homogeneous sextic: homogeneous factors are
   recovered through a scaling-variable argument, and the nonzero `x⁴y²` coefficient rules out a
   factor hidden on the line `z = 0`, proving projective irreducibility over `ℂ`;
+- the cleared degree-seven reduced curve is formalized, proved homogeneous, and proved to share no
+  component with the sextic by an exact restriction to the line `x = 0`;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
