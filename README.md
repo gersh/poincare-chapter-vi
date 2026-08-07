@@ -40,7 +40,9 @@ The strongest newly completed component is the finite algebra in §103:
   transverse; both points at infinity are placed in explicit affine charts with initial degrees
   `(2,3)`; LeanCompCert checks the corresponding sparse Sylvester determinants, and a
   coefficientwise sound jet implementation linked to Mathlib's verified Bird determinant proves
-  that the genuine polynomial resultants have trailing degree exactly eight;
+  that the genuine polynomial resultants have trailing degree exactly eight; the certificates are
+  then mapped into `ℂ` and identified with the exact iterated-polynomial forms of the two
+  dehomogenized projective chart pairs;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
