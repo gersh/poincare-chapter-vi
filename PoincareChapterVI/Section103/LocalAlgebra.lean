@@ -35,19 +35,14 @@ theorem affinePointIdeal_isPrime (K : Type*) [Field K] (p : Fin 2 → K) :
     (affinePointIdeal K p).IsPrime :=
   RingHom.ker_isPrime (MvPolynomial.eval p)
 
-def affinePointComplement (K : Type*) [Field K] (p : Fin 2 → K) :
-    Submonoid (PlanePolynomial K) where
-  carrier := {f | MvPolynomial.eval p f ≠ 0}
-  one_mem' := by simp
-  mul_mem' := by
-    intro f g hf hg
-    simpa using mul_ne_zero hf hg
+abbrev affinePointComplement (K : Type*) [Field K] (p : Fin 2 → K) :
+    Submonoid (PlanePolynomial K) :=
+  @Ideal.primeCompl _ _ (affinePointIdeal K p) (affinePointIdeal_isPrime K p)
 
 theorem affinePointComplement_eq_primeCompl (K : Type*) [Field K] (p : Fin 2 → K) :
     affinePointComplement K p =
       @Ideal.primeCompl _ _ (affinePointIdeal K p) (affinePointIdeal_isPrime K p) := by
-  ext f
-  simp [affinePointComplement, affinePointIdeal, Ideal.primeCompl]
+  rfl
 
 abbrev PlaneLocalRing (K : Type*) [Field K] (p : Fin 2 → K) :=
   Localization (affinePointComplement K p)
@@ -104,7 +99,8 @@ theorem localIntersectionIdeal_eq_of_matrixFactorization
   let φ : PlanePolynomial K →+* PlaneLocalRing K p := algebraMap _ _
   let Δ : PlanePolynomial K := c * s - u * t
   have hΔmem : Δ ∈ affinePointComplement K p := by
-    simpa [Δ, affinePointComplement] using hdet
+    simpa [Δ, affinePointComplement, affinePointIdeal, Ideal.primeCompl,
+      RingHom.mem_ker] using hdet
   have hΔunit : IsUnit (φ Δ) :=
     IsLocalization.map_units (PlaneLocalRing K p) ⟨Δ, hΔmem⟩
   apply le_antisymm
