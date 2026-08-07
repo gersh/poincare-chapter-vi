@@ -14,6 +14,7 @@ import PoincareChapterVI.Section103.LocalIntersection
 import PoincareChapterVI.Section103.LocalAlgebra
 import PoincareChapterVI.Section103.OriginMultiplicity
 import PoincareChapterVI.Section103.TriangularAlgebra
+import PoincareChapterVI.Section103.InfinityLocalModel
 import PoincareChapterVI.Section103.IntersectionResultant
 import PoincareChapterVI.Section103.ResultantSoundness
 import PoincareChapterVI.Section103.ChartResultant

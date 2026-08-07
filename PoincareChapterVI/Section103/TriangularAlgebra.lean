@@ -197,6 +197,10 @@ instance [CommRing K] : Algebra K (TriangularAlgebra K a b c d) where
     ext i
     fin_cases i <;> simp [algebraMap, C, mul, smul_eq_mul]
 
+@[simp] theorem algebraMap_apply [CommRing K] (r : K) :
+    Algebra.algebraMap K (TriangularAlgebra K a b c d) r =
+      C (a := a) (b := b) (c := c) (d := d) r := rfl
+
 instance [CommRing K] : Module.Free K (TriangularAlgebra K a b c d) :=
   Module.Free.of_basis basis
 
@@ -236,6 +240,51 @@ theorem Y_mul_Z_sq [CommRing K] :
   ext i
   fin_cases i <;>
     simp [Y, Z, basis, linearEquivTuple, C, mul, pow_succ]
+
+/-- The augmentation ideal of the finite model is nilpotent of exponent six. -/
+theorem pow_six_eq_zero_of_coeff_zero [CommRing K]
+    (x : TriangularAlgebra K a b c d) (hx : x.coeff 0 = 0) : x ^ 6 = 0 := by
+  ext i
+  fin_cases i <;> simp [pow_succ, mul, hx]
+
+def constantCoeff [CommRing K] : TriangularAlgebra K a b c d →+* K where
+  toFun x := x.coeff 0
+  map_one' := by simp
+  map_mul' x y := by simp [mul]
+  map_zero' := by simp
+  map_add' x y := by simp
+
+@[simp] theorem constantCoeff_apply [CommRing K] (x : TriangularAlgebra K a b c d) :
+    constantCoeff x = x.coeff 0 := rfl
+
+/-- In the triangular model, an element is a unit exactly when its constant coordinate is
+nonzero. -/
+theorem isUnit_iff_coeff_zero_ne [Field K] (x : TriangularAlgebra K a b c d) :
+    IsUnit x ↔ x.coeff 0 ≠ 0 := by
+  constructor
+  · intro hx hzero
+    have hmap : IsUnit (constantCoeff x) := hx.map constantCoeff
+    rw [isUnit_iff_ne_zero] at hmap
+    exact hmap hzero
+  · intro hx
+    let n : TriangularAlgebra K a b c d := C (x.coeff 0)⁻¹ * x - 1
+    have hn0 : n.coeff 0 = 0 := by
+      simp [n, C, mul, hx]
+    have hn : IsNilpotent n := ⟨6, pow_six_eq_zero_of_coeff_zero n hn0⟩
+    have hC : IsUnit (C (a := a) (b := b) (c := c) (d := d) (x.coeff 0)) := by
+      exact (isUnit_iff_ne_zero.mpr hx).map algebraMap
+    have heq :
+        C (a := a) (b := b) (c := c) (d := d) (x.coeff 0) * (1 + n) = x := by
+      rw [show 1 + n = C (a := a) (b := b) (c := c) (d := d) (x.coeff 0)⁻¹ * x by
+        simp [n]]
+      rw [← mul_assoc]
+      have hCC : C (a := a) (b := b) (c := c) (d := d) (x.coeff 0) *
+          C (a := a) (b := b) (c := c) (d := d) (x.coeff 0)⁻¹ = 1 := by
+        ext i
+        fin_cases i <;> simp [C, mul, hx]
+      rw [hCC, one_mul]
+    rw [← heq]
+    exact hC.mul hn.isUnit_one_add
 
 end TriangularAlgebra
 

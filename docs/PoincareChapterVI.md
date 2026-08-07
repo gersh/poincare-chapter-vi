@@ -105,7 +105,10 @@ The source-facing files added after the standalone-project commit are deliberate
   by the two infinity charts, proves its relations
   `y² + a z⁴ + b z⁵ = 0`, `y z² + c z⁴ + d z⁵ = 0`, `z⁶ = 0`, and proves that its displayed
   basis `1,z,z²,z³,z⁴,z⁵,y,yz` has dimension eight. Identifying each certified chart ideal with
-  its corresponding triangular local ideal remains.
+  its corresponding triangular local ideal remains. `InfinityLocalModel.lean` proves the model's
+  augmentation ideal is nilpotent, characterizes its units by nonzero constant coordinate, and
+  consequently extends polynomial evaluation to the plane local ring; all three triangular
+  relations lie in the kernel of that local map.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 
