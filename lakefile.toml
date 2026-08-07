@@ -10,7 +10,7 @@ rev = "51e6992efd06126df61a496bebf8f49482a4e129"
 [[require]]
 name = "leancompcert"
 git = "https://github.com/gersh/leancompcert"
-rev = "5ea090f16e1609b0d2db4137cd2ef07a0c195e8a"
+rev = "3a9774c1d7411736101a16bbe757d12024f9407d"
 
 [[require]]
 name = "lean-pool"
