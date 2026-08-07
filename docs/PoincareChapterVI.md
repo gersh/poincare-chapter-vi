@@ -108,7 +108,9 @@ The source-facing files added after the standalone-project commit are deliberate
   its corresponding triangular local ideal remains. `InfinityLocalModel.lean` proves the model's
   augmentation ideal is nilpotent, characterizes its units by nonzero constant coordinate, and
   consequently extends polynomial evaluation to the plane local ring; all three triangular
-  relations lie in the kernel of that local map.
+  relations lie in the kernel of that local map. It also constructs an eight-step socle
+  filtration from the triangular ideal to the maximal ideal and proves that the actual localized
+  quotient has module length eight.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 
@@ -330,8 +332,9 @@ Lean also proves the cleared septic table has no common component with the sexti
 LeanCompCert-backed sparse certificate now derives that table from the displayed source formula.
 The two order-eight resultant certificates are formally identified with the exact complex
 dehomogenized chart pairs, rather than only with parallel coefficient tables.
-The affine-origin local multiplicity is proved to be two, and the common eight-dimensional
-triangular algebra for the two infinity germs is formalized. The remaining algebraic-geometric
+The affine-origin local multiplicity is proved to be two, and the common triangular local ideal
+for the two infinity germs is proved to have intrinsic quotient length eight. The remaining
+algebraic-geometric
 tasks are the exact chart-to-normal-form certificates, projective Bézout, and then the
 deformation/rank implication. Those steps now
 form the gap in the repair of Poincaré's jump from "more than 36 intersections" to "the curves

@@ -46,7 +46,8 @@ The strongest newly completed component is the finite algebra in §103:
 - local intersection multiplicity is defined intrinsically as the module length of the quotient
   by the two curve equations in the plane's local ring, with named specializations for the affine
   origin and both points at infinity; the affine-origin length is proved to be two, and the
-  eight-dimensional triangular quotient model needed at infinity is constructed explicitly;
+  triangular local-model ideal needed at infinity is proved intrinsically to have quotient
+  length eight by an explicit composition series;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 

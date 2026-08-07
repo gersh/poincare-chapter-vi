@@ -36,4 +36,5 @@ import PoincareChapterVI
 #print axioms PoincareChapterVI.TriangularAlgebra.pow_six_eq_zero_of_coeff_zero
 #print axioms PoincareChapterVI.TriangularAlgebra.isUnit_iff_coeff_zero_ne
 #print axioms PoincareChapterVI.InfinityLocalModel.localModelIdeal_le_ker
+#print axioms PoincareChapterVI.InfinityLocalModel.localModelIdeal_quotient_length_eq_eight
 #print axioms PoincareChapterVI.chapterVISection103_no_projective_infinitesimal_rotation
