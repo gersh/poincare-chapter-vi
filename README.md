@@ -36,12 +36,16 @@ The strongest newly completed component is the finite algebra in §103:
 - a sparse `ℚ[i]` evaluator, checked through LeanCompCert and proved correct with respect to
   `MvPolynomial`, derives every coefficient of that septic directly from Poincaré's reduced
   source formula and the physical cubic vectors;
+- the affine-origin tangent cone and tangent line are derived from the source curves and proved
+  transverse; both points at infinity are placed in explicit affine charts with initial degrees
+  `(2,3)`, and LeanCompCert checks the corresponding sparse Sylvester determinants vanish to
+  exactly order eight;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the projective Bézout/local-intersection argument
-in §103. The detailed
+complex contour-pinch theorem in §§95–100 and the semantic local-intersection/Bézout bridge in
+§103 (including correctness of the finite subset determinant as a polynomial resultant). The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
 ## Build

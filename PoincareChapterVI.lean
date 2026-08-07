@@ -10,6 +10,8 @@ import PoincareChapterVI.Section103.RuppertIrreducibility
 import PoincareChapterVI.Section103.ProjectiveIrreducibility
 import PoincareChapterVI.Section103.ReducedCurve
 import PoincareChapterVI.Section103.ReducedCurveSource
+import PoincareChapterVI.Section103.LocalIntersection
+import PoincareChapterVI.Section103.IntersectionResultant
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument
