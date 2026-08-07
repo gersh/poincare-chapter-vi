@@ -69,13 +69,27 @@ The strongest newly completed component is the finite algebra in §103:
   a three-parameter rotation family whose singular values factor locally through two essential
   coordinates is impossible once every kernel direction supplies the stated persistent
   singular deformation.
+- the formerly assumed local singular branch is now constructed by Mathlib's complex
+  implicit-function theorem from the coupled equations `(Δ, ∂Δ/∂t) = (0,0)`. Lean proves that
+  both equations persist, computes the branch derivative, and derives `dz/dγ₃ = 0` from
+  Poincaré's stated local constancy of the singular value. An explicit inverse proves that the
+  fiber Jacobian is invertible as soon as `∂Δ/∂z ≠ 0` and `∂²Δ/∂t² ≠ 0`. The resulting branch is
+  packaged directly into the physical §103 endgame, rather than supplied as an arbitrary
+  persistence hypothesis.
+- the existing shape-basis and separability certificates are now differentiated to prove that
+  the exact affine sextic and reduced septic meet transversely at all 24 finite non-origin
+  points. Lean constructs an explicit inverse for each two-gradient Jacobian, giving an
+  IFT-ready nondegeneracy theorem for the algebraic `(x,y)` curve pair without a new certificate.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the analytic singular-branch construction spanning
-§§102–103. The physical derivative identification is now closed: the remaining §102–103
-obligation is to construct the persistent local analytic singular branches and prove their
-agreement with the local rotating-ellipse distance equation. The formal chain rule and the
-three-versus-two rank contradiction are closed. The
+complex contour-pinch theorem in §§95–100 and the source-specific analytic input spanning
+§§102–103. The abstract branch construction and physical derivative identification are now
+closed. What remains in §§102–103 is to instantiate the coupled system with Poincaré's actual
+complexified Kepler equations, relate the now-proved transverse `(P,R)` Jacobians to the
+`(Δ,Δₜ)` coordinates (or build the moving algebraic branch directly), prove the §102
+two-coordinate factorization that makes each `z` locally constant in a kernel direction, and
+discharge the local agreement with the rotating-ellipse distance equation. The formal chain
+rule and the three-versus-two rank contradiction are closed. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this
@@ -108,6 +122,12 @@ prove the rank result.
   that it presents each source chart's localized intersection algebra.
   `RotationFamily.lean` constructs and differentiates the genuine Cayley rotation family and
   identifies its squared-distance derivative with the certified source sextic.
+  `SingularBranches.lean` constructs persistent roots of `(Δ, ∂Δ/∂t)` by the complex implicit
+  function theorem; `SingularJacobian.lean` reduces its invertibility condition to two scalar
+  nonvanishing conditions; and `ImplicitDeformation.lean` feeds the constructed branch into the
+  physical endgame.
+  `AffineTransversality.lean` differentiates the shape-basis identities and proves an invertible
+  Jacobian for the exact sextic–septic pair at every certified finite point.
   `DeformationBridge.lean` formalizes Poincaré's differential equation (2), simultaneous
   vanishing at the 24 points, and the final three-parameter versus two-coordinate contradiction.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
