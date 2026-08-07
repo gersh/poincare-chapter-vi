@@ -48,7 +48,7 @@ transcription of the 1892 text.
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`; `ChapterVI.lean` supplies only a conditional restricted-problem interface | Formalize the Chapter V input, analytic dependence/enumeration of singular roots, prove the required ratio Jacobian is nonzero, and justify the passage from coefficient relations to singular-locus relations |
-| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; `Section103/RuppertCertificate.lean` proves full rank of the 64×35 Ruppert matrix through a kernel-checked finite-field inverse and lifts it to `ℂ`; `Section103/RuppertKernel.lean` proves that the selected polynomial coefficients are exactly that matrix action and hence that the explicit bounded encoding has trivial kernel; the rotation minor excludes infinitesimal projective invariance | Prove surjectivity of the bounded-polynomial encoding and the sharp normalized-factor degree bounds to finish the exact Ruppert criterion; then prove projective Bézout, local intersection multiplicities, persistence under deformation, and the final implication to Poincaré's parameter-rank contradiction |
+| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; `Section103/RuppertCertificate.lean` proves full rank of the 64×35 Ruppert matrix and lifts it to `ℂ`; `Section103/RuppertKernel.lean` identifies the matrix action with polynomial coefficients; `Section103/RuppertBounds.lean` proves completeness of the bounded encoding; `Section103/RuppertNormalization.lean` verifies the sharp normalized-factor degree bounds and forces both normalized components to vanish; the rotation minor excludes infinitesimal projective invariance | Exclude the squarefree/perfect-power exceptional case so that vanishing of the normalized pair rules out every proper factor; then prove projective Bézout, local intersection multiplicities, persistence under deformation, and the final implication to Poincaré's parameter-rank contradiction |
 
 ## What the current Lean files actually establish
 
@@ -71,11 +71,13 @@ The source-facing files added after the standalone-project commit are deliberate
   the degree-seven estimate for the reduced curve.
 - `ChapterVIPinchModel.lean`: exact integration of the real symmetric quadratic-pinch model,
   decomposition into `-log k` plus a regular term, and the regular term's limit as `k → 0⁺`.
-- `Section103/Geometry.lean`, `Section103/RuppertCertificate.lean`, and
-  `Section103/RuppertKernel.lean`: exact derivation of the affine coefficient table,
+- `Section103/Geometry.lean`, `Section103/RuppertCertificate.lean`,
+  `Section103/RuppertKernel.lean`, `Section103/RuppertBounds.lean`, and
+  `Section103/RuppertNormalization.lean`: exact derivation of the affine coefficient table,
   kernel-checked modular inverse, lift of the nonzero minor through Gaussian integers to full
   column rank over `ℂ`, and a symbolic proof that the matrix is the coefficient map of the
-  bounded Ruppert differential expression.
+  bounded Ruppert differential expression; completeness of the coefficient encoding; and the
+  sharp top-degree cancellation in the normalized solution associated to a factorization.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 

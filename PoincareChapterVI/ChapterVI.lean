@@ -17,6 +17,8 @@ import PoincareChapterVI.ChapterVISingularityAlgebra
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
 import PoincareChapterVI.Section103.RuppertKernel
+import PoincareChapterVI.Section103.RuppertBounds
+import PoincareChapterVI.Section103.RuppertNormalization
 import PoincareChapterVI.ChapterVIWeierstrass
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 

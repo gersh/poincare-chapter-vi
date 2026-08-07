@@ -4,6 +4,8 @@ import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
 import PoincareChapterVI.Section103.RuppertKernel
+import PoincareChapterVI.Section103.RuppertBounds
+import PoincareChapterVI.Section103.RuppertNormalization
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

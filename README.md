@@ -21,13 +21,16 @@ The strongest newly completed component is the finite algebra in §103:
 - the nonzero minor is lifted through Gaussian integers to `ℂ`, proving full column rank;
 - Lean expands the bounded-degree polynomial differential expression and proves that its 35
   selected coefficients are exactly the certified minor applied to the coefficient vector;
-- therefore the Ruppert expression has trivial kernel on the explicit 35-coordinate encoding;
+- every polynomial pair in Ruppert's `(3,4)` and `(4,2)` bidegree boxes is reconstructed from
+  that encoding, so the bounded differential equation has only the zero solution;
+- the factor-derived solution is normalized by `deg_y(a)/4`; a univariate-in-`y` calculation
+  formally verifies cancellation of its top coefficient and the sharp `(4,2)` bound;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100, the representation and normalized-factor degree
-lemmas completing Ruppert's irreducibility criterion, and the projective Bézout/local-intersection
+complex contour-pinch theorem in §§95–100, exclusion of the squarefree/perfect-power exception
+needed to finish Ruppert's irreducibility consequence, and the projective Bézout/local-intersection
 argument in §103. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
