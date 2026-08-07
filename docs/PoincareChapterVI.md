@@ -48,7 +48,7 @@ transcription of the 1892 text.
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`; `ChapterVI.lean` supplies only a conditional restricted-problem interface | Formalize the Chapter V input, analytic dependence/enumeration of singular roots, prove the required ratio Jacobian is nonzero, and justify the passage from coefficient relations to singular-locus relations |
-| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` proves the homogeneous sextic irreducible; `Section103/ReducedCurve.lean` records the exact cleared septic and proves the two curves have no common component; `Section103/ReducedCurveSource.lean` uses LeanCompCert to prove the displayed source formula clears to that septic; `LocalIntersection.lean` proves the origin transversality and exact initial forms in both infinity charts; `LocalAlgebra.lean` defines the intrinsic local intersection lengths at all three exceptional points; `IntersectionResultant.lean` checks both sparse Sylvester determinants, `ResultantSoundness.lean` proves the genuine Mathlib resultants over `ℚ[i]` have trailing degree eight, and `ChartResultant.lean` identifies their maps to `ℂ` with the resultants of the exact dehomogenized chart equations; the rotation minor excludes infinitesimal projective invariance | Prove the tangent-cone/resultant-to-local-length theorems and projective Bézout, then prove persistence under deformation and the final parameter-rank contradiction |
+| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` proves the homogeneous sextic irreducible; `Section103/ReducedCurve.lean` records the exact cleared septic and proves the two curves have no common component; `Section103/ReducedCurveSource.lean` uses LeanCompCert to prove the displayed source formula clears to that septic; `LocalIntersection.lean` proves the origin transversality and exact initial forms in both infinity charts; `LocalAlgebra.lean` defines the intrinsic local intersection lengths at all three exceptional points; the origin has length two; `InfinityChartNormalForm.lean` uses exact checked membership certificates to identify both localized chart ideals with eight-dimensional triangular models and proves both infinity lengths equal eight; `IntersectionResultant.lean`, `ResultantSoundness.lean`, and `ChartResultant.lean` independently prove the exact chart resultants have trailing degree eight; the rotation minor excludes infinitesimal projective invariance | Prove projective Bézout, then persistence under deformation and the final parameter-rank contradiction |
 
 ## What the current Lean files actually establish
 
@@ -104,13 +104,17 @@ The source-facing files added after the standalone-project commit are deliberate
   origin has length two. `TriangularAlgebra.lean` constructs the finite local normal form shared
   by the two infinity charts, proves its relations
   `y² + a z⁴ + b z⁵ = 0`, `y z² + c z⁴ + d z⁵ = 0`, `z⁶ = 0`, and proves that its displayed
-  basis `1,z,z²,z³,z⁴,z⁵,y,yz` has dimension eight. Identifying each certified chart ideal with
-  its corresponding triangular local ideal remains. `InfinityLocalModel.lean` proves the model's
+  basis `1,z,z²,z³,z⁴,z⁵,y,yz` has dimension eight. `InfinityLocalModel.lean` proves the model's
   augmentation ideal is nilpotent, characterizes its units by nonzero constant coordinate, and
   consequently extends polynomial evaluation to the plane local ring; all three triangular
   relations lie in the kernel of that local map. It also constructs an eight-step socle
   filtration from the triangular ideal to the maximal ideal and proves that the actual localized
-  quotient has module length eight.
+  quotient has module length eight. `InfinityNormalFormCertificate.lean` and its generated data
+  give exact `ℚ(i)` polynomial membership witnesses in both directions for both source charts;
+  the executable normalizer checks all ten identities and its soundness proof transports them to
+  `MvPolynomial (Fin 2) ℂ`. `InfinityChartNormalForm.lean` proves each common cofactor is a unit in
+  the chart local ring, identifies each two-generator source ideal with its triangular model, and
+  concludes that both intrinsic infinity multiplicities equal eight.
 - `ChapterVI.lean`: a passage-by-passage status statement and a conditional interface from the
   missing Darboux nonvanishing result to the project's restricted nonintegrability theorem.
 
@@ -332,11 +336,10 @@ Lean also proves the cleared septic table has no common component with the sexti
 LeanCompCert-backed sparse certificate now derives that table from the displayed source formula.
 The two order-eight resultant certificates are formally identified with the exact complex
 dehomogenized chart pairs, rather than only with parallel coefficient tables.
-The affine-origin local multiplicity is proved to be two, and the common triangular local ideal
-for the two infinity germs is proved to have intrinsic quotient length eight. The remaining
-algebraic-geometric
-tasks are the exact chart-to-normal-form certificates, projective Bézout, and then the
-deformation/rank implication. Those steps now
+The affine-origin local multiplicity is proved to be two. Exact normal-form membership
+certificates identify both infinity chart ideals with their triangular local ideals, proving that
+both intrinsic infinity multiplicities are eight. The remaining algebraic-geometric tasks are
+projective Bézout and then the deformation/rank implication. Those steps now
 form the gap in the repair of Poincaré's jump from "more than 36 intersections" to "the curves
 coincide."
 

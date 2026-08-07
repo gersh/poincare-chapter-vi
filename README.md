@@ -45,15 +45,17 @@ The strongest newly completed component is the finite algebra in §103:
   dehomogenized projective chart pairs;
 - local intersection multiplicity is defined intrinsically as the module length of the quotient
   by the two curve equations in the plane's local ring, with named specializations for the affine
-  origin and both points at infinity; the affine-origin length is proved to be two, and the
-  triangular local-model ideal needed at infinity is proved intrinsically to have quotient
-  length eight by an explicit composition series;
+  origin and both points at infinity; the affine-origin length is proved to be two; exact sparse
+  normal-form certificates identify both infinity-chart ideals with their triangular local-model
+  ideals after localization; and both intrinsic infinity multiplicities are proved to be eight
+  using an explicit eight-step composition series;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the geometric local-intersection/projective-Bézout
-bridge in §103. The finite determinant/resultant correctness gap is now closed. The detailed
+bridge in §103. The chart-to-local-length gap and finite determinant/resultant correctness gap are
+now closed; the remaining §103 bridge is projective Bézout and the deformation/rank argument. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
 ## Build
@@ -78,7 +80,8 @@ prove the rank result.
 - `PoincareChapterVI/Section103/`: ellipse geometry, Ruppert machinery, finite certificate, and
   its exact polynomial-kernel, irreducibility, resultant, and local-algebra consequences.  The
   infinity-chart standard basis is represented by an explicit eight-dimensional algebra with
-  basis `1, z, z^2, z^3, z^4, z^5, y, yz`.
+  basis `1, z, z^2, z^3, z^4, z^5, y, yz`, and exact generated membership certificates prove
+  that it presents each source chart's localized intersection algebra.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
 - `docs/PoincareChapterVI.md`: passage-by-passage source audit and open mathematical gaps.
 - `research/chapter_vi_section_103_audit.py`: exact untrusted research audit.
