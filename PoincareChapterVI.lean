@@ -19,6 +19,7 @@ import PoincareChapterVI.Section103.InfinityChartNormalForm
 import PoincareChapterVI.Section103.IntersectionResultant
 import PoincareChapterVI.Section103.ResultantSoundness
 import PoincareChapterVI.Section103.ChartResultant
+import PoincareChapterVI.Section103.AffineIntersectionCount
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

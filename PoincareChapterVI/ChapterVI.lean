@@ -104,9 +104,12 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   irreducibility matrix. `chapterVIComplexRuppertMatrix_mulVec_eq_zero` reconstructs the exact
   `64 × 35` matrix from the ellipse coefficients and proves full column rank: LeanCompCert's
   `verified_decide` checks a `35 × 35` inverse modulo 29, and the proof lifts the nonzero minor
-  through Gaussian integers to `ℂ`. The generic bounded-degree statement of Ruppert's criterion,
-  the projective Bézout theorem, and Poincaré's local intersection multiplicities are not yet
-  formalized.
+  through Gaussian integers to `ℂ`. The bounded-degree Ruppert argument proves absolute
+  irreducibility. Exact localized normal forms prove the exceptional multiplicities `2`, `8`,
+  and `8`. A bidirectional affine-elimination certificate then proves directly that the remaining
+  affine common-zero locus consists of exactly 24 distinct non-origin points; its separability
+  check is a mod-53 coefficient-list Bézout certificate transported to Mathlib polynomials.
+  The deformation/persistence step and final parameter-rank implication are not yet formalized.
   The theorems at the end of this file instead connect coefficient nonvanishing to the restricted
   dense Poincaré set and thence to the project's modified nonintegrability proof.
 

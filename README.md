@@ -51,11 +51,16 @@ The strongest newly completed component is the finite algebra in §103:
   using an explicit eight-step composition series;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
+- an exact bidirectional affine-elimination certificate identifies the common-zero ideal with
+  `x + h(y), y² q(y)`; a mod-53 coefficient-list Bézout certificate proves that the degree-24
+  residual polynomial `q` is separable, and Lean concludes that the origin plus exactly 24
+  distinct non-origin points are all affine intersections of the source sextic and septic.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the geometric local-intersection/projective-Bézout
-bridge in §103. The chart-to-local-length gap and finite determinant/resultant correctness gap are
-now closed; the remaining §103 bridge is projective Bézout and the deformation/rank argument. The detailed
+complex contour-pinch theorem in §§95–100 and the deformation/rank argument in §103. The
+specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
+correctness gap are now closed; a general projective Bézout theorem is no longer needed for this
+exact example. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
 ## Build
