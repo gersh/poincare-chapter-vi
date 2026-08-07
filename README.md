@@ -25,13 +25,15 @@ The strongest newly completed component is the finite algebra in §103:
   that encoding, so the bounded differential equation has only the zero solution;
 - the factor-derived solution is normalized by `deg_y(a)/4`; a univariate-in-`y` calculation
   formally verifies cancellation of its top coefficient and the sharp `(4,2)` bound;
+- an explicit Bézout identity after specialization to `ZMod 17` proves that the quartic is
+  squarefree over `ℂ(x)`; this excludes the repeated-factor exception and proves that the exact
+  affine polynomial is irreducible over `ℂ`;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100, exclusion of the squarefree/perfect-power exception
-needed to finish Ruppert's irreducibility consequence, and the projective Bézout/local-intersection
-argument in §103. The detailed
+complex contour-pinch theorem in §§95–100 and the projective Bézout/local-intersection argument
+in §103. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
 ## Build
@@ -54,7 +56,7 @@ prove the rank result.
 
 - `PoincareChapterVI/ChapterVI*.lean`: formal reductions corresponding to §§90–103.
 - `PoincareChapterVI/Section103/`: ellipse geometry, Ruppert machinery, finite certificate, and
-  its exact polynomial-kernel interpretation.
+  its exact polynomial-kernel and irreducibility consequences.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
 - `docs/PoincareChapterVI.md`: passage-by-passage source audit and open mathematical gaps.
 - `research/chapter_vi_section_103_audit.py`: exact untrusted research audit.

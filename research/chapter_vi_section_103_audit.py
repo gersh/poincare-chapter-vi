@@ -284,7 +284,45 @@ assert ruppert_pivot_rows == (
 ruppert_minor = ruppert_domain_matrix.extract(list(ruppert_pivot_rows), list(range(35)))
 assert ruppert_minor.det() != ruppert_domain_matrix.domain.zero
 
+
+# The Lean irreducibility proof also uses a much smaller squarefreeness certificate.
+# Specialize the cleared affine polynomial at x=1, reduce modulo 17, and map i to 4
+# (so 4^2=-1). The resulting quartic has the displayed explicit Bézout identity
+# with its derivative.
+def gaussian_rational_mod17(value: sym.Expr) -> int:
+    real, imaginary = sym.expand(value).as_real_imag()
+
+    def rational_mod17(coefficient: sym.Expr) -> int:
+        coefficient = sym.Rational(coefficient)
+        return (
+            int(coefficient.p) % 17
+            * pow(int(coefficient.q), -1, 17)
+            % 17
+        )
+
+    return (rational_mod17(real) + 4 * rational_mod17(imaginary)) % 17
+
+
+cleared_specialization = sym.Poly(
+    sym.expand(50700 * p_polynomial.subs({z: 1, x: 1})), y, extension=I
+)
+specialized_coefficients = tuple(
+    gaussian_rational_mod17(cleared_specialization.coeff_monomial(y**degree))
+    for degree in range(5)
+)
+assert specialized_coefficients == (3, 13, 7, 16, 3)
+specialized_polynomial = sym.Poly(
+    sum(coefficient * y**degree for degree, coefficient in enumerate(specialized_coefficients)),
+    y,
+    modulus=17,
+)
+bezout_left = sym.Poly(y**2 + 7 * y, y, modulus=17)
+bezout_right = sym.Poly(4 + 15 * y + 5 * y**2 + 4 * y**3, y, modulus=17)
+assert bezout_left * specialized_polynomial + bezout_right * specialized_polynomial.diff() == 1
+assert int(sym.resultant(specialized_polynomial, specialized_polynomial.diff())) % 17 == 2
+
 print("gcd(P,R) = 1")
 print("local contributions: origin=2, x-infinity=8, y-infinity=8")
 print(f"rotation certificate determinant = {certificate_determinant}")
 print("Ruppert matrix: shape=(64,35), rank=35")
+print("squarefreeness specialization: resultant=2 mod 17")

@@ -6,6 +6,7 @@ import PoincareChapterVI.Section103.RuppertCertificate
 import PoincareChapterVI.Section103.RuppertKernel
 import PoincareChapterVI.Section103.RuppertBounds
 import PoincareChapterVI.Section103.RuppertNormalization
+import PoincareChapterVI.Section103.RuppertIrreducibility
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument
