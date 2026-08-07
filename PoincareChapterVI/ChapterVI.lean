@@ -16,6 +16,7 @@ import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.ChapterVISingularityAlgebra
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
+import PoincareChapterVI.Section103.RuppertKernel
 import PoincareChapterVI.ChapterVIWeierstrass
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 

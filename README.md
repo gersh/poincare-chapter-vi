@@ -19,12 +19,16 @@ The strongest newly completed component is the finite algebra in §103:
 - a `35 × 35` inverse modulo 29 is checked by LeanCompCert's kernel-backed
   `verified_decide`;
 - the nonzero minor is lifted through Gaussian integers to `ℂ`, proving full column rank;
+- Lean expands the bounded-degree polynomial differential expression and proves that its 35
+  selected coefficients are exactly the certified minor applied to the coefficient vector;
+- therefore the Ruppert expression has trivial kernel on the explicit 35-coordinate encoding;
 - a separate exact determinant proves that no nonzero infinitesimal relative rotation preserves
   the projective curve, even up to scale.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100, the bounded-degree form of Ruppert's irreducibility
-criterion, and the projective Bézout/local-intersection argument in §103. The detailed
+complex contour-pinch theorem in §§95–100, the representation and normalized-factor degree
+lemmas completing Ruppert's irreducibility criterion, and the projective Bézout/local-intersection
+argument in §103. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
 ## Build
@@ -46,7 +50,8 @@ prove the rank result.
 ## Layout
 
 - `PoincareChapterVI/ChapterVI*.lean`: formal reductions corresponding to §§90–103.
-- `PoincareChapterVI/Section103/`: ellipse geometry, Ruppert machinery, and finite certificate.
+- `PoincareChapterVI/Section103/`: ellipse geometry, Ruppert machinery, finite certificate, and
+  its exact polynomial-kernel interpretation.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
 - `docs/PoincareChapterVI.md`: passage-by-passage source audit and open mathematical gaps.
 - `research/chapter_vi_section_103_audit.py`: exact untrusted research audit.

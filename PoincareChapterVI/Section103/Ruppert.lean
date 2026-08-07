@@ -43,6 +43,34 @@ theorem chapterVI_ruppertExpression_factor
   rw [hcommute]
   ring
 
+/-- The gradient pair `(∂x f, ∂y f)` is always a Ruppert solution.  Subtracting a scalar
+multiple of it is the normalization used in Ruppert's bounded-degree criterion. -/
+theorem chapterVI_ruppertExpression_sub_gradient
+    (Dx Dy : Derivation R A A)
+    (hcommute : ∀ p : A, Dy (Dx p) = Dx (Dy p))
+    (f g h : A) (scalar : R)
+    (hsolution : chapterVIRuppertExpression Dx Dy f g h = 0) :
+    chapterVIRuppertExpression Dx Dy f
+      (g - scalar • Dx f) (h - scalar • Dy f) = 0 := by
+  simp only [chapterVIRuppertExpression, map_sub, Derivation.map_smul] at hsolution ⊢
+  rw [hcommute]
+  simp only [Algebra.smul_def] at hsolution ⊢
+  convert hsolution using 1; ring
+
+/-- A factor-derived solution may therefore be normalized by any scalar multiple of the
+gradient.  Ruppert's proof chooses the ratio of the factor's y-degree to the y-degree of `f`,
+which cancels the top y-coefficient and gives the bound `deg_y h ≤ n - 2`. -/
+theorem chapterVI_ruppertExpression_normalizedFactor
+    (Dx Dy : Derivation R A A)
+    (hcommute : ∀ p : A, Dy (Dx p) = Dx (Dy p))
+    (a b : A) (scalar : R) :
+    chapterVIRuppertExpression Dx Dy (a * b)
+      (b * Dx a - scalar • Dx (a * b))
+      (b * Dy a - scalar • Dy (a * b)) = 0 :=
+  chapterVI_ruppertExpression_sub_gradient Dx Dy hcommute
+    (a * b) (b * Dx a) (b * Dy a) scalar
+    (chapterVI_ruppertExpression_factor Dx Dy hcommute a b)
+
 /-- Thus, in a domain, triviality of every Ruppert solution rules out a factor whose derivative
 is nonzero.  This is the logical step used after a full-rank matrix certificate. -/
 theorem chapterVI_no_factor_of_ruppert_solutions_trivial

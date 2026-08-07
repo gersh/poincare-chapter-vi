@@ -7,4 +7,5 @@ import PoincareChapterVI
 #print axioms PoincareChapterVI.chapterVIRuppertInverse_mul_minor
 #print axioms PoincareChapterVI.chapterVIRuppertGaussianMinor_det_ne_zero
 #print axioms PoincareChapterVI.chapterVIComplexRuppertMatrix_mulVec_eq_zero
+#print axioms PoincareChapterVI.chapterVI_encodedRuppertKernel_trivial
 #print axioms PoincareChapterVI.chapterVISection103_no_projective_infinitesimal_rotation

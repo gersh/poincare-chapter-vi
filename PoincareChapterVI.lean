@@ -3,6 +3,7 @@ import PoincareChapterVI.ChapterVI
 import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
+import PoincareChapterVI.Section103.RuppertKernel
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument
