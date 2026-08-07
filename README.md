@@ -59,11 +59,19 @@ The strongest newly completed component is the finite algebra in §103:
   algebra of those 24 points; their degree-at-most-23 univariate remainders have a nonsingular
   three-coefficient minor, certified by an inverse modulo 53, so Lean proves that a rotation whose
   derivative vanishes at all 24 points must be zero. A separate LeanCompCert check identifies the
-  cleared sextics with the finite convolution derived from the physical ellipse rotations.
+  cleared sextics with the finite convolution derived from the physical ellipse rotations;
+- Poincaré's §103 chain-rule step is now formalized: a persistent singular zero with fixed
+  singular value, stationary in the ellipse parameter, has zero derivative in the varying
+  orbital parameter. A rank-nullity theorem then joins this statement to the finite certificate:
+  a three-parameter rotation family whose singular values factor locally through two essential
+  coordinates is impossible once every kernel direction supplies the stated persistent
+  singular deformation.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the deformation-to-vanishing implication spanning
-§§102–103. The
+§§102–103. The remaining §102–103 obligation is now specifically to construct the local analytic
+singular branches and prove that their derivatives agree with the physical rotation sextics—the
+formal chain rule and the three-versus-two rank contradiction are closed. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this
@@ -94,6 +102,8 @@ prove the rank result.
   infinity-chart standard basis is represented by an explicit eight-dimensional algebra with
   basis `1, z, z^2, z^3, z^4, z^5, y, yz`, and exact generated membership certificates prove
   that it presents each source chart's localized intersection algebra.
+  `DeformationBridge.lean` formalizes Poincaré's differential equation (2), simultaneous
+  vanishing at the 24 points, and the final three-parameter versus two-coordinate contradiction.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
 - `docs/PoincareChapterVI.md`: passage-by-passage source audit and open mathematical gaps.
 - `research/chapter_vi_section_103_audit.py`: exact untrusted research audit.

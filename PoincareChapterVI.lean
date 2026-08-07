@@ -21,6 +21,7 @@ import PoincareChapterVI.Section103.ResultantSoundness
 import PoincareChapterVI.Section103.ChartResultant
 import PoincareChapterVI.Section103.AffineIntersectionCount
 import PoincareChapterVI.Section103.RotationSource
+import PoincareChapterVI.Section103.DeformationBridge
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument
