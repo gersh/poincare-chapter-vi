@@ -20,6 +20,7 @@ import PoincareChapterVI.Section103.IntersectionResultant
 import PoincareChapterVI.Section103.ResultantSoundness
 import PoincareChapterVI.Section103.ChartResultant
 import PoincareChapterVI.Section103.AffineIntersectionCount
+import PoincareChapterVI.Section103.RotationSource
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

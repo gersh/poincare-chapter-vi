@@ -54,12 +54,19 @@ The strongest newly completed component is the finite algebra in §103:
 - an exact bidirectional affine-elimination certificate identifies the common-zero ideal with
   `x + h(y), y² q(y)`; a mod-53 coefficient-list Bézout certificate proves that the degree-24
   residual polynomial `q` is separable, and Lean concludes that the origin plus exactly 24
-  distinct non-origin points are all affine intersections of the source sextic and septic.
+  distinct non-origin points are all affine intersections of the source sextic and septic;
+- the three source-level infinitesimal rotation sextics are reduced in the radical coordinate
+  algebra of those 24 points; their degree-at-most-23 univariate remainders have a nonsingular
+  three-coefficient minor, certified by an inverse modulo 53, so Lean proves that a rotation whose
+  derivative vanishes at all 24 points must be zero. A separate LeanCompCert check identifies the
+  cleared sextics with the finite convolution derived from the physical ellipse rotations.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the deformation/rank argument in §103. The
+complex contour-pinch theorem in §§95–100 and the deformation-to-vanishing implication spanning
+§§102–103. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
-correctness gap are now closed; a general projective Bézout theorem is no longer needed for this
+correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
+at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this
 exact example. The detailed
 [research map](docs/PoincareChapterVI.md) distinguishes checked results from open reconstruction.
 
