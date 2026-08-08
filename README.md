@@ -339,6 +339,11 @@ The strongest newly completed component is the finite algebra in §103:
   The same file provides a stronger interval-cell interface: if each compiled row encloses its
   entire rational cell, the cells cover `I × I` directly and no global Lipschitz estimate is
   required. This is the preferred route for the full campaign.
+- `ChapterVIDOuterArcUnitTrace.lean` reduces the exact rational quarter
+  `((1-t²)+2ti)/(1+t²)` to five primitive interval operations and handles the final quarter by an
+  exact `-i` rotation. `ChapterVIDOuterArcUnitCompiledGrid.lean` supplies all seventeen width-
+  `1/16` cells at 16 binary fractional bits. One compiled verdict checks all 85 operations, and
+  Lean proves that every `t ∈ I` is enclosed by a checked initial- and final-quarter rectangle.
 - `ChapterVIDOuterArcCompiledSample.lean` instantiates the compiled route at the initial corner of
   the initial outer arc. Both sparse factors there are `-10201/10001`; a 16-bit dyadic enclosure
   and the signed LeanCompCert checker prove that their product lies in the strictly positive
