@@ -317,6 +317,51 @@ theorem connectorSheet_eq_or_eq_neg_localBoundary
     intro s
     simpa only [Pi.neg_apply] using h (Set.mem_univ s)
 
+/-- Because the branch sign is constant along the connected local boundary, agreement at one
+parameter fixes the positive local branch everywhere. -/
+theorem connectorSheet_eq_localBoundary_of_eq_at
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side))
+    (base : I)
+    (hbase : sheet.root (model.connectorLocalBoundaryPoint side base) =
+      model.connectorLocalBoundaryRoot base) :
+    ∀ s : I,
+      sheet.root (model.connectorLocalBoundaryPoint side s) =
+        model.connectorLocalBoundaryRoot s := by
+  rcases model.connectorSheet_eq_or_eq_neg_localBoundary side sheet with hpositive | hnegative
+  · exact hpositive
+  · have heq : model.connectorLocalBoundaryRoot base =
+        -model.connectorLocalBoundaryRoot base := hbase.symm.trans (hnegative base)
+    have hzero : model.connectorLocalBoundaryRoot base = 0 := by
+      apply (mul_left_cancel₀ (by norm_num : (2 : ℂ) ≠ 0))
+      rw [mul_zero]
+      linear_combination heq
+    exact (model.connectorLocalBoundaryRoot_ne_zero base hzero).elim
+
+/-- The analogous one-point criterion selects the negative local branch everywhere. -/
+theorem connectorSheet_eq_neg_localBoundary_of_eq_at
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side))
+    (base : I)
+    (hbase : sheet.root (model.connectorLocalBoundaryPoint side base) =
+      -model.connectorLocalBoundaryRoot base) :
+    ∀ s : I,
+      sheet.root (model.connectorLocalBoundaryPoint side s) =
+        -model.connectorLocalBoundaryRoot s := by
+  rcases model.connectorSheet_eq_or_eq_neg_localBoundary side sheet with hpositive | hnegative
+  · have heq : model.connectorLocalBoundaryRoot base =
+        -model.connectorLocalBoundaryRoot base := (hpositive base).symm.trans hbase
+    have hzero : model.connectorLocalBoundaryRoot base = 0 := by
+      apply (mul_left_cancel₀ (by norm_num : (2 : ℂ) ≠ 0))
+      rw [mul_zero]
+      linear_combination heq
+    exact (model.connectorLocalBoundaryRoot_ne_zero base hzero).elim
+  · exact hnegative
+
 /-- Extend the compact connector root coordinate to a real integration parameter. -/
 def rectanglePointReal
     {massProduct : ℂ} {b d : ℤ}

@@ -422,12 +422,17 @@ The strongest newly completed component is the finite algebra in §103:
   connector contribution expected by the global placement package, and their finite collision
   limit is derived rather than postulated. The canonical formal sum of those four regular pieces
   and the positive local Morse piece now has the exact nonzero logarithmic asymptotic without a
-  separate algebraic decomposition hypothesis. It is not yet claimed to be one seamless contour:
-  the remaining geometric task is to prove the two local seam signs are compatible and identify
-  the resulting sum with the continuation of the original unit-circle integral. Producing the
-  one concrete compiled radicand grid per side
-  and proving that the two seam signs give one compatible middle continuation are the remaining
-  connector tasks. The
+  separate algebraic decomposition hypothesis. Connectedness reduces each local seam sign to one
+  equality at critical-value parameter zero. `ChapterVIDConnectorSeamCompiledGrid.lean` gives a
+  compiled route to both equalities: a one-dimensional LeanCompCert batch proves that each
+  radicand cell has positive real part or nonzero signed imaginary part, so Mathlib's principal
+  square root is continuous along the path. Square-root uniqueness then transports the compiled
+  outer normalization to the positive local Morse root. Two successful seam batches upgrade the
+  connector pair to `SeamCompatibleCertifiedConnectorPair` and its five-piece logarithmic limit.
+  It is not yet claimed that the five pieces are the deformation of the original unit-circle
+  integral; that source-contour identity remains a geometric theorem. Producing the concrete
+  compiled radicand and branch-cut grids per side is the remaining certificate-generation task.
+  The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
   sheet along the full shared boundary.
@@ -480,7 +485,11 @@ The strongest newly completed component is the finite algebra in §103:
   `lake exe chapter-vi-connector-cert reference-coarse 1024` runs the reference proposal/checking
   path on the proved narrow boxes. Its expected nonzero result currently has zero rejected cells,
   261 endpoint-adjacent unseparated cells, and zero failed integer claims across both connectors.
-  This is a regression witness for the cutoff-matching obligation, not a completed certificate.
+  The same run reports branch-cut intersections for the coarse product rectangles. Thus the
+  compiled seam interface is proved, but a passing artifact still needs tighter one-dimensional
+  enclosures (or a multi-chart transport certificate); the current diagnostic is not silently
+  treated as a successful run. This is a regression witness for the cutoff-matching obligation,
+  not a completed certificate.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

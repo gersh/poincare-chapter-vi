@@ -171,6 +171,69 @@ theorem exists_certifiedConnectorPair
     initial_tendsto := initialTendsto
     final_tendsto := finalTendsto }⟩
 
+/-- A connector pair whose two outer-normalized sheets both meet the positive local Morse sheet.
+By connectedness, one equality at each local seam fixes the branch along that entire seam. -/
+structure SeamCompatibleCertifiedConnectorPair
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) where
+  pair : CertifiedConnectorPair run model
+  initial_local_at_zero :
+    pair.initialSheet.root (model.connectorLocalBoundaryPoint .initial 0) =
+      model.connectorLocalBoundaryRoot 0
+  final_local_at_zero :
+    pair.finalSheet.root (model.connectorLocalBoundaryPoint .final 0) =
+      model.connectorLocalBoundaryRoot 0
+
+theorem SeamCompatibleCertifiedConnectorPair.initial_local
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (compatible : SeamCompatibleCertifiedConnectorPair run model) (s : I) :
+    compatible.pair.initialSheet.root
+        (model.connectorLocalBoundaryPoint .initial s) =
+      model.connectorLocalBoundaryRoot s :=
+  model.connectorSheet_eq_localBoundary_of_eq_at .initial
+    compatible.pair.initialSheet 0 compatible.initial_local_at_zero s
+
+theorem SeamCompatibleCertifiedConnectorPair.final_local
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (compatible : SeamCompatibleCertifiedConnectorPair run model) (s : I) :
+    compatible.pair.finalSheet.root
+        (model.connectorLocalBoundaryPoint .final s) =
+      model.connectorLocalBoundaryRoot s :=
+  model.connectorSheet_eq_localBoundary_of_eq_at .final
+    compatible.pair.finalSheet 0 compatible.final_local_at_zero s
+
+/-- All four seams of the five-piece contour now carry explicitly compatible square roots: the
+outer equalities come from the compiled normalization and the local equalities from the two
+single-point checks above. -/
+theorem SeamCompatibleCertifiedConnectorPair.all_seams
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (compatible : SeamCompatibleCertifiedConnectorPair run model) :
+    (∀ s : I,
+      compatible.pair.initialSheet.root
+          (model.connectorBoundaryPoint .initial s) =
+        model.connectorOuterBoundaryRoot run .initial s) ∧
+    (∀ s : I,
+      compatible.pair.initialSheet.root
+          (model.connectorLocalBoundaryPoint .initial s) =
+        model.connectorLocalBoundaryRoot s) ∧
+    (∀ s : I,
+      compatible.pair.finalSheet.root
+          (model.connectorLocalBoundaryPoint .final s) =
+        model.connectorLocalBoundaryRoot s) ∧
+    (∀ s : I,
+      compatible.pair.finalSheet.root
+          (model.connectorBoundaryPoint .final s) =
+        model.connectorOuterBoundaryRoot run .final s) :=
+  ⟨compatible.pair.initial_outer, compatible.initial_local,
+    compatible.final_local, compatible.pair.final_outer⟩
+
 /-- Assemble a certificate-selected connector pair into the global three-arc placement.
 The caller supplies only the actual source-sheet contribution and the five-piece contour
 decomposition; the connector contribution and its finite collision limit are no longer
@@ -259,8 +322,29 @@ theorem CertifiedConnectorPair.tendsto_fivePiece_inv_neg_log_smul
       (fun k : ℝ ↦ (-Real.log k)⁻¹ • pair.fivePieceContribution k)
       (𝓝[>] 0)
       (𝓝 ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
-        chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
+      chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
   pair.toFivePiecePlacement.tendsto_full_inv_neg_log_smul
+
+def SeamCompatibleCertifiedConnectorPair.fivePieceContribution
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (compatible : SeamCompatibleCertifiedConnectorPair run model) : ℝ → ℂ :=
+  compatible.pair.fivePieceContribution
+
+/-- A seam-compatible pair inherits the logarithmic limit, now with the branch equalities needed
+to interpret all five summands as one continued square-root sheet. -/
+theorem SeamCompatibleCertifiedConnectorPair.tendsto_fivePiece_inv_neg_log_smul
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (compatible : SeamCompatibleCertifiedConnectorPair run model) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ • compatible.fivePieceContribution k)
+      (𝓝[>] 0)
+      (𝓝 ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+        chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
+  compatible.pair.tendsto_fivePiece_inv_neg_log_smul
 
 /-- End-to-end certified-connector statement: nonvanishing witnesses for the coordinate and
 radicand on each side, together with the already compiled outer run, produce a five-piece

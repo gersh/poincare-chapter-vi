@@ -65,6 +65,11 @@ structure Stats where
   total : Nat := 0
   argumentRejected : Nat := 0
   unseparated : Nat := 0
+  notPositiveReal : Nat := 0
+  meetsNegativeRealRay : Nat := 0
+  meetsPositiveRealRay : Nat := 0
+  meetsNegativeImagRay : Nat := 0
+  meetsPositiveImagRay : Nat := 0
   failedClaims : Nat := 0
   deriving Repr
 
@@ -94,6 +99,26 @@ def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle)
             if stats.argumentRejected ≤ 12 then
               IO.println s!"argument rejected: {sideName side} connector={index}"
         | some trace =>
+            if trace.product.output.real.lower ≤ 0 then
+              stats := { stats with notPositiveReal := stats.notPositiveReal + 1 }
+            if trace.product.output.real.lower ≤ 0 &&
+                trace.product.output.imag.lower ≤ 0 &&
+                0 ≤ trace.product.output.imag.upper then
+              stats := { stats with meetsNegativeRealRay := stats.meetsNegativeRealRay + 1 }
+              if stats.meetsNegativeRealRay ≤ 12 then
+                IO.println s!"branch-cut unresolved: {sideName side} connector={index}"
+            if 0 ≤ trace.product.output.real.upper &&
+                trace.product.output.imag.lower ≤ 0 &&
+                0 ≤ trace.product.output.imag.upper then
+              stats := { stats with meetsPositiveRealRay := stats.meetsPositiveRealRay + 1 }
+            if trace.product.output.imag.lower ≤ 0 &&
+                trace.product.output.real.lower ≤ 0 &&
+                0 ≤ trace.product.output.real.upper then
+              stats := { stats with meetsNegativeImagRay := stats.meetsNegativeImagRay + 1 }
+            if 0 ≤ trace.product.output.imag.upper &&
+                trace.product.output.real.lower ≤ 0 &&
+                0 ≤ trace.product.output.real.upper then
+              stats := { stats with meetsPositiveImagRay := stats.meetsPositiveImagRay + 1 }
             let plusFactor := trace.laurentPlus.output.sub (trace.y.nsmul 2)
             let minusFactor := trace.laurentMinus.output.sub (trace.yInv.nsmul 2)
             match separation? plusFactor, separation? minusFactor with
@@ -114,6 +139,11 @@ def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle)
   IO.println s!"cells checked: {stats.total}"
   IO.println s!"argument-rejected cells: {stats.argumentRejected}"
   IO.println s!"unseparated cells: {stats.unseparated}"
+  IO.println s!"cells without a positive-real product enclosure: {stats.notPositiveReal}"
+  IO.println s!"product boxes meeting the nonpositive real ray: {stats.meetsNegativeRealRay}"
+  IO.println s!"product boxes meeting the nonnegative real ray: {stats.meetsPositiveRealRay}"
+  IO.println s!"product boxes meeting the nonpositive imaginary ray: {stats.meetsNegativeImagRay}"
+  IO.println s!"product boxes meeting the nonnegative imaginary ray: {stats.meetsPositiveImagRay}"
   IO.println s!"failed integer claims: {stats.failedClaims}"
   pure (if stats.argumentRejected = 0 && stats.unseparated = 0 &&
       stats.failedClaims = 0 then 0 else 1)
