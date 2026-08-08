@@ -143,7 +143,9 @@ The strongest newly completed component is the finite algebra in §103:
   verifying those values for Poincaré's actual moving cycle and carrying that cycle to the
   controlled symmetric model. The non-affine transport theorem itself is now formalized: a
   relative `C²` path homotopy inside the branch chart preserves the prepared inverse-square-root
-  contour integral, with closedness of the holomorphic one-form proved automatically.
+  contour integral, with closedness of the holomorphic one-form proved automatically. For convex
+  branch subdomains Lean constructs the canonical pointwise affine path homotopy and proves its
+  image stays in the domain.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

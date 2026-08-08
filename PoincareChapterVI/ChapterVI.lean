@@ -125,8 +125,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   germ with the formal series and proving the source cycle's factor values lie in one such chart
   remain open. `ChapterVIContourTransport.lean` proves genuine non-affine contour invariance for
   a relative `C²` path homotopy in that chart: for a holomorphic scalar integrand Lean constructs
-  the closed one-form and discharges Stokes' theorem automatically. What remains is to construct
-  this homotopy for Poincaré's actual admissible collision cycle. The predicates below state the
+  the closed one-form and discharges Stokes' theorem automatically. On a convex branch subdomain,
+  the canonical pointwise affine path homotopy is constructed and proved to remain inside the
+  domain. What remains is to place Poincaré's actual admissible collision cycle and local model in
+  such a deformation domain and verify their `C²` regularity. The predicates below state the
   corresponding restricted-problem inputs.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform

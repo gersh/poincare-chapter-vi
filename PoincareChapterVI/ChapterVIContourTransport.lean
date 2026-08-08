@@ -86,6 +86,26 @@ theorem chapterVIComplexScalarOneFormDerivative_symmetric
   rw [hu, hv]
   ring
 
+/-- The pointwise affine homotopy between two complex paths with the same endpoints, regarded as
+a path homotopy relative to `{0,1}`. -/
+def chapterVIAffinePathHomotopy
+    {a b : ℂ} (initial final : Path a b) : Path.Homotopy initial final where
+  toHomotopy := ContinuousMap.Homotopy.affine
+    (initial : C(I, ℂ)) (final : C(I, ℂ))
+  prop' := by
+    intro t x hx
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+    rcases hx with rfl | rfl
+    · simp [initial.source, final.source]
+    · simp [initial.target, final.target]
+
+@[simp]
+theorem chapterVIAffinePathHomotopy_apply
+    {a b : ℂ} (initial final : Path a b) (s t : I) :
+    chapterVIAffinePathHomotopy initial final (s, t) =
+      AffineMap.lineMap (initial t) (final t) (s : ℝ) :=
+  rfl
+
 /-- The complete checked data for transporting a complex contour through a branch domain while
 fixing its two endpoints.  Symmetry of `dω` is the closed-one-form condition used by Stokes'
 theorem. -/
@@ -215,5 +235,27 @@ theorem chapterVI_preparedInverseSquareRoot_curveIntegral_eq
     homotopy mapsInterior
     (chart.differentiableOn_inverseSquareRoot hquadratic hunit)
     hclosure hcontDiff
+
+/-- On a convex branch domain, the canonical pointwise affine homotopy stays in the domain.
+Consequently two sufficiently smooth paths with the same endpoints have equal integrals of a
+holomorphic scalar one-form. -/
+theorem chapterVI_curveIntegral_eq_of_holomorphic_affineHomotopy
+    {a b : ℂ} {f : ℂ → ℂ} {initial final : Path a b} {domain : Set ℂ}
+    (hconvex : Convex ℝ domain)
+    (hinitial : ∀ t, initial t ∈ domain)
+    (hfinal : ∀ t, final t ∈ domain)
+    (hf : DifferentiableOn ℂ f domain)
+    (hfClosure : ContinuousOn f (closure domain))
+    (hcontDiff : ContDiffOn ℝ 2
+      (fun st : ℝ × ℝ ↦ Set.IccExtend zero_le_one
+        ((chapterVIAffinePathHomotopy initial final).toHomotopy.extend st.1) st.2)
+      (Icc 0 1)) :
+    (∫ᶜ z in initial, chapterVIComplexScalarOneForm f z) =
+      ∫ᶜ z in final, chapterVIComplexScalarOneForm f z := by
+  apply chapterVI_curveIntegral_eq_of_holomorphic_homotopy
+    (chapterVIAffinePathHomotopy initial final) ?_ hf hfClosure hcontDiff
+  intro s _ t _
+  rw [chapterVIAffinePathHomotopy_apply]
+  exact hconvex.lineMap_mem (hinitial t) (hfinal t) s.2
 
 end PoincareChapterVI
