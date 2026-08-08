@@ -37,6 +37,10 @@ import PoincareChapterVI.Section103.DeformationBridge
 import PoincareChapterVI.Section103.ImplicitDeformation
 import PoincareChapterVI.ChapterVIDConnectorSeamCompiledGrid
 import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
+import PoincareChapterVI.ChapterVIDConnectorFactorPunctured
+import PoincareChapterVI.ChapterVILeanCompCertCartesianFactorDerivativeTrace
+import PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference
+import PoincareChapterVI.ChapterVIDConnectorFactorDerivativeCompiled
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

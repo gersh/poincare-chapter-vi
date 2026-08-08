@@ -503,16 +503,35 @@ The strongest newly completed component is the finite algebra in §103:
   `lake exe chapter-vi-connector-cert reference-factor-bulk 1024 261` exercises that exact
   arithmetic layout. It checks 1,526 bulk cells plus both endpoint anchors with zero rejected
   traces, zero unresolved factor boxes, and zero failed signed-integer claims. This is a passing
-  reference computation, not yet a kernel term instantiating `FactorBulkData`: the concrete
-  cutoff `261 / 1024` must still be proved to lie inside the continuity collar (or replaced by a
-  computably justified smaller cutoff). That quantitative cutoff-matching statement is now the
-  only endpoint-specific bridge between the generated table and the factor-bulk theorem.
+  reference computation. The earlier `FactorBulkData` interface required the concrete cutoff
+  `261 / 1024` to lie inside an existential continuity collar; continuity supplies no sound
+  numerical lower bound of that kind because the Morse length `L` may be arbitrarily small.
+  `ChapterVIDConnectorFactorPunctured.lean` removes that bad contract. Its compiled campaign
+  covers every seam point except the exact local endpoint, while the existing endpoint anchor and
+  exact Morse identity handle the endpoint. Lean then selects an arbitrary positive continuity
+  collar internally and proves that punctured coverage covers its complement. The end-to-end
+  theorem therefore has no quantitative collar premise. The remaining certificate task is a
+  scale-aware terminal campaign for the cells omitted by the passing `1024 / 261` bulk table.
+
+  The first such terminal campaign is now compiled as well. Lean proves the exact derivative of
+  the vanishing collision factor along an affine connector, including the literal exponent
+  `(100/30003)(u⁻³-u³)`, and reconstructs its interval trace from LeanCompCert results.
+  The reference table proves positive imaginary path derivative and positive real companion
+  factor on 240 initial-side cells (`763` through `1002`) and 252 final-side cells (`9` through
+  `260`). These 492 cells are divided into 41 independently compilable 12-cell artifacts;
+  generated kernel proofs establish 64-bit admissibility for every shard, and the reference
+  evaluator reports zero failed integer claims. Hash-bound receipts yield
+  `ReferenceCompiledRunVerdict.derivativeProduct_im_pos` without trusting the proposal generator.
+  The remaining endpoint problem is now exactly 30 cells—21 initial and 9 final—where the
+  interval box still contains the scale-dependent double zero. No fixed continuity-collar width
+  is assumed for them.
+
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
   A hash-bound LeanCompCert receipt plus the explicit `RunAdmission` premise then reconstructs
   `FactorBulkRunVerdict`. The checker is bidirectional in Lean as well: under the proved word-size
   admissibility bound, a zero result is equivalent to soundness of every encoded operation. This
-  closes the compiled-run plumbing, but it does not manufacture the missing collar bound.
+  closes the compiled-run plumbing without treating continuity as a numerical oracle.
 
   The concrete `1024 / 261` layout is now Lean data in
   `ChapterVIDConnectorFactorBulkReference.lean`. The full campaign is divided into 32 adjacent
@@ -526,8 +545,12 @@ The strongest newly completed component is the finite algebra in §103:
   `emit-factor-shard SIDE SHARD OUTPUT.c`, `emit-factor-anchor SIDE OUTPUT.c`,
   `check-factor-shard SIDE SHARD [OPTIONS]`, `check-factor-anchor SIDE [OPTIONS]`, and
   `check-factor-native [OPTIONS]`; the check commands also accept LeanCompCert's `--attest`
-  options. The 66-artifact reference evaluator reports zero failed claims. The collar inequality
-  `261 / 1024 ≤ collar.width` remains the separate analytic hypothesis.
+  options. The derivative campaign adds `reference-factor-derivative-shards`,
+  `stats-factor-derivative-shard SIDE SHARD`, `emit-factor-derivative-shard SIDE SHARD OUTPUT.c`,
+  and `check-factor-derivative-shard SIDE SHARD [OPTIONS]`. The 66-artifact bulk evaluator and
+  41-artifact derivative evaluator both report zero failed claims. The old bulk theorem's collar
+  inequality `261 / 1024 ≤ collar.width` remains visible only on that old fixed-cutoff route;
+  the punctured interface does not assume it.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
