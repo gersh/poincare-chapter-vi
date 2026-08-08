@@ -27,6 +27,54 @@ open scoped Topology
 
 namespace PoincareChapterVI
 
+/-- The source-algebra quantity whose nonvanishing makes the collision transverse to the external
+`z` parameter.  It is the first-coordinate partial derivative of the literal radicand at D. -/
+def chapterVIDParameterDerivative : ℂ :=
+  fderiv ℂ chapterVIDRadicand (chapterVIDZBase, chapterVIDTBase) (1, 0)
+
+/-- Because the chosen center is fiber-critical, differentiating the critical value along the
+center kills the center-motion term.  Thus the only finite transversality calculation required is
+the first-coordinate partial derivative of the original source radicand. -/
+theorem deriv_chapterVIDCriticalValue_eq_parameterDerivative :
+    deriv chapterVIDCriticalValue chapterVIDZBase =
+      chapterVIDParameterDerivative := by
+  have hcenterDeriv :=
+    analyticAt_chapterVIDCriticalCenter.hasStrictDerivAt.hasDerivAt
+  have hpair : HasDerivAt
+      (fun z : ℂ ↦ (z, chapterVIDCriticalCenter z))
+      (1, deriv chapterVIDCriticalCenter chapterVIDZBase) chapterVIDZBase :=
+    (hasDerivAt_id chapterVIDZBase).prodMk hcenterDeriv
+  have hradicand : HasFDerivAt chapterVIDRadicand
+      (fderiv ℂ chapterVIDRadicand (chapterVIDZBase, chapterVIDTBase))
+      (chapterVIDZBase, chapterVIDCriticalCenter chapterVIDZBase) := by
+    simpa only [chapterVIDCriticalCenter_base] using
+      analyticAt_chapterVIDRadicand.hasStrictFDerivAt.hasFDerivAt
+  have hcriticalDeriv :=
+    hradicand.comp_hasDerivAt chapterVIDZBase hpair
+  have hfiberZero :
+      fderiv ℂ chapterVIDRadicand (chapterVIDZBase, chapterVIDTBase) (0, 1) = 0 := by
+    have hzero :=
+      eventually_chapterVIDCriticalCenter_fiberDerivative_eq_zero.self_of_nhds
+    rw [chapterVIDCriticalCenter_base] at hzero
+    exact hzero
+  have hlinear :
+      fderiv ℂ chapterVIDRadicand (chapterVIDZBase, chapterVIDTBase)
+          (1, deriv chapterVIDCriticalCenter chapterVIDZBase) =
+      fderiv ℂ chapterVIDRadicand (chapterVIDZBase, chapterVIDTBase) (1, 0) := by
+    have hvector :
+        ((1 : ℂ), deriv chapterVIDCriticalCenter chapterVIDZBase) =
+          ((1 : ℂ), (0 : ℂ)) +
+            deriv chapterVIDCriticalCenter chapterVIDZBase •
+              ((0 : ℂ), (1 : ℂ)) := by
+      ext <;> simp
+    rw [hvector]
+    rw [map_add, map_smul, hfiberZero]
+    simp
+  unfold chapterVIDParameterDerivative
+  rw [← hlinear]
+  unfold chapterVIDCriticalValue
+  simpa only [Function.comp_def] using hcriticalDeriv.deriv
+
 /-- The local inverse `k ↦ z(k)` of the moving critical value, conditional on transversality. -/
 def chapterVIDCriticalParameterInverse
     (htransverse : deriv chapterVIDCriticalValue chapterVIDZBase ≠ 0) : ℂ → ℂ :=

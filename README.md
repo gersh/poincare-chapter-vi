@@ -223,12 +223,12 @@ The strongest newly completed component is the finite algebra in §103:
   `θ(z,v)=a(z,t(z,v))∂u/∂v`. Lean proves the exact pointwise one-form identity
   `a(z,t) dt/root(ψ) = θ(z,v) dv/root(k(z)+v²)` with the compatible local square-root sheet kept
   explicit.
-- conditional on the concrete finite transversality check `k'(z_D)≠0`, Lean now uses the complex
-  inverse-function theorem to make the moving critical value itself the local parameter. In the
-  resulting `(k,v)` coordinates the literal source radicand is exactly `k+v²`, and the complete
-  analytic numerator/Jacobian amplitude is transported into the same chart. The transversality
-  check is intentionally isolated as the next LeanCompCert-suitable source calculation; none of
-  the analytic inverse machinery is delegated to the certificate.
+- transversality is now discharged for the concrete D point: along the external `z` direction,
+  the two selected local inverse branches have nonzero derivatives, so the vanishing collision
+  factor has nonzero `z` derivative; its companion factor is already known nonzero. Hence
+  `k'(z_D)≠0`. Lean uses the complex inverse-function theorem to make `k` itself the local
+  parameter, proving unconditionally that the literal source radicand is `k+v²` and transporting
+  the complete analytic numerator/Jacobian amplitude into that chart.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

@@ -37,6 +37,7 @@ import PoincareChapterVI.ChapterVIJointPreparation
 import PoincareChapterVI.ChapterVIParametricMorse
 import PoincareChapterVI.ChapterVIMorseAmplitude
 import PoincareChapterVI.ChapterVICriticalParameter
+import PoincareChapterVI.ChapterVIDTransversality
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 
 /-!
