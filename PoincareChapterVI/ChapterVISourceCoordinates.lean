@@ -123,6 +123,20 @@ theorem analyticAt_chapterVIKeplerLocalInverse
   simpa only [chapterVIKeplerLocalInverse, hf, hderiv] using
     hf.analyticAt_localInverse hderiv
 
+/-- The derivative of the canonical Kepler inverse is the reciprocal of the source derivative. -/
+theorem hasDerivAt_chapterVIKeplerLocalInverse
+    (eccentricity x : ℂ) (hx : x ≠ 0)
+    (hcritical : chapterVIKeplerExponentialDerivative eccentricity x ≠ 0) :
+    HasDerivAt (chapterVIKeplerLocalInverse eccentricity x hx hcritical)
+      (chapterVIKeplerExponentialDerivative eccentricity x)⁻¹
+      (chapterVIKeplerExponential eccentricity x) := by
+  let hf := analyticAt_chapterVIKeplerExponential eccentricity hx
+  have hderiv : deriv (chapterVIKeplerExponential eccentricity) x ≠ 0 := by
+    rwa [deriv_chapterVIKeplerExponential eccentricity hx]
+  simpa only [chapterVIKeplerLocalInverse, hf, hderiv,
+    deriv_chapterVIKeplerExponential eccentricity hx] using
+    (hf.hasStrictDerivAt.to_localInverse hderiv).hasDerivAt
+
 @[simp]
 theorem chapterVIKeplerLocalInverse_apply_base
     (eccentricity x : ℂ) (hx : x ≠ 0)
@@ -168,6 +182,18 @@ theorem analyticAt_chapterVIPowerLocalInverse
     exact mul_ne_zero (Int.cast_ne_zero.mpr hdegree) (zpow_ne_zero _ hbase)
   simpa only [chapterVIPowerLocalInverse, hf, hderiv] using
     hf.analyticAt_localInverse hderiv
+
+/-- Derivative of the selected inverse branch of the integer power map. -/
+theorem hasDerivAt_chapterVIPowerLocalInverse
+    (degree : ℤ) (base : ℂ) (hbase : base ≠ 0) (hdegree : degree ≠ 0) :
+    HasDerivAt (chapterVIPowerLocalInverse degree base hbase hdegree)
+      (((degree : ℂ) * base ^ (degree - 1))⁻¹) (base ^ degree) := by
+  let hf : AnalyticAt ℂ (fun z : ℂ ↦ z ^ degree) base := analyticAt_id.zpow hbase
+  have hderiv : deriv (fun z : ℂ ↦ z ^ degree) base ≠ 0 := by
+    rw [deriv_zpow]
+    exact mul_ne_zero (Int.cast_ne_zero.mpr hdegree) (zpow_ne_zero _ hbase)
+  simpa only [chapterVIPowerLocalInverse, hf, hderiv, deriv_zpow] using
+    (hf.hasStrictDerivAt.to_localInverse hderiv).hasDerivAt
 
 @[simp]
 theorem chapterVIPowerLocalInverse_apply_base
@@ -221,6 +247,32 @@ theorem analyticAt_chapterVIPlanarKeplerLaurentMinus
     fun_prop
   have hdenominator : AnalyticAt ℂ (fun x : ℂ ↦ 2 * x) x := by fun_prop
   exact hnumerator.div hdenominator (mul_ne_zero (by norm_num) hx)
+
+/-- The first collision factor is analytic away from the two Laurent poles. -/
+theorem analyticAt_chapterVIPlanarCollisionFactorPlus
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta : ℂ)
+    {point : ℂ × ℂ} (hx : point.1 ≠ 0) (hy : point.2 ≠ 0) :
+    AnalyticAt ℂ (fun p : ℂ × ℂ ↦
+      chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+        secondEccentricity secondComplement beta p.1 p.2) point := by
+  have hfirst := (analyticAt_chapterVIPlanarKeplerLaurentPlus
+    firstEccentricity firstComplement hx).comp analyticAt_fst
+  have hsecond := (analyticAt_chapterVIPlanarKeplerLaurentPlus
+    secondEccentricity secondComplement hy).comp analyticAt_snd
+  exact hfirst.sub (analyticAt_const.mul hsecond)
+
+/-- The companion collision factor is analytic away from the two Laurent poles. -/
+theorem analyticAt_chapterVIPlanarCollisionFactorMinus
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero : ℂ)
+    {point : ℂ × ℂ} (hx : point.1 ≠ 0) (hy : point.2 ≠ 0) :
+    AnalyticAt ℂ (fun p : ℂ × ℂ ↦
+      chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+        secondEccentricity secondComplement betaZero p.1 p.2) point := by
+  have hfirst := (analyticAt_chapterVIPlanarKeplerLaurentMinus
+    firstEccentricity firstComplement hx).comp analyticAt_fst
+  have hsecond := (analyticAt_chapterVIPlanarKeplerLaurentMinus
+    secondEccentricity secondComplement hy).comp analyticAt_snd
+  exact hfirst.sub (analyticAt_const.mul hsecond)
 
 /-- Poincaré's concrete source radicand is analytic in `(x,y)` wherever both Laurent
 coordinates are nonzero. -/
@@ -292,6 +344,268 @@ def chapterVIPoincareRadicand
   chapterVIContourRadicand a c firstEccentricity firstComplement
     secondEccentricity secondComplement beta betaZero base hx hy
     hfirstCritical hsecondCritical hc (point.1, point.2 ^ c)
+
+/-- The local map from Poincaré's literal `(z,t)` coordinates back to the two eccentric-anomaly
+exponentials `(x,y)`.  Naming this map makes the analytic part of the source-coordinate bridge
+independent of either collision factor. -/
+def chapterVIPoincareAnomalyPair
+    (a c : ℤ) (firstEccentricity secondEccentricity : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (point : ℂ × ℂ) : ℂ × ℂ :=
+  let firstMean := point.2 ^ c
+  let secondMeanBase := chapterVIKeplerExponential secondEccentricity base.2
+  let hsecondMeanBase : secondMeanBase ≠ 0 := chapterVIKeplerExponential_ne_zero _ hy
+  let secondMean := chapterVIPowerLocalInverse c secondMeanBase hsecondMeanBase hc
+    (point.1 / firstMean ^ a)
+  (chapterVIKeplerLocalInverse firstEccentricity base.1 hx hfirstCritical firstMean,
+    chapterVIKeplerLocalInverse secondEccentricity base.2 hy hsecondCritical secondMean)
+
+/-- The first collision factor `H = ξ - βη`, pulled all the way through Poincaré's
+local Kepler inverses and his `(z,t)` substitution. -/
+def chapterVIPoincareCollisionFactorPlus
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (point : ℂ × ℂ) : ℂ :=
+  chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+    secondEccentricity secondComplement beta
+    (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+      hfirstCritical hsecondCritical hc point).1
+    (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+      hfirstCritical hsecondCritical hc point).2
+
+/-- The companion collision factor `H₀ = ξ₀ - β₀η₀`, in the same literal
+`(z,t)` coordinates. -/
+def chapterVIPoincareCollisionFactorMinus
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (point : ℂ × ℂ) : ℂ :=
+  chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+    secondEccentricity secondComplement betaZero
+    (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+      hfirstCritical hsecondCritical hc point).1
+    (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+      hfirstCritical hsecondCritical hc point).2
+
+/-- Poincaré's literal convergent radicand remains exactly the product `H H₀` after every
+local coordinate change. -/
+theorem chapterVIPoincareRadicand_eq_collisionFactors
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta betaZero : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (point : ℂ × ℂ) :
+    chapterVIPoincareRadicand a c firstEccentricity firstComplement
+        secondEccentricity secondComplement beta betaZero base hx hy
+        hfirstCritical hsecondCritical hc point =
+      chapterVIPoincareCollisionFactorPlus a c firstEccentricity firstComplement
+          secondEccentricity secondComplement beta base hx hy
+          hfirstCritical hsecondCritical hc point *
+        chapterVIPoincareCollisionFactorMinus a c firstEccentricity firstComplement
+          secondEccentricity secondComplement betaZero base hx hy
+          hfirstCritical hsecondCritical hc point := by
+  rfl
+
+/-- The complete inverse coordinate map from `(z,t)` to `(x,y)` is analytic at a selected
+source point.  This theorem centralizes all denominator and Kepler-critical exclusions needed
+by both collision factors. -/
+theorem analyticAt_chapterVIPoincareAnomalyPair
+    (a c : ℤ) (firstEccentricity secondEccentricity : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (tBase : ℂ) (htBase : tBase ≠ 0)
+    (htPower : tBase ^ c = chapterVIKeplerExponential firstEccentricity base.1) :
+    AnalyticAt ℂ
+      (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+        hfirstCritical hsecondCritical hc)
+      ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase) := by
+  let firstMeanBase := chapterVIKeplerExponential firstEccentricity base.1
+  let secondMeanBase := chapterVIKeplerExponential secondEccentricity base.2
+  let poincareBase : ℂ × ℂ :=
+    ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase)
+  have hfirstMeanBase : firstMeanBase ≠ 0 := chapterVIKeplerExponential_ne_zero _ hx
+  have hsecondMeanBase : secondMeanBase ≠ 0 := chapterVIKeplerExponential_ne_zero _ hy
+  have hfirstMean : AnalyticAt ℂ (fun point : ℂ × ℂ ↦ point.2 ^ c) poincareBase :=
+    analyticAt_snd.zpow htBase
+  have hfirstMean_apply : poincareBase.2 ^ c = firstMeanBase := htPower
+  have hfirstMean_ne : poincareBase.2 ^ c ≠ 0 := hfirstMean_apply.symm ▸ hfirstMeanBase
+  have hfirstMeanPower : AnalyticAt ℂ
+      (fun point : ℂ × ℂ ↦ (point.2 ^ c) ^ a) poincareBase :=
+    hfirstMean.zpow hfirstMean_ne
+  have hratio : AnalyticAt ℂ
+      (fun point : ℂ × ℂ ↦ point.1 / (point.2 ^ c) ^ a) poincareBase :=
+    analyticAt_fst.div hfirstMeanPower (zpow_ne_zero _ hfirstMean_ne)
+  have hratio_apply :
+      poincareBase.1 / (poincareBase.2 ^ c) ^ a = secondMeanBase ^ c := by
+    change (firstMeanBase ^ a * secondMeanBase ^ c) / (tBase ^ c) ^ a =
+      secondMeanBase ^ c
+    rw [htPower]
+    exact mul_div_cancel_left₀ _ (zpow_ne_zero _ hfirstMeanBase)
+  have hsecondMean : AnalyticAt ℂ
+      (fun point : ℂ × ℂ ↦
+        chapterVIPowerLocalInverse c secondMeanBase hsecondMeanBase hc
+          (point.1 / (point.2 ^ c) ^ a)) poincareBase := by
+    simpa only [Function.comp_def] using
+      (analyticAt_chapterVIPowerLocalInverse c secondMeanBase hsecondMeanBase hc).comp_of_eq
+        hratio hratio_apply
+  have hsecondMean_apply :
+      chapterVIPowerLocalInverse c secondMeanBase hsecondMeanBase hc
+        (poincareBase.1 / (poincareBase.2 ^ c) ^ a) = secondMeanBase := by
+    rw [hratio_apply, chapterVIPowerLocalInverse_apply_base]
+  have hfirstAnomaly : AnalyticAt ℂ
+      (fun point : ℂ × ℂ ↦
+        chapterVIKeplerLocalInverse firstEccentricity base.1 hx hfirstCritical
+          (point.2 ^ c)) poincareBase := by
+    simpa only [Function.comp_def] using
+      (analyticAt_chapterVIKeplerLocalInverse firstEccentricity base.1 hx
+        hfirstCritical).comp_of_eq hfirstMean hfirstMean_apply
+  have hsecondAnomaly : AnalyticAt ℂ
+      (fun point : ℂ × ℂ ↦
+        chapterVIKeplerLocalInverse secondEccentricity base.2 hy hsecondCritical
+          (chapterVIPowerLocalInverse c secondMeanBase hsecondMeanBase hc
+            (point.1 / (point.2 ^ c) ^ a))) poincareBase := by
+    simpa only [Function.comp_def] using
+      (analyticAt_chapterVIKeplerLocalInverse secondEccentricity base.2 hy
+        hsecondCritical).comp_of_eq hsecondMean hsecondMean_apply
+  change AnalyticAt ℂ (fun point : ℂ × ℂ ↦
+    (chapterVIKeplerLocalInverse firstEccentricity base.1 hx hfirstCritical
+        (point.2 ^ c),
+      chapterVIKeplerLocalInverse secondEccentricity base.2 hy hsecondCritical
+        (chapterVIPowerLocalInverse c secondMeanBase hsecondMeanBase hc
+          (point.1 / (point.2 ^ c) ^ a)))) poincareBase
+  exact hfirstAnomaly.prod hsecondAnomaly
+
+/-- The selected source point is sent back to the anomaly pair used to define its inverse
+branches. -/
+@[simp] theorem chapterVIPoincareAnomalyPair_apply_base
+    (a c : ℤ) (firstEccentricity secondEccentricity : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (tBase : ℂ)
+    (htPower : tBase ^ c = chapterVIKeplerExponential firstEccentricity base.1) :
+    chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+        hfirstCritical hsecondCritical hc
+        ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase) = base := by
+  apply Prod.ext
+  · simp [chapterVIPoincareAnomalyPair, htPower,
+      chapterVIKeplerLocalInverse_apply_base]
+  · simp only [chapterVIPoincareAnomalyPair]
+    have hfirstMean : chapterVIKeplerExponential firstEccentricity base.1 ≠ 0 :=
+      chapterVIKeplerExponential_ne_zero _ hx
+    have hsecondMean : chapterVIKeplerExponential secondEccentricity base.2 ≠ 0 :=
+      chapterVIKeplerExponential_ne_zero _ hy
+    rw [htPower]
+    change chapterVIKeplerLocalInverse secondEccentricity base.2 hy hsecondCritical
+      (chapterVIPowerLocalInverse c _ hsecondMean hc
+        ((_ ^ a * _ ^ c) / _ ^ a)) = base.2
+    rw [mul_div_cancel_left₀ _ (zpow_ne_zero _ hfirstMean)]
+    rw [chapterVIPowerLocalInverse_apply_base]
+    rw [chapterVIKeplerLocalInverse_apply_base]
+
+/-- The first literal `(z,t)` collision factor is analytic at the selected source point. -/
+theorem analyticAt_chapterVIPoincareCollisionFactorPlus
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (tBase : ℂ) (htBase : tBase ≠ 0)
+    (htPower : tBase ^ c = chapterVIKeplerExponential firstEccentricity base.1) :
+    AnalyticAt ℂ
+      (chapterVIPoincareCollisionFactorPlus a c firstEccentricity firstComplement
+        secondEccentricity secondComplement beta base hx hy
+        hfirstCritical hsecondCritical hc)
+      ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase) := by
+  have hmap := analyticAt_chapterVIPoincareAnomalyPair a c firstEccentricity
+    secondEccentricity base hx hy hfirstCritical hsecondCritical hc tBase htBase htPower
+  have hmapBase := chapterVIPoincareAnomalyPair_apply_base a c firstEccentricity
+    secondEccentricity base hx hy hfirstCritical hsecondCritical hc tBase htPower
+  have hsource := analyticAt_chapterVIPlanarCollisionFactorPlus firstEccentricity
+    firstComplement secondEccentricity secondComplement beta hx hy
+  change AnalyticAt ℂ (fun point ↦
+    chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+      secondEccentricity secondComplement beta
+      (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+        hfirstCritical hsecondCritical hc point).1
+      (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+        hfirstCritical hsecondCritical hc point).2) _
+  simpa only [Function.comp_def] using hsource.comp_of_eq hmap hmapBase
+
+/-- The companion literal `(z,t)` collision factor is analytic at the selected source point. -/
+theorem analyticAt_chapterVIPoincareCollisionFactorMinus
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (tBase : ℂ) (htBase : tBase ≠ 0)
+    (htPower : tBase ^ c = chapterVIKeplerExponential firstEccentricity base.1) :
+    AnalyticAt ℂ
+      (chapterVIPoincareCollisionFactorMinus a c firstEccentricity firstComplement
+        secondEccentricity secondComplement betaZero base hx hy
+        hfirstCritical hsecondCritical hc)
+      ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase) := by
+  have hmap := analyticAt_chapterVIPoincareAnomalyPair a c firstEccentricity
+    secondEccentricity base hx hy hfirstCritical hsecondCritical hc tBase htBase htPower
+  have hmapBase := chapterVIPoincareAnomalyPair_apply_base a c firstEccentricity
+    secondEccentricity base hx hy hfirstCritical hsecondCritical hc tBase htPower
+  have hsource := analyticAt_chapterVIPlanarCollisionFactorMinus firstEccentricity
+    firstComplement secondEccentricity secondComplement betaZero hx hy
+  change AnalyticAt ℂ (fun point ↦
+    chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+      secondEccentricity secondComplement betaZero
+      (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+        hfirstCritical hsecondCritical hc point).1
+      (chapterVIPoincareAnomalyPair a c firstEccentricity secondEccentricity base hx hy
+        hfirstCritical hsecondCritical hc point).2) _
+  simpa only [Function.comp_def] using hsource.comp_of_eq hmap hmapBase
+
+/-- Evaluation of the first literal collision factor at the selected source point removes all
+local inverse functions. -/
+@[simp] theorem chapterVIPoincareCollisionFactorPlus_apply_base
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (tBase : ℂ)
+    (htPower : tBase ^ c = chapterVIKeplerExponential firstEccentricity base.1) :
+    chapterVIPoincareCollisionFactorPlus a c firstEccentricity firstComplement
+        secondEccentricity secondComplement beta base hx hy
+        hfirstCritical hsecondCritical hc
+        ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase) =
+      chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+        secondEccentricity secondComplement beta base.1 base.2 := by
+  simp only [chapterVIPoincareCollisionFactorPlus,
+    chapterVIPoincareAnomalyPair_apply_base _ _ _ _ _ _ _ _ _ _ _ htPower]
+
+/-- The analogous evaluation theorem for the companion collision factor. -/
+@[simp] theorem chapterVIPoincareCollisionFactorMinus_apply_base
+    (a c : ℤ)
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero : ℂ)
+    (base : ℂ × ℂ) (hx : base.1 ≠ 0) (hy : base.2 ≠ 0)
+    (hfirstCritical : chapterVIKeplerExponentialDerivative firstEccentricity base.1 ≠ 0)
+    (hsecondCritical : chapterVIKeplerExponentialDerivative secondEccentricity base.2 ≠ 0)
+    (hc : c ≠ 0) (tBase : ℂ)
+    (htPower : tBase ^ c = chapterVIKeplerExponential firstEccentricity base.1) :
+    chapterVIPoincareCollisionFactorMinus a c firstEccentricity firstComplement
+        secondEccentricity secondComplement betaZero base hx hy
+        hfirstCritical hsecondCritical hc
+        ((chapterVIContourBase a c firstEccentricity secondEccentricity base).1, tBase) =
+      chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+        secondEccentricity secondComplement betaZero base.1 base.2 := by
+  simp only [chapterVIPoincareCollisionFactorMinus,
+    chapterVIPoincareAnomalyPair_apply_base _ _ _ _ _ _ _ _ _ _ _ htPower]
 
 @[simp]
 theorem chapterVIContourRadicand_apply_base

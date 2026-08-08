@@ -1,5 +1,6 @@
 import PoincareChapterVI.ClassicalLeanPool
 import PoincareChapterVI.ChapterVI
+import PoincareChapterVI.ChapterVIDoubleZero
 import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate

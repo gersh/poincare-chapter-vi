@@ -19,6 +19,7 @@ import PoincareChapterVI.Section103.Certificate
 import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.ChapterVISingularityAlgebra
 import PoincareChapterVI.ChapterVISourceCoordinates
+import PoincareChapterVI.ChapterVIDoubleZero
 import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
@@ -81,7 +82,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `ChapterVISourceCoordinates.lean` then verifies the exact exponential Kepler substitution,
   constructs its local analytic inverse away from Poincaré's first-kind critical equation, proves
   `z = exp(ial) exp(icl')`, and constructs a convergent power series for the literal §99
-  radicand `ψ(z,t)` after `exp(il) = tᶜ`.
+  radicand `ψ(z,t)` after `exp(il) = tᶜ`. `ChapterVIDoubleZero.lean` splits this literal germ
+  as the two source collision factors and reduces exact fiber order two to the four finite checks
+  `H=0`, `H'=0`, `H''≠0`, and `H₀≠0` at the selected source point.
 * §97--98 (pp. 295--314): Poincaré decides by contour deformation which candidate singularities
   are admissible. This Riemann-surface and contour-deformation argument is **not yet formalized**.
   Poincaré himself describes the general discussion in §98 as only sketched.
