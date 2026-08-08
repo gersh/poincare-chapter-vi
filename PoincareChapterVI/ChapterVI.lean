@@ -69,8 +69,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   moving singularities of its contour integrand. This parameterized contour-deformation theorem is
   not yet formalized.
 * §96 (pp. 287--295): `chapterVI_planarKeplerCoordinate_mul_conjugate` verifies
-  `ξ ξ₀ = (1 - sin φ cos u)²`; the half-angle and collision-factor theorems in
-  `ChapterVISingularityAlgebra` verify equations (1), (3), and (4), while the first- and
+  `ξ ξ₀ = (1 - sin φ cos u)²`. `chapterVI_planarSourceRadicand_exp` identifies Poincaré's
+  concrete Laurent radicand with `(ξ - βη)(ξ₀ - β₀η₀)`, and
+  `chapterVI_planarSourceRadicand_eq_cleared` proves that clearing `2xy` gives exactly the
+  product of his two collision cubics. The two-eccentricity half-angle theorems verify the
+  general equations (3) and (4), including the circular specialization used in §96, while the first- and
   second-kind reciprocal theorems verify the inversion symmetries of equations (7)--(10) and of
   the singularity parameter `z`. The printed equation (10) has `x² - 1`; its derivation and the
   claimed reciprocal symmetry instead require `x² + 1`, which the formalization makes explicit.

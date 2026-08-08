@@ -19,8 +19,9 @@ The page-level facsimiles are linked below where the printed formula matters.
 The repository does **not yet** formalize Poincaré's complete Chapter VI proof. It verifies several exact algebraic
 and formal-series subarguments. The central analytic and geometric steps remain open:
 
-- constructing Poincaré's actual two-variable perturbing function as a holomorphic or
-  multivalued analytic object;
+- lifting the now-identified planar Laurent radicand through the local inverse Kepler maps to
+  Poincaré's actual two-variable perturbing function as a holomorphic or multivalued analytic
+  object;
 - proving which candidate singularities pinch the integration cycle and are genuine rather than
   apparent;
 - deriving the local logarithmic expansion from a convergent Weierstrass preparation and a
@@ -45,7 +46,7 @@ transcription of the 1892 text.
 | §93 | Darboux's one-variable coefficient estimates | `ChapterVIDarbouxTransfer.lean` proves coefficient extraction, larger-disk remainder decay, finite-jet decay, conditional Tannery transfer, and a weighted-convolution transfer whose summability follows from larger-disk analyticity; `ChapterVIDarbouxSpectrum.lean` separates competing equal-modulus bases | Derive the regular-factor analytic decomposition from the actual contour singularities, uniformly in the parameters |
 | §94 | Convert coefficients on `(m₁,m₂)=(an+b,cn+d)` to coefficients of one Laurent series `Φ(z)` | `ChapterVILatticeReduction.lean` proves the affine-lattice reindexing; `ChapterVIContour.lean` proves finite and absolutely summable Laurent coefficient extraction | Define the actual Fourier series and prove its holomorphic convergence on an annulus, allowing all substitutions, sum/integral interchanges, and branch choices |
 | §95 | Candidate singularities arise when moving singularities of the integrand obstruct contour deformation | `ChapterVIContourTransport.lean` proves equality for a relative `C²` homotopy, derives closedness automatically, and supplies a direct prepared-inverse-root theorem on convex branch subdomains; from `C²` path extensions it constructs the affine homotopy and proves both containment and regularity | Place the actual source paths in a suitable convex/local branch domain and verify their `C²` regularity, or construct the vanishing cycle when no such direct domain exists; then prove when deformation is obstructed, likely using Picard–Lefschetz theory |
-| §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
+| §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` identifies the concrete Laurent radicand with `(ξ-βη)(ξ₀-β₀η₀)`, proves that clearing `2xy` gives the product of the general collision cubics, verifies both-eccentricity half-angle reductions and their circular specialization, and checks reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Prove the local inverse-Kepler coordinate domains and track exactly which nonzero denominators and branches survive the passage from `(x,y)` to `(z,t)` |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIAnalyticPreparation.lean` proves that a common convergent multivariable-series realization gives equality of the actual germs and a locally nonzero unit, constructs a holomorphic inverse square root of the original radicand on its open punctured branch chart, and transports its fixed-parameter slices through checked `C²` contour homotopies; `ChapterVIPinchModel.lean` proves the parameter-dependent complex-amplitude log limit and derives its uniform contour estimate from `C¹` regularity on a compact rectangle; `ChapterVIComplexBranch.lean` constructs the joint quadratic chart and a local holomorphic square-root germ for every unit nonzero at the pinch, including sign rotation across the principal cut | Construct convergent analytic realizations of the formal Weierstrass factors for the actual germ, verify nondegeneracy and place the actual source cycle in the quadratic branch chart, construct the source homotopy, then control the nonlocal remainder |
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarbouxTransfer.lean` proves scalar Cauchy-product coefficients, derives coefficients from a function-level varying-log germ, constructs `G(z)=G(z₀)+(1-z/z₀)H(z)` by holomorphic divided difference, and applies a weighted-convolution estimate; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral and larger-disk analyticity of `G`, uniformly in the orbital parameters |
@@ -87,8 +88,9 @@ The source-facing files added after the standalone-project commit are deliberate
   series.
 - `ChapterVIContour.lean`: normalized circle integrals extract finite Laurent coefficients, and
   extract an infinite Laurent coefficient under an explicit weighted summability hypothesis.
-- `ChapterVISingularityAlgebra.lean`: selected polynomial identities from §96 and the reciprocal
-  symmetries that they imply.
+- `ChapterVISingularityAlgebra.lean`: Poincaré's concrete planar source radicand, its exact
+  Laurent/trigonometric correspondence, the general cleared collision cubics, both-eccentricity
+  half-angle reductions, and the reciprocal symmetries from §96.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series
@@ -480,6 +482,15 @@ answer. Lean reconstructs the matrix from the ellipse coefficients, reduces Gaus
 `i ↦ 12` in `ZMod 29`, and checks all entries of a proposed inverse in the kernel. The external
 Python/SymPy script is therefore a certificate generator and cross-check only. The resulting
 theorems contain no `native_decide` or externally admitted run result.
+
+The merged Lean Pool classical restricted-three-body development is consumed as the pinned
+`lean-pool` dependency ([PR #329][lean-pool-pr]). It supplies the restricted Hamiltonian,
+homological equation, resonant disturbing average, joint eccentric-anomaly analyticity, and the
+classical nonintegrability endpoint. Those results are useful infrastructure, but they do not
+replace the complex two-variable Chapter VI construction. LeanCompCert is used for the large
+finite polynomial and matrix identities in the §103 endgame; it cannot certify the infinite
+convergence, local inverse, Weierstrass-preparation, or contour-cycle claims merely from a finite
+coefficient cutoff.
 
 ## Sources
 

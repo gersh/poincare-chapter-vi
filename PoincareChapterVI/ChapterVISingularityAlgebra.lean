@@ -154,6 +154,149 @@ def chapterVIPlanarDistanceFactorPlus (eccentricity complement x : ℂ) : ℂ :=
 def chapterVIPlanarDistanceFactorMinus (eccentricity complement x : ℂ) : ℂ :=
   (x ^ 2 + 1) - 2 * x * eccentricity - complement * (x ^ 2 - 1)
 
+/-- Poincaré's coordinate `ξ`, after the substitution `x = exp(iu)`, written as a Laurent
+function of `x`.  The parameters are `sin φ` and `cos φ`. -/
+def chapterVIPlanarKeplerLaurentPlus (eccentricity complement x : ℂ) : ℂ :=
+  chapterVIPlanarDistanceFactorPlus eccentricity complement x / (2 * x)
+
+/-- The companion coordinate `ξ₀`, after `x = exp(iu)`, as a Laurent function of `x`. -/
+def chapterVIPlanarKeplerLaurentMinus (eccentricity complement x : ℂ) : ℂ :=
+  chapterVIPlanarDistanceFactorMinus eccentricity complement x / (2 * x)
+
+/-- The Laurent formula is Poincaré's original trigonometric coordinate when
+`x = exp(iu)`. -/
+theorem chapterVI_planarKeplerLaurentPlus_exp (φ u : ℝ) :
+    chapterVIPlanarKeplerLaurentPlus (Real.sin φ) (Real.cos φ)
+        (exp ((u : ℂ) * I)) =
+      chapterVIPlanarKeplerCoordinate φ u := by
+  rw [chapterVIPlanarKeplerLaurentPlus, div_eq_iff]
+  · simp only [chapterVIPlanarDistanceFactorPlus, chapterVIPlanarKeplerCoordinate,
+      exp_mul_I, ofReal_cos, ofReal_sin]
+    ring_nf
+    simp only [I_sq]
+    rw [Complex.cos_sq' (u : ℂ)]
+    ring
+  · exact mul_ne_zero (by norm_num) (exp_ne_zero _)
+
+/-- The same source identification for `ξ₀`. -/
+theorem chapterVI_planarKeplerLaurentMinus_exp (φ u : ℝ) :
+    chapterVIPlanarKeplerLaurentMinus (Real.sin φ) (Real.cos φ)
+        (exp ((u : ℂ) * I)) =
+      chapterVIPlanarKeplerCoordinateConjugate φ u := by
+  rw [chapterVIPlanarKeplerLaurentMinus, div_eq_iff]
+  · simp only [chapterVIPlanarDistanceFactorMinus, chapterVIPlanarKeplerCoordinateConjugate,
+      exp_mul_I, ofReal_cos, ofReal_sin]
+    ring_nf
+    simp only [I_sq]
+    rw [Complex.cos_sq' (u : ℂ)]
+    ring
+  · exact mul_ne_zero (by norm_num) (exp_ne_zero _)
+
+/-- The first collision factor `H = ξ - βη` from §96, in Poincaré's Laurent variables. -/
+def chapterVIPlanarCollisionFactorPlus
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta x y : ℂ) : ℂ :=
+  chapterVIPlanarKeplerLaurentPlus firstEccentricity firstComplement x -
+    beta * chapterVIPlanarKeplerLaurentPlus secondEccentricity secondComplement y
+
+/-- The conjugate collision factor `H₀ = ξ₀ - β₀η₀` from §96. -/
+def chapterVIPlanarCollisionFactorMinus
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero x y : ℂ) : ℂ :=
+  chapterVIPlanarKeplerLaurentMinus firstEccentricity firstComplement x -
+    betaZero * chapterVIPlanarKeplerLaurentMinus secondEccentricity secondComplement y
+
+/-- The actual planar radicand displayed by Poincaré in §96:
+`(ξ - βη) (ξ₀ - β₀η₀)`. -/
+def chapterVIPlanarSourceRadicand
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta betaZero x y : ℂ) :
+    ℂ :=
+  chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+      secondEccentricity secondComplement beta x y *
+    chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+      secondEccentricity secondComplement betaZero x y
+
+/-- The Laurent radicand specializes exactly to the product `(ξ - βη)(ξ₀ - β₀η₀)` printed
+in §96.  This is the concrete source radicand underlying the abstract convergent series `ψ(z,t)`
+used later in §99. -/
+theorem chapterVI_planarSourceRadicand_exp
+    (φ φ' u u' : ℝ) (beta betaZero : ℂ) :
+    chapterVIPlanarSourceRadicand (Real.sin φ) (Real.cos φ)
+        (Real.sin φ') (Real.cos φ') beta betaZero
+        (exp ((u : ℂ) * I)) (exp ((u' : ℂ) * I)) =
+      (chapterVIPlanarKeplerCoordinate φ u -
+          beta * chapterVIPlanarKeplerCoordinate φ' u') *
+        (chapterVIPlanarKeplerCoordinateConjugate φ u -
+          betaZero * chapterVIPlanarKeplerCoordinateConjugate φ' u') := by
+  simp only [chapterVIPlanarSourceRadicand, chapterVIPlanarCollisionFactorPlus,
+    chapterVIPlanarCollisionFactorMinus, chapterVI_planarKeplerLaurentPlus_exp,
+    chapterVI_planarKeplerLaurentMinus_exp]
+
+/-- Poincaré's general planar equation (3), before the second eccentricity is specialized to
+zero, with the denominators `2xy` cleared. -/
+def chapterVIPlanarCollisionEquationThreeGeneral
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta x y : ℂ) : ℂ :=
+  y * chapterVIPlanarDistanceFactorPlus firstEccentricity firstComplement x -
+    beta * x * chapterVIPlanarDistanceFactorPlus secondEccentricity secondComplement y
+
+/-- Poincaré's general planar equation (4), with the denominators `2xy` cleared. -/
+def chapterVIPlanarCollisionEquationFourGeneral
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero x y : ℂ) :
+    ℂ :=
+  y * chapterVIPlanarDistanceFactorMinus firstEccentricity firstComplement x -
+    betaZero * x * chapterVIPlanarDistanceFactorMinus secondEccentricity secondComplement y
+
+/-- Exact source identification of the first Laurent collision factor. -/
+theorem chapterVI_planarCollisionFactorPlus_eq_cleared
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta : ℂ)
+    {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
+    (2 * x * y) * chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+        secondEccentricity secondComplement beta x y =
+      chapterVIPlanarCollisionEquationThreeGeneral firstEccentricity firstComplement
+        secondEccentricity secondComplement beta x y := by
+  unfold chapterVIPlanarCollisionFactorPlus chapterVIPlanarKeplerLaurentPlus
+    chapterVIPlanarCollisionEquationThreeGeneral
+  field_simp [hx, hy]
+
+/-- Exact source identification of the conjugate Laurent collision factor. -/
+theorem chapterVI_planarCollisionFactorMinus_eq_cleared
+    (firstEccentricity firstComplement secondEccentricity secondComplement betaZero : ℂ)
+    {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
+    (2 * x * y) * chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+        secondEccentricity secondComplement betaZero x y =
+      chapterVIPlanarCollisionEquationFourGeneral firstEccentricity firstComplement
+        secondEccentricity secondComplement betaZero x y := by
+  unfold chapterVIPlanarCollisionFactorMinus chapterVIPlanarKeplerLaurentMinus
+    chapterVIPlanarCollisionEquationFourGeneral
+  field_simp [hx, hy]
+
+/-- Clearing the Laurent denominator in Poincaré's actual §96 radicand gives the product of
+his displayed algebraic collision equations (3) and (4). -/
+theorem chapterVI_planarSourceRadicand_eq_cleared
+    (firstEccentricity firstComplement secondEccentricity secondComplement beta betaZero : ℂ)
+    {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
+    (2 * x * y) ^ 2 * chapterVIPlanarSourceRadicand firstEccentricity firstComplement
+        secondEccentricity secondComplement beta betaZero x y =
+      chapterVIPlanarCollisionEquationThreeGeneral firstEccentricity firstComplement
+          secondEccentricity secondComplement beta x y *
+        chapterVIPlanarCollisionEquationFourGeneral firstEccentricity firstComplement
+          secondEccentricity secondComplement betaZero x y := by
+  unfold chapterVIPlanarSourceRadicand
+  rw [pow_two]
+  have hplus := chapterVI_planarCollisionFactorPlus_eq_cleared
+    firstEccentricity firstComplement secondEccentricity secondComplement beta hx hy
+  have hminus := chapterVI_planarCollisionFactorMinus_eq_cleared
+    firstEccentricity firstComplement secondEccentricity secondComplement betaZero hx hy
+  calc
+    (2 * x * y) * (2 * x * y) *
+        (chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+            secondEccentricity secondComplement beta x y *
+          chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+            secondEccentricity secondComplement betaZero x y) =
+        ((2 * x * y) * chapterVIPlanarCollisionFactorPlus firstEccentricity firstComplement
+            secondEccentricity secondComplement beta x y) *
+          ((2 * x * y) * chapterVIPlanarCollisionFactorMinus firstEccentricity firstComplement
+            secondEccentricity secondComplement betaZero x y) := by ring
+    _ = _ := by rw [hplus, hminus]
+
 /-- The tangent-half-angle substitution turns the `ξ` numerator into `2(x - τ)²`. -/
 theorem chapterVI_planarDistanceFactorPlus_halfAngle
     (τ eccentricity complement x : ℂ)
@@ -190,6 +333,63 @@ theorem chapterVI_planarDistanceFactorMinus_halfAngle
         (1 - τ ^ 2) * (x ^ 2 - 1) := by rw [hsine, hcosine]
     _ = 2 * (1 - τ * x) ^ 2 := by ring
 
+/-- With both eccentricities retained, Poincaré's equation (3) becomes the cubic displayed in
+§98 after the two tangent-half-angle substitutions. -/
+theorem chapterVI_planarCollisionEquationThreeGeneral_halfAngle
+    (τ τ' firstEccentricity firstComplement secondEccentricity secondComplement beta x y : ℂ)
+    (hfirstSine : (1 + τ ^ 2) * firstEccentricity = 2 * τ)
+    (hfirstCosine : (1 + τ ^ 2) * firstComplement = 1 - τ ^ 2)
+    (hsecondSine : (1 + τ' ^ 2) * secondEccentricity = 2 * τ')
+    (hsecondCosine : (1 + τ' ^ 2) * secondComplement = 1 - τ' ^ 2) :
+    (1 + τ ^ 2) * (1 + τ' ^ 2) *
+        chapterVIPlanarCollisionEquationThreeGeneral firstEccentricity firstComplement
+          secondEccentricity secondComplement beta x y =
+      2 * (y * (x - τ) ^ 2 * (1 + τ' ^ 2) -
+        beta * x * (y - τ') ^ 2 * (1 + τ ^ 2)) := by
+  unfold chapterVIPlanarCollisionEquationThreeGeneral
+  calc
+    (1 + τ ^ 2) * (1 + τ' ^ 2) *
+        (y * chapterVIPlanarDistanceFactorPlus firstEccentricity firstComplement x -
+          beta * x *
+            chapterVIPlanarDistanceFactorPlus secondEccentricity secondComplement y) =
+      y * ((1 + τ ^ 2) * chapterVIPlanarDistanceFactorPlus
+          firstEccentricity firstComplement x) * (1 + τ' ^ 2) -
+        beta * x * ((1 + τ' ^ 2) * chapterVIPlanarDistanceFactorPlus
+          secondEccentricity secondComplement y) * (1 + τ ^ 2) := by ring
+    _ = y * (2 * (x - τ) ^ 2) * (1 + τ' ^ 2) -
+        beta * x * (2 * (y - τ') ^ 2) * (1 + τ ^ 2) := by
+      rw [chapterVI_planarDistanceFactorPlus_halfAngle τ _ _ _ hfirstSine hfirstCosine,
+        chapterVI_planarDistanceFactorPlus_halfAngle τ' _ _ _ hsecondSine hsecondCosine]
+    _ = _ := by ring
+
+/-- The corresponding two-eccentricity reduction of Poincaré's equation (4). -/
+theorem chapterVI_planarCollisionEquationFourGeneral_halfAngle
+    (τ τ' firstEccentricity firstComplement secondEccentricity secondComplement betaZero x y : ℂ)
+    (hfirstSine : (1 + τ ^ 2) * firstEccentricity = 2 * τ)
+    (hfirstCosine : (1 + τ ^ 2) * firstComplement = 1 - τ ^ 2)
+    (hsecondSine : (1 + τ' ^ 2) * secondEccentricity = 2 * τ')
+    (hsecondCosine : (1 + τ' ^ 2) * secondComplement = 1 - τ' ^ 2) :
+    (1 + τ ^ 2) * (1 + τ' ^ 2) *
+        chapterVIPlanarCollisionEquationFourGeneral firstEccentricity firstComplement
+          secondEccentricity secondComplement betaZero x y =
+      2 * (y * (1 - τ * x) ^ 2 * (1 + τ' ^ 2) -
+        betaZero * x * (1 - τ' * y) ^ 2 * (1 + τ ^ 2)) := by
+  unfold chapterVIPlanarCollisionEquationFourGeneral
+  calc
+    (1 + τ ^ 2) * (1 + τ' ^ 2) *
+        (y * chapterVIPlanarDistanceFactorMinus firstEccentricity firstComplement x -
+          betaZero * x *
+            chapterVIPlanarDistanceFactorMinus secondEccentricity secondComplement y) =
+      y * ((1 + τ ^ 2) * chapterVIPlanarDistanceFactorMinus
+          firstEccentricity firstComplement x) * (1 + τ' ^ 2) -
+        betaZero * x * ((1 + τ' ^ 2) * chapterVIPlanarDistanceFactorMinus
+          secondEccentricity secondComplement y) * (1 + τ ^ 2) := by ring
+    _ = y * (2 * (1 - τ * x) ^ 2) * (1 + τ' ^ 2) -
+        betaZero * x * (2 * (1 - τ' * y) ^ 2) * (1 + τ ^ 2) := by
+      rw [chapterVI_planarDistanceFactorMinus_halfAngle τ _ _ _ hfirstSine hfirstCosine,
+        chapterVI_planarDistanceFactorMinus_halfAngle τ' _ _ _ hsecondSine hsecondCosine]
+    _ = _ := by ring
+
 /-- Poincaré's planar equation (3), with the second orbit circular. -/
 def chapterVIPlanarCollisionEquationThree
     (eccentricity complement beta x y : ℂ) : ℂ :=
@@ -199,6 +399,25 @@ def chapterVIPlanarCollisionEquationThree
 def chapterVIPlanarCollisionEquationFour
     (eccentricity complement beta x y : ℂ) : ℂ :=
   y * chapterVIPlanarDistanceFactorMinus eccentricity complement x - 2 * beta * x
+
+/-- The circular-second-orbit equation (3) used in §96 is exactly the general source equation,
+after removing the harmless nonzero factor `y`. -/
+theorem chapterVI_planarCollisionEquationThreeGeneral_secondCircular
+    (eccentricity complement beta x y : ℂ) :
+    chapterVIPlanarCollisionEquationThreeGeneral eccentricity complement 0 1 beta x y =
+      y * chapterVIPlanarCollisionEquationThree eccentricity complement beta x y := by
+  unfold chapterVIPlanarCollisionEquationThreeGeneral chapterVIPlanarCollisionEquationThree
+    chapterVIPlanarDistanceFactorPlus
+  ring
+
+/-- The circular-second-orbit equation (4) is literally the corresponding general equation. -/
+theorem chapterVI_planarCollisionEquationFourGeneral_secondCircular
+    (eccentricity complement beta x y : ℂ) :
+    chapterVIPlanarCollisionEquationFourGeneral eccentricity complement 0 1 beta x y =
+      chapterVIPlanarCollisionEquationFour eccentricity complement beta x y := by
+  unfold chapterVIPlanarCollisionEquationFourGeneral chapterVIPlanarCollisionEquationFour
+    chapterVIPlanarDistanceFactorMinus
+  ring
 
 /-- After the half-angle substitution, equation (3) is exactly Poincaré's displayed rational
 formula with all denominators cleared. -/

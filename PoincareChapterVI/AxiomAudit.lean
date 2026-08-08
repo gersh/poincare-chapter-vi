@@ -3,6 +3,12 @@ import PoincareChapterVI
 /-! Kernel trust audit for the principal exported results. -/
 
 #print axioms PoincareChapterVI.classicalPlanarRestrictedThreeBodyNonintegrability
+#print axioms PoincareChapterVI.chapterVI_planarKeplerLaurentPlus_exp
+#print axioms PoincareChapterVI.chapterVI_planarKeplerLaurentMinus_exp
+#print axioms PoincareChapterVI.chapterVI_planarSourceRadicand_exp
+#print axioms PoincareChapterVI.chapterVI_planarSourceRadicand_eq_cleared
+#print axioms PoincareChapterVI.chapterVI_planarCollisionEquationThreeGeneral_halfAngle
+#print axioms PoincareChapterVI.chapterVI_planarCollisionEquationFourGeneral_halfAngle
 #print axioms PoincareChapterVI.chapterVISection103_affineCoefficient_eq_gaussian
 #print axioms PoincareChapterVI.chapterVIRuppertInverse_mul_minor
 #print axioms PoincareChapterVI.chapterVIRuppertGaussianMinor_det_ne_zero
