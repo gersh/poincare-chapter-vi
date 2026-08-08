@@ -37,6 +37,132 @@ structure ChapterVIDConnectorCompiledCertificate
 
 namespace ChapterVIDPrincipalConnectorModel
 
+/-- Connector-rectangle point on the boundary shared with a compiled outer quarter. -/
+def connectorBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) : I × I :=
+  match side with
+  | .initial => (s, 0)
+  | .final => (s, 1)
+
+/-- Corresponding point of the compiled outer-quarter rectangle. -/
+def connectorOuterBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) : I × I :=
+  match side with
+  | .initial =>
+      (chapterVIDCriticalToGlobalParameter (model.criticalValue s), 1)
+  | .final =>
+      (chapterVIDCriticalToGlobalParameter (model.criticalValue s), 0)
+
+theorem rectangleRadicand_connectorBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) :
+    model.rectangleRadicand side (model.connectorBoundaryPoint side s) =
+      chapterVIDOuterArcRadicand side
+        (model.connectorOuterBoundaryPoint side s) := by
+  cases side
+  · exact model.rectangleRadicand_initial_zero s
+  · exact model.rectangleRadicand_final_one s
+
+/-- The compact local critical-value interval maps continuously into the compiled global radial
+parameter. -/
+theorem continuous_connectorGlobalParameter
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) :
+    Continuous (fun s : I ↦
+      chapterVIDCriticalToGlobalParameter (model.criticalValue s)) := by
+  rw [continuous_iff_continuousAt]
+  intro s
+  have hkline : ContinuousAt
+      (fun q : I ↦ (model.criticalValue q : ℂ)) s :=
+    Complex.ofRealCLM.continuous.continuousAt.comp_of_eq
+      (continuous_ChapterVIDPrincipalConnectorModel_criticalValue model).continuousAt rfl
+  have hinverse : ContinuousAt
+      (fun q : I ↦ chapterVIDCriticalParameterInverseAtD
+        (model.criticalValue q : ℂ)) s :=
+    (model.rootModel.parameterInverse_analyticAt
+      (model.criticalValue s) (model.criticalValue_mem_rootModel s)).continuousAt.comp_of_eq
+        hkline rfl
+  have hreal : ContinuousAt
+      (fun q : I ↦ (chapterVIDCriticalParameterInverseAtD
+        (model.criticalValue q : ℂ)).re) s :=
+    Complex.continuous_re.continuousAt.comp_of_eq hinverse rfl
+  have hraw : ContinuousAt
+      (fun q : I ↦ chapterVIDCriticalToGlobalParameterRaw
+        (model.criticalValue q)) s := by
+    unfold chapterVIDCriticalToGlobalParameterRaw
+    exact (continuousAt_const.sub hreal).div_const _
+  unfold chapterVIDCriticalToGlobalParameter
+  exact (continuous_projIcc (h := zero_le_one)).continuousAt.comp_of_eq hraw rfl
+
+theorem continuous_connectorBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.connectorBoundaryPoint side) := by
+  cases side
+  · exact continuous_id.prodMk continuous_const
+  · exact continuous_id.prodMk continuous_const
+
+theorem continuous_connectorOuterBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.connectorOuterBoundaryPoint side) := by
+  cases side
+  · exact model.continuous_connectorGlobalParameter.prodMk continuous_const
+  · exact model.continuous_connectorGlobalParameter.prodMk continuous_const
+
+/-- The canonical compiled outer root, restricted to the shared connector boundary. -/
+def connectorOuterBoundaryRoot
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) : ℂ :=
+  (ChapterVIDOuterArcRegularity.principalSheet run side).root
+    (model.connectorOuterBoundaryPoint side s)
+
+theorem continuous_connectorOuterBoundaryRoot
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.connectorOuterBoundaryRoot run side) :=
+  (ChapterVIDOuterArcRegularity.principalSheet run side).continuous_root.comp
+    (model.continuous_connectorOuterBoundaryPoint side)
+
+/-- A connector nonvanishing certificate can be normalized at any prescribed square root. -/
+theorem ChapterVIDConnectorCompiledCertificate.exists_squareRootSheet
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    (certificate : ChapterVIDConnectorCompiledCertificate model side)
+    (base : I × I) (baseRoot : ℂ)
+    (hbaseRoot : baseRoot ^ 2 = model.rectangleRadicand side base) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side),
+      sheet.root base = baseRoot := by
+  let : ContractibleSpace I :=
+    (convex_Icc (0 : ℝ) 1).contractibleSpace (by simp)
+  let : LocallyPathConnectedSpace I :=
+    (convex_Icc (0 : ℝ) 1).locallyPathConnectedSpace
+  let : LocallyPathConnectedSpace (I × I) := by
+    refine LocallyPathConnectedSpace.of_bases
+      (p := fun (point : I × I) (sets : Set I × Set I) ↦
+        (sets.1 ∈ 𝓝 point.1 ∧ IsPathConnected sets.1) ∧
+          (sets.2 ∈ 𝓝 point.2 ∧ IsPathConnected sets.2))
+      (s := fun _ sets ↦ sets.1 ×ˢ sets.2) ?_ ?_
+    · intro point
+      rw [nhds_prod_eq]
+      exact (path_connected_basis point.1).prod (path_connected_basis point.2)
+    · intro _ sets hsets
+      exact hsets.1.2.prod hsets.2.2
+  exact certificate.radicand.exists_continuousSquareRootSheet
+    certificate.radicand.lipschitz.continuous base baseRoot hbaseRoot
+
 /-- Extend the compact connector root coordinate to a real integration parameter. -/
 def rectanglePointReal
     {massProduct : ℂ} {b d : ℤ}
@@ -223,6 +349,65 @@ theorem exists_sheet_tendsto_connectorIntegral_of_certificate
       (model.connectorRectangleSource side) (model.connectorRectangleTarget side)
       (model.continuous_connectorRectangleSource_of_certificate certificate)
       (model.continuous_connectorRectangleTarget_of_certificate certificate)
+
+/-- Normalize the connector sheet to the canonical compiled outer sheet. Connectedness then
+forces agreement along the entire shared boundary, eliminating the connector/outer sign choice. -/
+theorem exists_sheet_boundary_eq_outer_tendsto_connectorIntegral
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side),
+      (∀ s : I,
+        sheet.root (model.connectorBoundaryPoint side s) =
+          model.connectorOuterBoundaryRoot run side s) ∧
+      Tendsto (model.connectorIntegral side sheet)
+        (𝓝 (1 : I))
+        (𝓝 (model.connectorIntegral side sheet 1)) := by
+  let base : I × I := model.connectorBoundaryPoint side 0
+  let baseRoot : ℂ := model.connectorOuterBoundaryRoot run side 0
+  have hbaseRoot : baseRoot ^ 2 = model.rectangleRadicand side base := by
+    unfold baseRoot base connectorOuterBoundaryRoot
+    rw [(ChapterVIDOuterArcRegularity.principalSheet run side).root_sq]
+    exact (model.rectangleRadicand_connectorBoundaryPoint side 0).symm
+  obtain ⟨sheet, hsheetBase⟩ :=
+    ChapterVIDConnectorCompiledCertificate.exists_squareRootSheet
+      certificate base baseRoot hbaseRoot
+  let connectorBoundarySheet : ChapterVIContinuousSquareRootSheet
+      (fun s : I ↦ model.rectangleRadicand side
+        (model.connectorBoundaryPoint side s)) := {
+    root := fun s ↦ sheet.root (model.connectorBoundaryPoint side s)
+    continuous_root := sheet.continuous_root.comp
+      (model.continuous_connectorBoundaryPoint side)
+    root_sq := fun s ↦ sheet.root_sq _ }
+  let outerBoundarySheet : ChapterVIContinuousSquareRootSheet
+      (fun s : I ↦ model.rectangleRadicand side
+        (model.connectorBoundaryPoint side s)) := {
+    root := model.connectorOuterBoundaryRoot run side
+    continuous_root := model.continuous_connectorOuterBoundaryRoot run side
+    root_sq := fun s ↦ by
+      unfold connectorOuterBoundaryRoot
+      rw [(ChapterVIDOuterArcRegularity.principalSheet run side).root_sq]
+      exact (model.rectangleRadicand_connectorBoundaryPoint side s).symm }
+  have hboundaryBase : connectorBoundarySheet.root 0 =
+      outerBoundarySheet.root 0 := by
+    exact hsheetBase
+  have hboundary := connectorBoundarySheet.root_eq_of_eq_at outerBoundarySheet
+    (fun s ↦ certificate.radicand.ne_zero _) 0 hboundaryBase
+  have htendsto : Tendsto (model.connectorIntegral side sheet)
+      (𝓝 (1 : I)) (𝓝 (model.connectorIntegral side sheet 1)) := by
+    unfold connectorIntegral
+    exact tendsto_chapterVIConnectorIntegral
+      (model.connectorTransformedNumerator side) sheet
+      (model.connectorRectangleSource side) (model.connectorRectangleTarget side)
+      (model.continuous_connectorTransformedNumerator_of_certificate certificate)
+      (model.continuous_connectorRectangleSource_of_certificate certificate)
+      (model.continuous_connectorRectangleTarget_of_certificate certificate)
+      certificate.radicand.ne_zero
+  refine ⟨sheet, ?_, htendsto⟩
+  intro s
+  exact congrFun hboundary s
 
 end ChapterVIDPrincipalConnectorModel
 

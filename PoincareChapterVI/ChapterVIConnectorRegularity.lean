@@ -110,6 +110,42 @@ def chapterVIConnectorIntegral
       numerator (s, t) / chapterVIConnectorSheetRoot sheet (s, t) *
         chapterVIAffineConnectorVelocity source target s
 
+/-- Any fixed compatible connector sheet gives a continuous connector integral once the
+numerator and moving endpoints are continuous and the radicand is nonzero. -/
+theorem continuous_chapterVIConnectorIntegral
+    (numerator : I × ℝ → ℂ) {radicand : I × I → ℂ}
+    (sheet : ChapterVIContinuousSquareRootSheet radicand)
+    (source target : I → ℂ)
+    (hnumerator : Continuous numerator)
+    (hsource : Continuous source) (htarget : Continuous target)
+    (hrad : ∀ point, radicand point ≠ 0) :
+    Continuous (chapterVIConnectorIntegral numerator sheet source target) := by
+  unfold chapterVIConnectorIntegral
+  apply continuous_const.mul
+  apply continuous_chapterVIParametricOuterArcIntegral
+      (fun s t ↦ numerator (s, t))
+      (fun s t ↦ chapterVIConnectorSheetRoot sheet (s, t))
+      (fun s _ ↦ chapterVIAffineConnectorVelocity source target s)
+  · exact hnumerator
+  · exact continuous_chapterVIConnectorSheetRoot sheet
+  · exact (continuous_chapterVIAffineConnectorVelocity hsource htarget).comp
+      continuous_fst
+  · exact fun s t ↦ sheet.root_ne_zero (hrad _)
+
+/-- Pointwise endpoint-limit form of `continuous_chapterVIConnectorIntegral`. -/
+theorem tendsto_chapterVIConnectorIntegral
+    (numerator : I × ℝ → ℂ) {radicand : I × I → ℂ}
+    (sheet : ChapterVIContinuousSquareRootSheet radicand)
+    (source target : I → ℂ)
+    (hnumerator : Continuous numerator)
+    (hsource : Continuous source) (htarget : Continuous target)
+    (hrad : ∀ point, radicand point ≠ 0) :
+    Tendsto (chapterVIConnectorIntegral numerator sheet source target)
+      (𝓝 (1 : I))
+      (𝓝 (chapterVIConnectorIntegral numerator sheet source target 1)) :=
+  (continuous_chapterVIConnectorIntegral numerator sheet source target
+    hnumerator hsource htarget hrad).continuousAt
+
 /-- A finite nonvanishing certificate supplies a square-root sheet for an affine connector and
 makes its normalized integral continuous on the whole collision-parameter interval. -/
 theorem exists_sheet_continuous_chapterVIConnectorIntegral

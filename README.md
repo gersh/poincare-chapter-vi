@@ -414,7 +414,10 @@ The strongest newly completed component is the finite algebra in §103:
   compiled quarters. For either connector, finite nonvanishing covers for the root coordinate
   and literal radicand now construct the square-root sheet and prove the fully transformed
   connector integral has a finite limit. Producing those two concrete compiled covers per side,
-  and gluing their sheet signs to the outer and local sheets, are the remaining connector tasks.
+  and matching the resulting continued sheet to the local Morse sheet, are the remaining
+  connector tasks. The connector/outer sign is no longer a premise: each connector sheet is
+  normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
+  sheet along the full shared boundary.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

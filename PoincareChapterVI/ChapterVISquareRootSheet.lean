@@ -50,6 +50,30 @@ theorem root_ne_zero
   rw [← sheet.root_sq x, hzero]
   norm_num
 
+/-- On a connected domain, two continuous square-root sheets of the same nonvanishing
+radicand are identical as soon as they agree at one point. -/
+theorem root_eq_of_eq_at
+    {A : Type*} [TopologicalSpace A] [ConnectedSpace A]
+    {radicand : A → ℂ}
+    (first second : ChapterVIContinuousSquareRootSheet radicand)
+    (hrad : ∀ x, radicand x ≠ 0) (base : A)
+    (hbase : first.root base = second.root base) :
+    first.root = second.root := by
+  apply funext
+  intro x
+  have heq : Set.EqOn first.root second.root Set.univ := by
+    apply isPreconnected_univ.eq_of_sq_eq
+        first.continuous_root.continuousOn second.continuous_root.continuousOn
+        (y := base)
+    · intro y _
+      simp only [Pi.pow_apply]
+      rw [first.root_sq, second.root_sq]
+    · intro y _
+      exact second.root_ne_zero (hrad y)
+    · exact Set.mem_univ base
+    · exact hbase
+  exact heq (Set.mem_univ x)
+
 end ChapterVIContinuousSquareRootSheet
 
 /-- A base-point-normalized continuous square-root sheet exists on any simply connected,
