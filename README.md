@@ -114,6 +114,11 @@ The strongest newly completed component is the finite algebra in §103:
   normalized decay. Consequently every finite Taylor jet of Poincaré's analytic logarithmic
   amplitude contributes the same leading spectrum as its value at `z₀`; all higher jet terms are
   formally subleading.
+- Tannery's dominated-convergence theorem now extends the same conclusion to a full infinite
+  analytic-amplitude series, provided its normalized positive-order terms admit a summable bound
+  uniform in all sufficiently large coefficient indices. This hypothesis is exposed in the
+  source-facing §102 interface rather than silently replacing the analytic amplitude by a
+  polynomial.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
@@ -121,10 +126,11 @@ concrete moving algebraic branches, physical derivative identification, formal c
 identification of the reduced curve with the constant-`z` tangent derivative, and the
 three-versus-two rank contradiction are now established. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
-including the reduction of a varying analytic log amplitude to its constant leading value, and
+including the derivation of the required Tannery bound for a varying analytic log amplitude, and
 to derive the coefficient family and common radius from the Chapter V uniform-integral relation.
-Finite amplitude jets are now handled, so the remaining reduction must control the analytic tail
-uniformly and combine it with the contour remainder. Once that source-level estimate and the
+The infinite-tail transfer is now handled under an explicit summable majorant, so the remaining
+reduction must derive that majorant uniformly from the analytic germ and combine it with the
+contour remainder. Once that source-level estimate and the
 two-coordinate coefficient germ are supplied, coefficient extraction, normalization,
 equal-modulus separation, and the §103 contradiction are formalized. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant

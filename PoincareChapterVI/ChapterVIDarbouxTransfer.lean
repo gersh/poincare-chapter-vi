@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.Analytic.OfScalars
+import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Analysis.SpecificLimits.Normed
 import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
 import PoincareChapterVI.ChapterVIDarboux
@@ -422,6 +423,78 @@ theorem tendsto_chapterVINormalizedCoefficient_logAmplitudeJetRemainder
         chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) index) index
   · simp
 
+/-- The positive-order part of a possibly infinite analytic amplitude expansion, written in
+powers of the local vanishing factor `1 - z * singularityInverse`. -/
+def chapterVILogAnalyticAmplitudeRemainderCoefficient
+    (singularityInverse : ℂ) (jet : ℕ → ℂ) (index : ℕ) : ℂ :=
+  ∑' order : ℕ, jet (order + 1) *
+    chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) index
+
+/-- Darboux normalization commutes with a summable coefficient series. -/
+theorem chapterVINormalizedCoefficient_tsum {ι : Type*}
+    (radius : ℝ≥0) (coefficient : ι → ℕ → ℂ) (index : ℕ)
+    (hsummable : Summable fun i ↦ coefficient i index) :
+    chapterVINormalizedCoefficient radius (fun n ↦ ∑' i, coefficient i n) index =
+      ∑' i, chapterVINormalizedCoefficient radius (coefficient i) index := by
+  unfold chapterVINormalizedCoefficient
+  change ((index : ℂ) + 1) * (radius : ℂ) ^ (index + 1) *
+      (∑' i, coefficient i index) =
+    ∑' i, ((index : ℂ) + 1) * (radius : ℂ) ^ (index + 1) *
+      coefficient i index
+  simpa only [mul_assoc] using
+    (hsummable.tsum_mul_left
+      (((index : ℂ) + 1) * (radius : ℂ) ^ (index + 1))).symm
+
+/-- Tannery's theorem supplies the infinite-tail step missing from the finite amplitude-jet
+argument.  A summable majorant, uniform for all sufficiently large coefficient indices, permits
+the individually subleading positive-order logarithmic terms to be summed without changing the
+leading Darboux spectrum. -/
+theorem tendsto_chapterVINormalizedCoefficient_logAnalyticAmplitudeRemainder
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1)
+    (jet : ℕ → ℂ) (bound : ℕ → ℝ)
+    (hsummableCoefficient : ∀ index, Summable fun order : ℕ ↦
+      jet (order + 1) *
+        chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) index)
+    (hsummableBound : Summable bound)
+    (hbound : ∀ᶠ index : ℕ in atTop, ∀ order : ℕ,
+      ‖chapterVINormalizedCoefficient radius
+        (fun n ↦ jet (order + 1) *
+          chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) n)
+        index‖ ≤ bound order) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVILogAnalyticAmplitudeRemainderCoefficient singularityInverse jet))
+      atTop (nhds 0) := by
+  let term : ℕ → ℕ → ℂ := fun index order ↦
+    chapterVINormalizedCoefficient radius
+      (fun n ↦ jet (order + 1) *
+        chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) n)
+      index
+  have hterm (order : ℕ) : Tendsto (fun index ↦ term index order) atTop (nhds 0) := by
+    have h :=
+      (tendsto_chapterVINormalizedCoefficient_higherVanishingLog hunit order).const_mul
+        (jet (order + 1))
+    convert h using 1
+    funext index
+    exact chapterVINormalizedCoefficient_const_mul radius (jet (order + 1))
+      (chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1)) index
+    simp
+  have htsum : Tendsto (fun index ↦ ∑' order, term index order)
+      atTop (nhds (∑' _order : ℕ, (0 : ℂ))) :=
+    tendsto_tsum_of_dominated_convergence hsummableBound hterm hbound
+  have heq : (fun index ↦ ∑' order, term index order) =
+      chapterVINormalizedCoefficient radius
+        (chapterVILogAnalyticAmplitudeRemainderCoefficient singularityInverse jet) := by
+    funext index
+    symm
+    exact chapterVINormalizedCoefficient_tsum radius
+      (fun order n ↦ jet (order + 1) *
+        chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) n)
+      index (hsummableCoefficient index)
+  rw [← heq]
+  simpa using htsum
+
 /-- Sum the coefficient contributions of finite logarithmic amplitude jets at several boundary
 singularities. -/
 def chapterVIFiniteLogAmplitudeJetCoefficient {r jetOrder : ℕ}
@@ -487,6 +560,85 @@ theorem tendsto_chapterVINormalizedCoefficient_sub_finiteLogAmplitudeJetSpectrum
   simp only [Finset.sum_add_distrib]
   unfold remainder
   rw [Pi.sub_apply]
+  unfold chapterVINormalizedCoefficient at hleading ⊢
+  rw [mul_add, hleading]
+  ring
+
+/-- Coefficients contributed by finitely many logarithmic singularities whose analytic
+amplitudes are represented by infinite local power series.  Order zero is separated from the
+positive-order `tsum` so that the leading Darboux spectrum remains explicit. -/
+def chapterVIFiniteLogAnalyticAmplitudeCoefficient {r : ℕ}
+    (singularityInverse : Fin r → ℂ) (jet : Fin r → ℕ → ℂ) (index : ℕ) : ℂ :=
+  ∑ j, (jet j 0 * chapterVILogTaylorCoefficient (singularityInverse j) (index + 1) +
+    chapterVILogAnalyticAmplitudeRemainderCoefficient (singularityInverse j) (jet j) index)
+
+/-- Infinite analytic logarithmic amplitudes have the same leading finite spectrum as their
+values at the singularities, provided Tannery's summable uniform bound holds for every positive
+amplitude order. -/
+theorem tendsto_chapterVINormalizedCoefficient_sub_finiteLogAnalyticAmplitudeSpectrum
+    {r : ℕ} {radius : ℝ≥0} (hradius : radius ≠ 0)
+    (singularityInverse : Fin r → ℂ) (jet : Fin r → ℕ → ℂ)
+    (bound : Fin r → ℕ → ℝ)
+    (hunit : ∀ j, ‖chapterVIUnitBase radius (singularityInverse j)‖ = 1)
+    (hsummableCoefficient : ∀ j index, Summable fun order : ℕ ↦
+      jet j (order + 1) * chapterVIHigherVanishingLogCoefficient
+        (singularityInverse j) (order + 1) index)
+    (hsummableBound : ∀ j, Summable (bound j))
+    (hbound : ∀ j, ∀ᶠ index : ℕ in atTop, ∀ order : ℕ,
+      ‖chapterVINormalizedCoefficient radius
+        (fun n ↦ jet j (order + 1) * chapterVIHigherVanishingLogCoefficient
+          (singularityInverse j) (order + 1) n) index‖ ≤ bound j order) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+          (chapterVIFiniteLogAnalyticAmplitudeCoefficient singularityInverse jet) -
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularityInverse j))
+          (fun j ↦ chapterVILogSpectrumWeight radius (singularityInverse j) (jet j 0)))
+      atTop (nhds 0) := by
+  let remainder : ℕ → ℂ := fun index ↦ ∑ j,
+    chapterVILogAnalyticAmplitudeRemainderCoefficient
+      (singularityInverse j) (jet j) index
+  have hremainderTerm (j : Fin r) : Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVILogAnalyticAmplitudeRemainderCoefficient
+          (singularityInverse j) (jet j))) atTop (nhds 0) :=
+    tendsto_chapterVINormalizedCoefficient_logAnalyticAmplitudeRemainder
+      (hunit j) (jet j) (bound j) (hsummableCoefficient j)
+        (hsummableBound j) (hbound j)
+  have hremainder : Tendsto (chapterVINormalizedCoefficient radius remainder)
+      atTop (nhds 0) := by
+    have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin r))
+      (fun j _ ↦ hremainderTerm j)
+    convert hsum using 1
+    · funext index
+      exact chapterVINormalizedCoefficient_finset_sum radius Finset.univ
+        (fun j ↦ chapterVILogAnalyticAmplitudeRemainderCoefficient
+          (singularityInverse j) (jet j)) index
+    · simp
+  convert hremainder using 1
+  funext index
+  have hleading :
+      chapterVINormalizedCoefficient radius
+          (fun n ↦ ∑ j, jet j 0 *
+            chapterVILogTaylorCoefficient (singularityInverse j) (n + 1)) index =
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularityInverse j))
+          (fun j ↦ chapterVILogSpectrumWeight radius
+            (singularityInverse j) (jet j 0)) index := by
+    classical
+    simp_rw [chapterVILogTaylorCoefficient_succ]
+    unfold chapterVINormalizedCoefficient chapterVIFiniteExponentialMoment
+      chapterVILogSpectrumWeight chapterVIUnitBase chapterVILogSingularityCoefficient
+    simp only
+    rw [Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro j hj
+    have hradiusComplex : (radius : ℂ) ≠ 0 := by exact_mod_cast hradius
+    rw [mul_pow]
+    field_simp
+    ring
+  unfold chapterVIFiniteLogAnalyticAmplitudeCoefficient remainder
+  simp only [Finset.sum_add_distrib, Pi.sub_apply]
   unfold chapterVINormalizedCoefficient at hleading ⊢
   rw [mul_add, hleading]
   ring
