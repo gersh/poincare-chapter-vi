@@ -133,6 +133,8 @@ The strongest newly completed component is the finite algebra in §103:
   varying-amplitude integral, and proves that the integral divided by `-log k` converges to that
   value. A stronger parameter-dependent theorem works in any complete real normed space, hence
   for complex amplitudes, and allows the center value to vary while converging at the pinch. The
+  previously explicit uniform Lipschitz premise can now be derived from `C¹` regularity on a
+  compact parameter-contour rectangle. The
   moving-center theorem exactly transports the affine local cycle
   `[h(k)-L,h(k)+L]` to the symmetric model and identifies the leading coefficient with the
   amplitude at that moving center. The
@@ -151,6 +153,11 @@ The strongest newly completed component is the finite algebra in §103:
   image stays in the domain; `C²` extensions of the endpoint paths automatically discharge the
   homotopy regularity condition. This yields a direct convex-domain theorem for the prepared
   inverse square-root branch.
+- the formal-to-analytic identity boundary is explicit. If the actual radicand and its prepared
+  expression are proved to realize the same convergent multivariable power series, Lean proves
+  their equality on a neighborhood and proves the prepared unit remains nonzero there. A
+  LeanCompCert certificate may discharge large finite coefficient comparisons used in this
+  construction, but no fixed finite jet is treated as convergence or equality of analytic germs.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

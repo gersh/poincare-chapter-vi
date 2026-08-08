@@ -25,6 +25,7 @@ import PoincareChapterVI.Section103.RuppertKernel
 import PoincareChapterVI.Section103.RuppertBounds
 import PoincareChapterVI.Section103.RuppertNormalization
 import PoincareChapterVI.ChapterVIWeierstrass
+import PoincareChapterVI.ChapterVIAnalyticPreparation
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 
 /-!
@@ -115,7 +116,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   pinch; its varying part has a uniformly bounded integral. The vector-valued parameter-dependent
   theorem `tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul` applies in particular to
   complex amplitudes, permits the center value to vary continuously with the pinch parameter, and
-  uses one uniform Lipschitz bound. The moving-center theorem exactly translates the interval
+  uses one uniform Lipschitz bound. The stronger
+  `tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_contDiffOn` derives that bound
+  from `C¹` regularity on a compact parameter-contour rectangle. The moving-center theorem exactly translates the interval
   `[h(k)-L,h(k)+L]` to the symmetric model and recovers the amplitude at the moving collision.
   `ChapterVIComplexBranch.lean` constructs a compatible
   holomorphic square-root product and its inverse on any domain where the prepared quadratic and
@@ -124,9 +127,13 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   family to an open common branch chart containing it. More generally, every holomorphic unit
   nonzero at the base point now receives an automatically chosen local square-root germ, including
   the sign-rotated case when its value lies on the principal branch cut; this germ combines with
-  the quadratic branch and the contour-transport theorem. Identifying the actual convergent analytic
-  germ with the formal series and proving the source cycle's factor values lie in one such chart
-  remain open. `ChapterVIContourTransport.lean` proves genuine non-affine contour invariance for
+  the quadratic branch and the contour-transport theorem.
+  `ChapterVIAnalyticPreparation.lean` proves the analytic identity layer: two actual functions
+  realizing the same convergent multivariable series agree near the pinch, and a convergent
+  prepared germ therefore has the completed-square factorization with a locally nonzero unit.
+  Constructing those convergent realizations from the nested formal Weierstrass factors, and
+  proving the source cycle's factor values lie in one such chart, remain open.
+  `ChapterVIContourTransport.lean` proves genuine non-affine contour invariance for
   a relative `C²` path homotopy in that chart: for a holomorphic scalar integrand Lean constructs
   the closed one-form and discharges Stokes' theorem automatically. On a convex branch subdomain,
   the canonical pointwise affine path homotopy is constructed and proved to remain inside the

@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.SpecialFunctions.Arsinh
+import Mathlib.Analysis.Calculus.ContDiff.RCLike
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 /-!
@@ -190,7 +191,8 @@ theorem norm_integral_chapterVIParametricQuadraticPinchRemainder_le
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {amplitude : ℝ → ℝ → E} {C k L : ℝ}
     (hC : 0 ≤ C) (hk : 0 < k) (hL : 0 ≤ L)
-    (hLipschitz : ∀ t, ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
+    (hLipschitz : ∀ t ∈ Ι (-L) L,
+      ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
     ‖∫ t in -L..L, chapterVIParametricQuadraticPinchRemainder amplitude k t‖ ≤
       2 * C * L := by
   have hbound : ∀ t ∈ Ι (-L) L,
@@ -207,7 +209,7 @@ theorem norm_integral_chapterVIParametricQuadraticPinchRemainder_le
     rw [mul_comm]
     rw [inv_eq_one_div, mul_div]
     simp only [mul_one]
-    apply (div_le_div_of_nonneg_right (hLipschitz t) hsqrt.le).trans
+    apply (div_le_div_of_nonneg_right (hLipschitz t ‹t ∈ Ι (-L) L›) hsqrt.le).trans
     rw [div_le_iff₀ hsqrt]
     nlinarith
   have hintegral := intervalIntegral.norm_integral_le_of_norm_le_const hbound
@@ -432,20 +434,41 @@ theorem tendsto_chapterVI_weightedQuadraticPinch_div_neg_log
       remainder k) / (-Real.log k)
   ring
 
-/-- Source-facing vector-valued local limit.  The amplitude may depend on the external pinch
-parameter, its center value need only converge, and its variation in the contour coordinate is
-controlled by one uniform Lipschitz constant.  The theorem applies in particular to `E = ℂ`.
+/-- A `C¹` amplitude on a compact parameter-contour rectangle has one Lipschitz constant in the
+contour coordinate, uniformly in the parameter.  This supplies rather than assumes the estimate
+used to bound the nonsingular remainder in Poincare's prepared integral. -/
+theorem exists_uniform_chapterVI_contour_lipschitz_of_contDiffOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {amplitude : ℝ × ℝ → E} {δ L : ℝ}
+    (hL : 0 ≤ L)
+    (hamplitude : ContDiffOn ℝ 1 amplitude (Set.Icc 0 δ ×ˢ Set.uIcc (-L) L)) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ k ∈ Set.Icc 0 δ, ∀ t ∈ Ι (-L) L,
+      ‖amplitude (k, t) - amplitude (k, 0)‖ ≤ C * |t| := by
+  have hconvex : Convex ℝ (Set.Icc (0 : ℝ) δ ×ˢ Set.uIcc (-L) L) :=
+    (convex_Icc 0 δ).prod (convex_uIcc (𝕜 := ℝ) (-L) L)
+  have hcompact : IsCompact (Set.Icc (0 : ℝ) δ ×ˢ Set.uIcc (-L) L) :=
+    isCompact_Icc.prod isCompact_uIcc
+  rcases hamplitude.exists_lipschitzOnWith one_ne_zero hconvex hcompact with
+    ⟨K, hK⟩
+  refine ⟨(K : ℝ), K.coe_nonneg, ?_⟩
+  intro k hk t ht
+  have hzero : (0 : ℝ) ∈ Set.uIcc (-L) L := by
+    rw [uIcc_of_le (by linarith)]
+    exact ⟨by linarith, hL⟩
+  have hdist := hK.dist_le_mul (k, t) ⟨hk, uIoc_subset_uIcc ht⟩
+    (k, 0) ⟨hk, hzero⟩
+  simpa [dist_eq_norm, Prod.norm_def, Real.norm_eq_abs] using hdist
 
-Thus, on the fixed real symmetric local cycle, the coefficient of `-log k` is the limiting value
-of the analytic unit at the pinch.  No finite-dimensional approximation of the amplitude is used.
--/
-theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
+/-- Core source-facing local limit in which the uniform contour-coordinate estimate is needed
+only eventually as the positive pinch parameter tends to zero, and only on the interval actually
+integrated. -/
+theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_eventually_lipschitz
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {amplitude : ℝ → ℝ → E} {center : E} {C L : ℝ}
     (hamplitude : ∀ k, 0 < k → Continuous (amplitude k))
     (hcenter : Tendsto (fun k ↦ amplitude k 0) (𝓝[>] 0) (𝓝 center))
     (hC : 0 ≤ C) (hL : 0 < L)
-    (hLipschitz : ∀ k, 0 < k → ∀ t,
+    (hLipschitz : ∀ᶠ k in 𝓝[>] (0 : ℝ), ∀ t ∈ Ι (-L) L,
       ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
     Tendsto
       (fun k : ℝ ↦ (-Real.log k)⁻¹ •
@@ -457,9 +480,9 @@ theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
     apply tendsto_neg_atTop_iff.mpr
     exact Real.tendsto_log_nhdsGT_zero
   have hremainderBound : ∀ᶠ k in 𝓝[>] (0 : ℝ), ‖remainder k‖ ≤ 2 * C * L := by
-    filter_upwards [self_mem_nhdsWithin] with k hk
+    filter_upwards [self_mem_nhdsWithin, hLipschitz] with k hk hkLipschitz
     exact norm_integral_chapterVIParametricQuadraticPinchRemainder_le
-      hC hk hL.le (hLipschitz k hk)
+      hC hk hL.le hkLipschitz
   have hremainderBounded :
       IsBoundedUnder (· ≤ ·) (𝓝[>] (0 : ℝ)) (norm ∘ remainder) := by
     apply isBoundedUnder_of_eventually_le (a := 2 * C * L)
@@ -496,6 +519,58 @@ theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
   rw [smul_add, smul_smul]
   congr 1
   rw [div_eq_mul_inv, mul_comm]
+
+/-- A `C¹` realization of the prepared amplitude on one compact parameter-contour rectangle
+automatically satisfies the uniform remainder estimate and therefore has Poincare's logarithmic
+pinch limit.  This removes the hand-supplied Lipschitz constant from the source-facing analytic
+application. -/
+theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_contDiffOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ × ℝ → E} {center : E} {δ L : ℝ}
+    (hamplitude : ∀ k, 0 < k → Continuous (fun t ↦ amplitude (k, t)))
+    (hcenter : Tendsto (fun k ↦ amplitude (k, 0)) (𝓝[>] 0) (𝓝 center))
+    (hδ : 0 < δ) (hL : 0 < L)
+    (hcontDiff : ContDiffOn ℝ 1 amplitude
+      (Set.Icc 0 δ ×ˢ Set.uIcc (-L) L)) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        (∫ t in -L..L,
+          chapterVIParametricQuadraticPinchIntegrand
+            (fun parameter coordinate ↦ amplitude (parameter, coordinate)) k t))
+      (𝓝[>] 0) (𝓝 center) := by
+  rcases exists_uniform_chapterVI_contour_lipschitz_of_contDiffOn hL.le hcontDiff with
+    ⟨C, hC, hCuniform⟩
+  apply
+    tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_eventually_lipschitz
+      hamplitude hcenter hC hL
+  filter_upwards [Ioc_mem_nhdsGT hδ] with k hk
+  intro t ht
+  exact hCuniform k ⟨hk.1.le, hk.2⟩ t ht
+
+/-- Source-facing vector-valued local limit.  The amplitude may depend on the external pinch
+parameter, its center value need only converge, and its variation in the contour coordinate is
+controlled by one uniform Lipschitz constant.  The theorem applies in particular to `E = ℂ`.
+
+Thus, on the fixed real symmetric local cycle, the coefficient of `-log k` is the limiting value
+of the analytic unit at the pinch.  No finite-dimensional approximation of the amplitude is used.
+-/
+theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {center : E} {C L : ℝ}
+    (hamplitude : ∀ k, 0 < k → Continuous (amplitude k))
+    (hcenter : Tendsto (fun k ↦ amplitude k 0) (𝓝[>] 0) (𝓝 center))
+    (hC : 0 ≤ C) (hL : 0 < L)
+    (hLipschitz : ∀ k, 0 < k → ∀ t,
+      ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        (∫ t in -L..L, chapterVIParametricQuadraticPinchIntegrand amplitude k t))
+      (𝓝[>] 0) (𝓝 center) := by
+  apply tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_eventually_lipschitz
+    hamplitude hcenter hC hL
+  filter_upwards [self_mem_nhdsWithin] with k hk
+  intro t _
+  exact hLipschitz k hk t
 
 /-- The logarithmic limit on Poincaré's moving centered interval.  The amplitude is allowed to be
 complex-valued (or vector-valued), the center may move arbitrarily with the parameter, and only a
