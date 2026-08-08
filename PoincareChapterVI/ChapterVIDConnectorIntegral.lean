@@ -43,24 +43,22 @@ theorem ChapterVIDContinuousNonzeroWitness.ofFiniteCover
   continuous := certificate.lipschitz.continuous
   ne_zero := certificate.ne_zero
 
-/-- The complete certificate input for one connector rectangle. Its two witnesses may
-come either from the original point-sample/Lipschitz covers or from compiled interval-cell grids. -/
+/-- The complete certificate input for one connector rectangle. Only the literal radicand
+requires certification; coordinate continuity and nonvanishing follow from the exact connector
+geometry. -/
 structure ChapterVIDConnectorCompiledCertificate
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
     (side : ChapterVIDOuterArcSide) where
-  coordinate : ChapterVIDContinuousNonzeroWitness (model.rectanglePoint side)
   radicand : ChapterVIDContinuousNonzeroWitness (model.rectangleRadicand side)
 
-/-- Backward-compatible constructor from the original pair of point-sample finite covers. -/
-theorem ChapterVIDConnectorCompiledCertificate.ofFiniteCovers
+/-- Construct the semantic certificate from the original point-sample finite-cover interface. -/
+theorem ChapterVIDConnectorCompiledCertificate.ofFiniteCover
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
     {side : ChapterVIDOuterArcSide}
-    (coordinate : ChapterVIFiniteNonvanishingCover (model.rectanglePoint side))
     (radicand : ChapterVIDConnectorNonvanishingCertificate model side) :
     ChapterVIDConnectorCompiledCertificate model side where
-  coordinate := ChapterVIDContinuousNonzeroWitness.ofFiniteCover coordinate
   radicand := ChapterVIDContinuousNonzeroWitness.ofFiniteCover radicand
 
 namespace ChapterVIDPrincipalConnectorModel
@@ -327,24 +325,22 @@ def rectanglePointReal
   model.rectanglePoint side
     (point.1, chapterVIConnectorClamp point.2)
 
-theorem continuous_rectanglePointReal_of_certificate
+theorem continuous_rectanglePointReal
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
-    {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    {side : ChapterVIDOuterArcSide} :
     Continuous (model.rectanglePointReal side) :=
-  certificate.coordinate.continuous.comp
+  (model.continuous_rectanglePoint side).comp
     (continuous_fst.prodMk
       (continuous_chapterVIConnectorClamp.comp continuous_snd))
 
-theorem rectanglePointReal_ne_zero_of_certificate
+theorem rectanglePointReal_ne_zero
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
     {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side)
     (point : I × ℝ) :
     model.rectanglePointReal side point ≠ 0 :=
-  certificate.coordinate.ne_zero _
+  model.rectanglePoint_ne_zero side _
 
 /-- The selected source-parameter cubic root over the compact connector family. -/
 def connectorParameterRoot
@@ -375,9 +371,8 @@ theorem connectorParameterRoot_ne_zero
       (model.criticalValue_mem s)]
   exact chapterVIDCommonParameterRootPath_ne_zero _
 
-/-- Once the compiled coordinate grid excludes zero, continuity of the literal connector
-radicand follows from its exact analytic formula. No separate radicand-continuity certificate is
-needed. -/
+/-- Once the connector coordinate excludes zero, continuity of the literal connector radicand
+follows from its exact analytic formula. No separate radicand-continuity certificate is needed. -/
 theorem continuous_rectangleRadicand_of_coordinate_ne_zero
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -400,17 +395,16 @@ def connectorSourceContour
     (side : ChapterVIDOuterArcSide) (point : I × ℝ) : ℂ :=
   chapterVIDRootToOriginalContour (model.rectanglePointReal side point)
 
-theorem continuous_connectorSourceContour_of_certificate
+theorem continuous_connectorSourceContour
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
-    {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    {side : ChapterVIDOuterArcSide} :
     Continuous (model.connectorSourceContour side) := by
   rw [continuous_iff_continuousAt]
   intro point
   exact (analyticAt_chapterVIDRootToOriginalContour
-      (model.rectanglePointReal_ne_zero_of_certificate certificate point)).continuousAt.comp_of_eq
-    (model.continuous_rectanglePointReal_of_certificate certificate).continuousAt rfl
+      (model.rectanglePointReal_ne_zero point)).continuousAt.comp_of_eq
+    model.continuous_rectanglePointReal.continuousAt rfl
 
 /-- The literal principal numerator pulled back to one connector. -/
 def connectorSourceNumerator
@@ -421,18 +415,17 @@ def connectorSourceNumerator
   massProduct * model.connectorSourceContour side point ^ ((-1) * d - b * 3 - 1) *
     model.connectorParameterRoot point.1 ^ (-d)
 
-theorem continuous_connectorSourceNumerator_of_certificate
+theorem continuous_connectorSourceNumerator
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
-    {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    {side : ChapterVIDOuterArcSide} :
     Continuous (model.connectorSourceNumerator side) := by
   unfold connectorSourceNumerator
   exact (continuous_const.mul
-      ((model.continuous_connectorSourceContour_of_certificate certificate).zpow₀ _
+      (model.continuous_connectorSourceContour.zpow₀ _
         (fun point ↦ Or.inl
           (chapterVIDRootToOriginalContour_ne_zero
-            (model.rectanglePointReal_ne_zero_of_certificate certificate point))))).mul
+            (model.rectanglePointReal_ne_zero point))))).mul
     ((model.continuous_connectorParameterRoot.comp continuous_fst).zpow₀ _
       (fun point ↦ Or.inl (model.connectorParameterRoot_ne_zero point.1)))
 
@@ -447,18 +440,17 @@ def connectorTransformedNumerator
     ChapterVIDOuterArcRegularity.rootToSourceDerivative
       (model.rectanglePointReal side point)
 
-theorem continuous_connectorTransformedNumerator_of_certificate
+theorem continuous_connectorTransformedNumerator
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
-    {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    {side : ChapterVIDOuterArcSide} :
     Continuous (model.connectorTransformedNumerator side) := by
   unfold connectorTransformedNumerator
-  exact (model.continuous_connectorSourceNumerator_of_certificate certificate).mul
+  exact model.continuous_connectorSourceNumerator.mul
     (ChapterVIDOuterArcRegularity.continuous_rootToSourceDerivative_comp
       (model.rectanglePointReal side)
-      (model.continuous_rectanglePointReal_of_certificate certificate)
-      (model.rectanglePointReal_ne_zero_of_certificate certificate))
+      model.continuous_rectanglePointReal
+      (model.rectanglePointReal_ne_zero))
 
 /-- Root-coordinate source endpoint of a compact connector at parameter `s`. -/
 def connectorRectangleSource
@@ -474,22 +466,20 @@ def connectorRectangleTarget
     (side : ChapterVIDOuterArcSide) (s : I) : ℂ :=
   model.rectanglePoint side (s, 1)
 
-theorem continuous_connectorRectangleSource_of_certificate
+theorem continuous_connectorRectangleSource
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
-    {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    {side : ChapterVIDOuterArcSide} :
     Continuous (model.connectorRectangleSource side) :=
-  certificate.coordinate.continuous.comp
+  (model.continuous_rectanglePoint side).comp
     (continuous_id.prodMk continuous_const)
 
-theorem continuous_connectorRectangleTarget_of_certificate
+theorem continuous_connectorRectangleTarget
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
-    {side : ChapterVIDOuterArcSide}
-    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    {side : ChapterVIDOuterArcSide} :
     Continuous (model.connectorRectangleTarget side) :=
-  certificate.coordinate.continuous.comp
+  (model.continuous_rectanglePoint side).comp
     (continuous_id.prodMk continuous_const)
 
 /-- The actual normalized connector integral, including Poincare's exact coordinate-change
@@ -519,10 +509,10 @@ theorem exists_sheet_tendsto_connectorIntegral_of_certificate
     exists_sheet_tendsto_chapterVIConnectorIntegral_of_ne_zero
       certificate.radicand.continuous certificate.radicand.ne_zero
       (model.connectorTransformedNumerator side)
-      (model.continuous_connectorTransformedNumerator_of_certificate certificate)
+      model.continuous_connectorTransformedNumerator
       (model.connectorRectangleSource side) (model.connectorRectangleTarget side)
-      (model.continuous_connectorRectangleSource_of_certificate certificate)
-      (model.continuous_connectorRectangleTarget_of_certificate certificate)
+      model.continuous_connectorRectangleSource
+      model.continuous_connectorRectangleTarget
 
 /-- Normalize the connector sheet to the canonical compiled outer sheet. Connectedness then
 forces agreement along the entire shared boundary, eliminating the connector/outer sign choice. -/
@@ -575,9 +565,9 @@ theorem exists_sheet_boundary_eq_outer_tendsto_connectorIntegral
     exact tendsto_chapterVIConnectorIntegral
       (model.connectorTransformedNumerator side) sheet
       (model.connectorRectangleSource side) (model.connectorRectangleTarget side)
-      (model.continuous_connectorTransformedNumerator_of_certificate certificate)
-      (model.continuous_connectorRectangleSource_of_certificate certificate)
-      (model.continuous_connectorRectangleTarget_of_certificate certificate)
+      model.continuous_connectorTransformedNumerator
+      model.continuous_connectorRectangleSource
+      model.continuous_connectorRectangleTarget
       certificate.radicand.ne_zero
   refine ⟨sheet, ?_, htendsto⟩
   intro s

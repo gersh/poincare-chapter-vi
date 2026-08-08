@@ -158,6 +158,54 @@ def ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint
   | .final => chapterVIDCriticalMorseRootPoint
       ((k : ℂ), (model.L : ℂ))
 
+/-- The compact local endpoints remain strictly in the negative half-plane. This quantitative
+normalization is obtained when the local analytic model is shrunk, so it does not belong in a
+compiled certificate. -/
+theorem ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint_re_neg
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalGlobalRootModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (k : ℝ)
+    (hk : k ∈ Set.Icc 0 model.δ) :
+    (model.localConnectorEndpoint side k).re < 0 := by
+  have hcollisionRe : chapterVIDCollisionLift.re = -‖chapterVIDCollisionLift‖ := by
+    rw [chapterVIDCollisionLift_eq_neg_norm]
+    simp
+  have hnormPos : 0 < ‖chapterVIDCollisionLift‖ :=
+    norm_pos_iff.mpr chapterVIDCollisionLift_ne_zero
+  cases side with
+  | initial =>
+      have hclose := model.root_close k hk (-model.L) Set.left_mem_uIcc
+      rw [Complex.dist_eq] at hclose
+      have hre := Complex.re_le_norm
+        (chapterVIDCriticalMorseRootPoint
+          ((k : ℂ), ((-model.L : ℝ) : ℂ)) - chapterVIDCollisionLift)
+      unfold ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint
+      change
+        (chapterVIDCriticalMorseRootPoint
+          ((k : ℂ), ((-model.L : ℝ) : ℂ))).re - chapterVIDCollisionLift.re ≤ _ at hre
+      linarith
+  | final =>
+      have hclose := model.root_close k hk model.L Set.right_mem_uIcc
+      rw [Complex.dist_eq] at hclose
+      have hre := Complex.re_le_norm
+        (chapterVIDCriticalMorseRootPoint
+          ((k : ℂ), (model.L : ℂ)) - chapterVIDCollisionLift)
+      unfold ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint
+      change
+        (chapterVIDCriticalMorseRootPoint
+          ((k : ℂ), (model.L : ℂ))).re - chapterVIDCollisionLift.re ≤ _ at hre
+      linarith
+
+/-- The two outer endpoints facing the local segment lie on the imaginary axis. -/
+theorem ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint_re
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalGlobalRootModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (k : ℝ) :
+    (model.outerConnectorEndpoint side k).re = 0 := by
+  cases side <;>
+    simp [ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint,
+      chapterVIDOuterArcPoint]
+
 /-- Oriented source endpoint of either connector. -/
 def ChapterVIDPrincipalGlobalRootModel.connectorSource
     {massProduct : ℂ} {b d : ℤ}
@@ -380,6 +428,79 @@ theorem ChapterVIDPrincipalConnectorModel.continuous_rectanglePoint
   have hscalar : Continuous (fun st : I × I ↦ (st.2 : ℝ)) :=
     continuous_subtype_val.comp continuous_snd
   exact (hscalar.smul (htarget.sub hsource)).add hsource
+
+/-- The affine connector coordinate never reaches the origin. Except at its outer endpoint its
+real part is strictly negative; the outer endpoint itself has positive norm. Thus coordinate
+nonvanishing is analytic geometry, not a finite-computation obligation. -/
+theorem ChapterVIDPrincipalConnectorModel.rectanglePoint_ne_zero
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (st : I × I) :
+    model.rectanglePoint side st ≠ 0 := by
+  have hlocal := model.rootModel.localConnectorEndpoint_re_neg side
+    (model.criticalValue st.1) (model.criticalValue_mem_rootModel st.1)
+  have houter := model.rootModel.outerConnectorEndpoint_re side
+    (model.criticalValue st.1)
+  cases side with
+  | initial =>
+      by_cases ht : (st.2 : ℝ) = 0
+      · have hpoint : model.rectanglePoint .initial st =
+            model.rootModel.outerConnectorEndpoint .initial
+              (model.criticalValue st.1) := by
+          simp [ChapterVIDPrincipalConnectorModel.rectanglePoint,
+            ChapterVIDPrincipalGlobalRootModel.connectorPoint,
+            ChapterVIDPrincipalGlobalRootModel.connectorSource,
+            ChapterVIDPrincipalGlobalRootModel.connectorTarget,
+            AffineMap.lineMap_apply, ht]
+        rw [hpoint]
+        exact chapterVIDOuterArcPoint_ne_zero .initial _
+      · intro hzero
+        have hre := congrArg Complex.re hzero
+        simp only [Complex.zero_re] at hre
+        unfold ChapterVIDPrincipalConnectorModel.rectanglePoint
+          ChapterVIDPrincipalGlobalRootModel.connectorPoint
+          ChapterVIDPrincipalGlobalRootModel.connectorSource
+          ChapterVIDPrincipalGlobalRootModel.connectorTarget at hre
+        simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add,
+          Complex.add_re, Complex.smul_re, Complex.sub_re, smul_eq_mul] at hre
+        have htpos : 0 < (st.2 : ℝ) :=
+          lt_of_le_of_ne st.2.property.1 (Ne.symm ht)
+        rw [houter, sub_zero, add_zero] at hre
+        exact (mul_neg_of_pos_of_neg htpos hlocal).ne hre
+  | final =>
+      by_cases ht : (st.2 : ℝ) = 1
+      · have hpoint : model.rectanglePoint .final st =
+            model.rootModel.outerConnectorEndpoint .final
+              (model.criticalValue st.1) := by
+          simp [ChapterVIDPrincipalConnectorModel.rectanglePoint,
+            ChapterVIDPrincipalGlobalRootModel.connectorPoint,
+            ChapterVIDPrincipalGlobalRootModel.connectorSource,
+            ChapterVIDPrincipalGlobalRootModel.connectorTarget,
+            AffineMap.lineMap_apply, ht]
+        rw [hpoint]
+        exact chapterVIDOuterArcPoint_ne_zero .final _
+      · intro hzero
+        have hre := congrArg Complex.re hzero
+        simp only [Complex.zero_re] at hre
+        unfold ChapterVIDPrincipalConnectorModel.rectanglePoint
+          ChapterVIDPrincipalGlobalRootModel.connectorPoint
+          ChapterVIDPrincipalGlobalRootModel.connectorSource
+          ChapterVIDPrincipalGlobalRootModel.connectorTarget at hre
+        simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add,
+          Complex.add_re, Complex.smul_re, Complex.sub_re, smul_eq_mul] at hre
+        have htlt : (st.2 : ℝ) < 1 := lt_of_le_of_ne st.2.property.2 ht
+        rw [houter, zero_sub] at hre
+        have hrewrite :
+            (st.2 : ℝ) * -(
+                model.rootModel.localConnectorEndpoint .final
+                  (model.criticalValue st.1)).re +
+              (model.rootModel.localConnectorEndpoint .final
+                (model.criticalValue st.1)).re =
+              (1 - (st.2 : ℝ)) *
+                (model.rootModel.localConnectorEndpoint .final
+                  (model.criticalValue st.1)).re := by ring
+        rw [hrewrite] at hre
+        exact (mul_neg_of_pos_of_neg (sub_pos.mpr htlt) hlocal).ne hre
 
 /-- The literal root-coordinate source radicand on a compact connector rectangle. -/
 def ChapterVIDPrincipalConnectorModel.rectangleRadicand

@@ -11,9 +11,9 @@ import PoincareChapterVI.ChapterVILeanCompCertNonzeroGrid
 # LeanCompCert interval-grid boundary for the D connectors
 
 This file is the executable-certificate route for the two connector rectangles. For each side,
-one grid encloses the affine root coordinate and another encloses the literal transformed
-radicand. Every cell selects whichever signed coordinate separates its output rectangle from
-zero. The verified compiled program checks those finite endpoint comparisons.
+one grid encloses the literal transformed radicand. Every cell selects whichever signed
+coordinate separates its output rectangle from zero. The verified compiled program checks those
+finite endpoint comparisons. The affine root coordinate is proved nonzero analytically.
 
 The data deliberately retain two kernel-side obligations: the cells cover the unit square and
 their output rectangles enclose the actual analytic functions. In particular, noncomputable
@@ -31,28 +31,24 @@ namespace ChapterVIDConnectorCompiledGrid
 
 open ChapterVILeanCompCertNonzeroGrid
 
-/-- The two interval campaigns needed for one connector side. The coordinate and radicand grids
-may use different subdivisions. -/
+/-- The interval campaign needed for one connector side. -/
 structure Data
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
     (side : ChapterVIDOuterArcSide)
-    (precision coordinateCells radicandCells : ℕ) where
-  coordinate : ChapterVILeanCompCertNonzeroGrid.Data (I × I)
-    precision coordinateCells (model.rectanglePoint side)
+    (precision radicandCells : ℕ) where
   radicand : ChapterVILeanCompCertNonzeroGrid.Data (I × I)
     precision radicandCells (model.rectangleRadicand side)
 
-/-- The only external observations for one connector: both verified compiled batches returned
-zero failures. -/
+/-- The only external observation for one connector: its verified compiled radicand batch
+returned zero failures. -/
 structure RunVerdict
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
     {side : ChapterVIDOuterArcSide}
-    {precision coordinateCells radicandCells : ℕ}
-    (coordinateName radicandName : String)
-    (data : Data model side precision coordinateCells radicandCells) : Prop where
-  coordinate : ChapterVILeanCompCertNonzeroGrid.RunVerdict coordinateName data.coordinate
+    {precision radicandCells : ℕ}
+    (radicandName : String)
+    (data : Data model side precision radicandCells) : Prop where
   radicand : ChapterVILeanCompCertNonzeroGrid.RunVerdict radicandName data.radicand
 
 /-- Reconstruct the semantic connector certificate from the two successful compiled grids. -/
@@ -60,36 +56,30 @@ theorem RunVerdict.toConnectorCertificate
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
     {side : ChapterVIDOuterArcSide}
-    {precision coordinateCells radicandCells : ℕ}
-    {coordinateName radicandName : String}
-    {data : Data model side precision coordinateCells radicandCells}
-    (run : RunVerdict coordinateName radicandName data) :
+    {precision radicandCells : ℕ}
+    {radicandName : String}
+    {data : Data model side precision radicandCells}
+    (run : RunVerdict radicandName data) :
     ChapterVIDConnectorCompiledCertificate model side where
-  coordinate := {
-    continuous := model.continuous_rectanglePoint side
-    ne_zero := ChapterVILeanCompCertNonzeroGrid.ne_zero run.coordinate }
   radicand := {
     continuous := model.continuous_rectangleRadicand_of_coordinate_ne_zero side
-      (ChapterVILeanCompCertNonzeroGrid.ne_zero run.coordinate)
+      (model.rectanglePoint_ne_zero side)
     ne_zero := ChapterVILeanCompCertNonzeroGrid.ne_zero run.radicand }
 
-/-- End-to-end compiled-grid route. Successful coordinate and radicand batches for both
-connectors produce the canonical five-term formal sum with Poincare's exact logarithmic leading
-coefficient. Seam compatibility is a separate geometric obligation. -/
+/-- End-to-end compiled-grid route. Successful radicand batches for both connectors produce the
+canonical five-term formal sum with Poincare's exact logarithmic leading coefficient. Seam
+compatibility is a separate geometric obligation. -/
 theorem exists_fivePieceContribution_tendsto_of_compiledGrids
     (outerRun : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
-    {initialPrecision initialCoordinateCells initialRadicandCells : ℕ}
-    {finalPrecision finalCoordinateCells finalRadicandCells : ℕ}
-    {initialCoordinateName initialRadicandName : String}
-    {finalCoordinateName finalRadicandName : String}
-    {initialData : Data model .initial initialPrecision
-      initialCoordinateCells initialRadicandCells}
-    {finalData : Data model .final finalPrecision
-      finalCoordinateCells finalRadicandCells}
-    (initialRun : RunVerdict initialCoordinateName initialRadicandName initialData)
-    (finalRun : RunVerdict finalCoordinateName finalRadicandName finalData) :
+    {initialPrecision initialRadicandCells : ℕ}
+    {finalPrecision finalRadicandCells : ℕ}
+    {initialRadicandName finalRadicandName : String}
+    {initialData : Data model .initial initialPrecision initialRadicandCells}
+    {finalData : Data model .final finalPrecision finalRadicandCells}
+    (initialRun : RunVerdict initialRadicandName initialData)
+    (finalRun : RunVerdict finalRadicandName finalData) :
     ∃ pair : ChapterVIDPrincipalConnectorModel.CertifiedConnectorPair outerRun model,
       Filter.Tendsto
         (fun k : ℝ ↦ (-Real.log k)⁻¹ • pair.fivePieceContribution k)

@@ -425,21 +425,22 @@ The strongest newly completed component is the finite algebra in §103:
   separate algebraic decomposition hypothesis. It is not yet claimed to be one seamless contour:
   the remaining geometric task is to prove the two local seam signs are compatible and identify
   the resulting sum with the continuation of the original unit-circle integral. Producing the
-  two concrete compiled grids per side
+  one concrete compiled radicand grid per side
   and proving that the two seam signs give one compatible middle continuation are the remaining
   connector tasks. The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
   sheet along the full shared boundary.
-- `ChapterVILeanCompCertNonzeroGrid.lean` provides the reusable compiled boundary for those four
+- `ChapterVILeanCompCertNonzeroGrid.lean` provides the reusable compiled boundary for those two
   grids. Each complex output cell may exclude zero through positive or negative real or imaginary
   part, and one zero-failure LeanCompCert batch reconstructs continuum nonvanishing after the
   Lean-proved cover and interval-containment bridges are applied.
-  `ChapterVIDConnectorCompiledGrid.lean` specializes this to the coordinate and radicand on each
-  D connector and feeds successful runs directly to the five-piece logarithmic theorem. Connector
-  and radicand continuity are now derived from the analytic formulas in Lean, so the compiled
-  input contains only the finite cover, interval containment, admissibility, and zero-failure
-  observations. The
+  `ChapterVIDConnectorCompiledGrid.lean` specializes this to the radicand on each D connector and
+  feeds successful runs directly to the five-piece logarithmic theorem. Shrinking the local
+  analytic model keeps its endpoints in the negative half-plane, so Lean proves the affine root
+  coordinate nonzero without a grid. Connector and radicand continuity are likewise derived from
+  the analytic formulas. The compiled input now contains only the radicand cover, interval
+  containment, admissibility, and zero-failure observations. The
   outstanding certificate-generation issue is now explicit: because the local Morse inverse is
   noncomputable, its dyadic cell enclosures must be justified by an interval-Newton or comparable
   analytic bound in Lean; compiled code is not allowed to evaluate that inverse opaquely.

@@ -49,6 +49,9 @@ structure ChapterVIDPrincipalGlobalRootModel
         (chapterVIDCriticalMorseSourcePointAtD ((k : ℂ), (v : ℂ)))
   root_ne_zero : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
     chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ)) ≠ 0
+  root_close : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
+    dist (chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ)))
+      chapterVIDCollisionLift < ‖chapterVIDCollisionLift‖ / 2
   parameterRoot_pow : ∀ k ∈ Set.Icc 0 δ,
     chapterVIDCriticalParameterRootAtD (k : ℂ) ^ 3 =
       chapterVIDCriticalParameterInverseAtD (k : ℂ)
@@ -87,6 +90,17 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
       {point : ℂ × ℂ | chapterVIDCriticalMorseRootPoint point ≠ 0} ∈
         𝓝 ((0 : ℂ), (0 : ℂ)) :=
     eventually_chapterVIDCriticalMorseRootPoint_ne_zero
+  have hclose :
+      {point : ℂ × ℂ |
+        dist (chapterVIDCriticalMorseRootPoint point) chapterVIDCollisionLift <
+          ‖chapterVIDCollisionLift‖ / 2} ∈ 𝓝 ((0 : ℂ), (0 : ℂ)) := by
+    have hradius : 0 < ‖chapterVIDCollisionLift‖ / 2 := by
+      exact div_pos (norm_pos_iff.mpr chapterVIDCollisionLift_ne_zero) (by norm_num)
+    have htendsto : Tendsto chapterVIDCriticalMorseRootPoint
+        (𝓝 ((0 : ℂ), (0 : ℂ))) (𝓝 chapterVIDCollisionLift) := by
+      rw [← chapterVIDCriticalMorseRootPoint_base]
+      exact analyticAt_chapterVIDCriticalMorseRootPoint.continuousAt
+    exact htendsto.eventually (Metric.ball_mem_nhds _ hradius)
   have hfst : Tendsto (fun point : ℂ × ℂ ↦ point.1)
       (𝓝 ((0 : ℂ), (0 : ℂ))) (𝓝 0) := continuousAt_fst
   have hparameter :
@@ -119,12 +133,14 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
           chapterVIDRadicand (chapterVIDCriticalMorseSourcePointAtD point) ∧
         chapterVIDCriticalMorseRootPoint point ≠ 0 ∧
         chapterVIDCriticalParameterRootAtD point.1 ^ 3 =
-          chapterVIDCriticalParameterInverseAtD point.1} ∈
+          chapterVIDCriticalParameterInverseAtD point.1 ∧
+        dist (chapterVIDCriticalMorseRootPoint point) chapterVIDCollisionLift <
+          ‖chapterVIDCollisionLift‖ / 2} ∈
         𝓝 ((0 : ℂ), (0 : ℂ)) := by
     filter_upwards [hanalytic, hparameterInverseAnalytic',
-      hparameterRootAnalytic', hsource, hradicand, hne, hparameter]
-      with point ha hzi hzeta hs hrad hn hp
-    exact ⟨ha, hzi, hzeta, hs, hrad, hn, hp⟩
+      hparameterRootAnalytic', hsource, hradicand, hne, hparameter, hclose]
+      with point ha hzi hzeta hs hrad hn hp hc
+    exact ⟨ha, hzi, hzeta, hs, hrad, hn, hp, hc⟩
   obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp hall
   let r : ℝ := min (min model.δ model.L) (ε / 2)
   have hr : 0 < r := by
@@ -187,6 +203,7 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
     root_source_eq := ?_
     root_radicand_eq := ?_
     root_ne_zero := ?_
+    root_close := ?_
     parameterRoot_pow := ?_ }⟩
   · intro k hk v hv
     exact (hball (hrealPoint k hk v hv)).1
@@ -205,11 +222,13 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
     exact (hball (hrealPoint k hk v hv)).2.2.2.2.1
   · intro k hk v hv
     exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.1
+  · intro k hk v hv
+    exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.2.2
   · intro k hk
     have hv : (0 : ℝ) ∈ Set.uIcc (-r) r := by
       rw [Set.uIcc_of_le (by linarith [hr])]
       constructor <;> linarith
-    exact (hball (hrealPoint k hk 0 hv)).2.2.2.2.2.2
+    exact (hball (hrealPoint k hk 0 hv)).2.2.2.2.2.2.1
 
 /-- The affine real Morse coordinate along the compact middle segment. -/
 def ChapterVIDPrincipalGlobalRootModel.morseLine
