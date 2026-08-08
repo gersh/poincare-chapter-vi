@@ -436,7 +436,10 @@ The strongest newly completed component is the finite algebra in §103:
   part, and one zero-failure LeanCompCert batch reconstructs continuum nonvanishing after the
   Lean-proved cover and interval-containment bridges are applied.
   `ChapterVIDConnectorCompiledGrid.lean` specializes this to the coordinate and radicand on each
-  D connector and feeds successful runs directly to the five-piece logarithmic theorem. The
+  D connector and feeds successful runs directly to the five-piece logarithmic theorem. Connector
+  and radicand continuity are now derived from the analytic formulas in Lean, so the compiled
+  input contains only the finite cover, interval containment, admissibility, and zero-failure
+  observations. The
   outstanding certificate-generation issue is now explicit: because the local Morse inverse is
   noncomputable, its dyadic cell enclosures must be justified by an interval-Newton or comparable
   analytic bound in Lean; compiled code is not allowed to evaluate that inverse opaquely.

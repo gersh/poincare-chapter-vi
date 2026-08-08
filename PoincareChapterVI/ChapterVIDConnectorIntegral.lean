@@ -375,6 +375,24 @@ theorem connectorParameterRoot_ne_zero
       (model.criticalValue_mem s)]
   exact chapterVIDCommonParameterRootPath_ne_zero _
 
+/-- Once the compiled coordinate grid excludes zero, continuity of the literal connector
+radicand follows from its exact analytic formula. No separate radicand-continuity certificate is
+needed. -/
+theorem continuous_rectangleRadicand_of_coordinate_ne_zero
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (hcoordinate : ∀ point, model.rectanglePoint side point ≠ 0) :
+    Continuous (model.rectangleRadicand side) := by
+  rw [show model.rectangleRadicand side = (fun point : I × I ↦
+      chapterVIDRootCoordinateRadicand
+        (model.connectorParameterRoot point.1) (model.rectanglePoint side point)) from rfl]
+  exact continuous_chapterVIDRootCoordinateRadicand_comp
+    (model.continuous_connectorParameterRoot.comp continuous_fst)
+    (model.continuous_rectanglePoint side)
+    (fun point ↦ model.connectorParameterRoot_ne_zero point.1)
+    hcoordinate
+
 /-- Poincare's original source contour coordinate along a connector. -/
 def connectorSourceContour
     {massProduct : ℂ} {b d : ℤ}

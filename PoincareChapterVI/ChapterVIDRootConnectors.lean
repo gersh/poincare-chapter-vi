@@ -277,6 +277,110 @@ def ChapterVIDPrincipalConnectorModel.rectanglePoint
   model.rootModel.connectorPoint side
     (model.criticalValue st.1, (st.2 : ℝ))
 
+/-- The global outer endpoint varies continuously over the compact connector parameter. -/
+theorem ChapterVIDPrincipalConnectorModel.continuous_outerConnectorEndpoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (fun s : I ↦
+      model.rootModel.outerConnectorEndpoint side (model.criticalValue s)) := by
+  rw [continuous_iff_continuousAt]
+  intro s
+  have hinverse := model.rootModel.parameterInverse_analyticAt
+    (model.criticalValue s) (model.criticalValue_mem_rootModel s)
+  have hcritical : ContinuousAt
+      (fun q : I ↦ (model.criticalValue q : ℂ)) s :=
+    Complex.ofRealCLM.continuous.continuousAt.comp_of_eq
+      (continuous_ChapterVIDPrincipalConnectorModel_criticalValue model).continuousAt rfl
+  have hinverseComp : ContinuousAt
+      (fun q : I ↦ chapterVIDCriticalParameterInverseAtD
+        (model.criticalValue q : ℂ)) s :=
+    hinverse.continuousAt.comp_of_eq hcritical rfl
+  have hreal : ContinuousAt
+      (fun q : I ↦ (chapterVIDCriticalParameterInverseAtD
+        (model.criticalValue q : ℂ)).re) s :=
+    Complex.continuous_re.continuousAt.comp_of_eq hinverseComp rfl
+  have hraw : ContinuousAt
+      (fun q : I ↦ chapterVIDCriticalToGlobalParameterRaw
+        (model.criticalValue q)) s := by
+    unfold chapterVIDCriticalToGlobalParameterRaw
+    exact (continuousAt_const.sub hreal).div_const _
+  have hparameter : ContinuousAt
+      (fun q : I ↦ chapterVIDCriticalToGlobalParameter
+        (model.criticalValue q)) s := by
+    unfold chapterVIDCriticalToGlobalParameter
+    exact (continuous_projIcc (h := zero_le_one)).continuousAt.comp_of_eq hraw rfl
+  cases side
+  · exact (continuous_chapterVIDOuterArcPoint .initial).continuousAt.comp_of_eq
+      (hparameter.prodMk continuousAt_const) rfl
+  · exact (continuous_chapterVIDOuterArcPoint .final).continuousAt.comp_of_eq
+      (hparameter.prodMk continuousAt_const) rfl
+
+/-- The local inverse-Morse endpoint varies continuously on the same compact interval. -/
+theorem ChapterVIDPrincipalConnectorModel.continuous_localConnectorEndpoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (fun s : I ↦
+      model.rootModel.localConnectorEndpoint side (model.criticalValue s)) := by
+  rw [continuous_iff_continuousAt]
+  intro s
+  have hcritical : ContinuousAt
+      (fun q : I ↦ (model.criticalValue q : ℂ)) s :=
+    Complex.ofRealCLM.continuous.continuousAt.comp_of_eq
+      (continuous_ChapterVIDPrincipalConnectorModel_criticalValue model).continuousAt rfl
+  cases side
+  · have hroot := model.rootModel.root_analyticAt
+      (model.criticalValue s) (model.criticalValue_mem_rootModel s)
+      (-model.rootModel.L) Set.left_mem_uIcc
+    exact hroot.continuousAt.comp_of_eq
+      (hcritical.prodMk continuousAt_const) rfl
+  · have hroot := model.rootModel.root_analyticAt
+      (model.criticalValue s) (model.criticalValue_mem_rootModel s)
+      model.rootModel.L Set.right_mem_uIcc
+    exact hroot.continuousAt.comp_of_eq
+      (hcritical.prodMk continuousAt_const) rfl
+
+theorem ChapterVIDPrincipalConnectorModel.continuous_connectorSource
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (fun s : I ↦
+      model.rootModel.connectorSource side (model.criticalValue s)) := by
+  cases side
+  · exact model.continuous_outerConnectorEndpoint .initial
+  · exact model.continuous_localConnectorEndpoint .final
+
+theorem ChapterVIDPrincipalConnectorModel.continuous_connectorTarget
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (fun s : I ↦
+      model.rootModel.connectorTarget side (model.criticalValue s)) := by
+  cases side
+  · exact model.continuous_localConnectorEndpoint .initial
+  · exact model.continuous_outerConnectorEndpoint .final
+
+/-- Continuity of the affine root-coordinate connector is analytic and does not belong in the
+compiled certificate. -/
+theorem ChapterVIDPrincipalConnectorModel.continuous_rectanglePoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.rectanglePoint side) := by
+  unfold ChapterVIDPrincipalConnectorModel.rectanglePoint
+    ChapterVIDPrincipalGlobalRootModel.connectorPoint
+  simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add]
+  have hsource : Continuous (fun st : I × I ↦
+      model.rootModel.connectorSource side (model.criticalValue st.1)) :=
+    (model.continuous_connectorSource side).comp continuous_fst
+  have htarget : Continuous (fun st : I × I ↦
+      model.rootModel.connectorTarget side (model.criticalValue st.1)) :=
+    (model.continuous_connectorTarget side).comp continuous_fst
+  have hscalar : Continuous (fun st : I × I ↦ (st.2 : ℝ)) :=
+    continuous_subtype_val.comp continuous_snd
+  exact (hscalar.smul (htarget.sub hsource)).add hsource
+
 /-- The literal root-coordinate source radicand on a compact connector rectangle. -/
 def ChapterVIDPrincipalConnectorModel.rectangleRadicand
     {massProduct : ℂ} {b d : ℤ}

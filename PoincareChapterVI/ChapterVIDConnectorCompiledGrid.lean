@@ -42,8 +42,6 @@ structure Data
     precision coordinateCells (model.rectanglePoint side)
   radicand : ChapterVILeanCompCertNonzeroGrid.Data (I × I)
     precision radicandCells (model.rectangleRadicand side)
-  coordinate_continuous : Continuous (model.rectanglePoint side)
-  radicand_continuous : Continuous (model.rectangleRadicand side)
 
 /-- The only external observations for one connector: both verified compiled batches returned
 zero failures. -/
@@ -68,10 +66,11 @@ theorem RunVerdict.toConnectorCertificate
     (run : RunVerdict coordinateName radicandName data) :
     ChapterVIDConnectorCompiledCertificate model side where
   coordinate := {
-    continuous := data.coordinate_continuous
+    continuous := model.continuous_rectanglePoint side
     ne_zero := ChapterVILeanCompCertNonzeroGrid.ne_zero run.coordinate }
   radicand := {
-    continuous := data.radicand_continuous
+    continuous := model.continuous_rectangleRadicand_of_coordinate_ne_zero side
+      (ChapterVILeanCompCertNonzeroGrid.ne_zero run.coordinate)
     ne_zero := ChapterVILeanCompCertNonzeroGrid.ne_zero run.radicand }
 
 /-- End-to-end compiled-grid route. Successful coordinate and radicand batches for both

@@ -181,6 +181,26 @@ theorem continuousAt_chapterVIDRootCoordinateRadicand
     chapterVIPlanarDistanceFactorPlus chapterVIPlanarDistanceFactorMinus
   fun_prop (disch := simp_all [chapterVIDRootToOriginalContour_ne_zero])
 
+/-- Composition form used by compiled interval grids: continuous nonzero root coordinates give
+continuity of Poincare's literal transformed radicand. -/
+theorem continuous_chapterVIDRootCoordinateRadicand_comp
+    {A : Type*} [TopologicalSpace A]
+    {parameterRoot contourRoot : A → ℂ}
+    (hparameter : Continuous parameterRoot)
+    (hcontour : Continuous contourRoot)
+    (hparameter_ne : ∀ x, parameterRoot x ≠ 0)
+    (hcontour_ne : ∀ x, contourRoot x ≠ 0) :
+    Continuous (fun x ↦
+      chapterVIDRootCoordinateRadicand (parameterRoot x) (contourRoot x)) := by
+  rw [continuous_iff_continuousAt]
+  intro x
+  have h := (continuousAt_chapterVIDRootCoordinateRadicand
+    (hparameter_ne x) (hcontour_ne x)).comp
+      (hparameter.continuousAt.prodMk hcontour.continuousAt)
+  convert h using 1
+  funext y
+  rfl
+
 theorem chapterVIDRootCoordinateRadicand_eq_factors (ζ u : ℂ) :
     chapterVIDRootCoordinateRadicand ζ u =
       chapterVIDRootCoordinateCollisionFactorPlus ζ u *
