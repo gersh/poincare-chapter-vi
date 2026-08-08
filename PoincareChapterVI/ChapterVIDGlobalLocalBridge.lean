@@ -64,6 +64,41 @@ theorem chapterVIDGlobalTBase_ne_zero : chapterVIDGlobalTBase ≠ 0 := by
   rw [chapterVIDCollisionLift_pow, zero_pow (by norm_num)] at hpow
   exact chapterVIDX_ne_zero hpow
 
+/-- The explicit global collision lift does not meet the ramification point `u=0`. -/
+theorem chapterVIDCollisionLift_ne_zero : chapterVIDCollisionLift ≠ 0 := by
+  intro hzero
+  have hpow := congrArg (fun z : ℂ ↦ z ^ 3) hzero
+  rw [chapterVIDCollisionLift_pow, zero_pow (by norm_num)] at hpow
+  exact chapterVIDX_ne_zero hpow
+
+/-- Poincaré's exact `u ↦ t` coordinate change is unramified at the collision.  The proof
+differentiates its certified cubing identity and reduces nonvanishing to the first Kepler
+criticality condition already verified at D. -/
+theorem deriv_chapterVIDRootToOriginalContour_collision_ne_zero :
+    deriv chapterVIDRootToOriginalContour chapterVIDCollisionLift ≠ 0 := by
+  let u := chapterVIDCollisionLift
+  have hu : u ≠ 0 := chapterVIDCollisionLift_ne_zero
+  have hx : u ^ 3 ≠ 0 := pow_ne_zero 3 hu
+  have hf :=
+    (analyticAt_chapterVIDRootToOriginalContour hu).differentiableAt.hasDerivAt
+  have hleft := hf.pow 3
+  have hright :=
+    (hasDerivAt_chapterVIKeplerExponential chapterVIDEccentricity hx).comp u
+      ((hasDerivAt_id u).pow 3)
+  have hrightRoot := hright.congr_of_eventuallyEq
+    (Filter.Eventually.of_forall
+      (fun w : ℂ ↦ chapterVIDRootToOriginalContour_pow w))
+  have hderivEq := hleft.unique hrightRoot
+  intro hzero
+  rw [hzero, mul_zero] at hderivEq
+  have hcritical :
+      chapterVIKeplerExponentialDerivative chapterVIDEccentricity (u ^ 3) ≠ 0 := by
+    simpa [u, chapterVIDCollisionLift_pow] using chapterVID_firstKeplerCritical
+  have hinner : (↑3 * id u ^ (3 - 1) * 1 : ℂ) ≠ 0 := by
+    simp only [id_eq, Nat.reduceSubDiff, mul_one]
+    exact mul_ne_zero (by norm_num) (pow_ne_zero 2 hu)
+  exact hcritical ((mul_eq_zero.mp hderivEq.symm).resolve_right hinner)
+
 /-- The explicit global endpoint maps back to the anomaly pair `(x_D,y_D)` used to define the
 local inverse branches. -/
 theorem chapterVIDGlobalTBase_anomalyPair :
@@ -94,6 +129,46 @@ theorem chapterVIDTDeckMultiplier_pow_three :
     ← zpow_ofNat, chapterVIDGlobalTBase_pow]
   exact mul_inv_cancel₀
     (chapterVIKeplerExponential_ne_zero chapterVIDEccentricity chapterVIDX_ne_zero)
+
+theorem chapterVIDTDeckMultiplier_ne_zero : chapterVIDTDeckMultiplier ≠ 0 := by
+  intro hzero
+  have hpow := chapterVIDTDeckMultiplier_pow_three
+  rw [hzero, zero_pow (by norm_num)] at hpow
+  norm_num at hpow
+
+/-- The exact global `u` coordinate, followed by the unique cubic deck transformation that
+matches the local inverse branch selected in the Morse construction. -/
+noncomputable def chapterVIDDeckedRootToLocalContour (u : ℂ) : ℂ :=
+  chapterVIDTDeckMultiplier * chapterVIDRootToOriginalContour u
+
+@[simp]
+theorem chapterVIDDeckedRootToLocalContour_collision :
+    chapterVIDDeckedRootToLocalContour chapterVIDCollisionLift = chapterVIDTBase := by
+  exact chapterVIDTDeckMultiplier_mul_global
+
+theorem analyticAt_chapterVIDDeckedRootToLocalContour_collision :
+    AnalyticAt ℂ chapterVIDDeckedRootToLocalContour chapterVIDCollisionLift := by
+  unfold chapterVIDDeckedRootToLocalContour
+  exact analyticAt_const.mul
+    (analyticAt_chapterVIDRootToOriginalContour chapterVIDCollisionLift_ne_zero)
+
+/-- The global contour coordinate enters the selected local source chart transversely.  Thus
+the global D pinch and the local logarithmic segment are related by a genuine local analytic
+coordinate, not merely by equality of their endpoint values. -/
+theorem deriv_chapterVIDDeckedRootToLocalContour_collision_ne_zero :
+    deriv chapterVIDDeckedRootToLocalContour chapterVIDCollisionLift ≠ 0 := by
+  have hroot :=
+    (analyticAt_chapterVIDRootToOriginalContour
+      chapterVIDCollisionLift_ne_zero).differentiableAt.hasDerivAt
+  have hdeck := hroot.const_mul chapterVIDTDeckMultiplier
+  have hderiv :
+      deriv chapterVIDDeckedRootToLocalContour chapterVIDCollisionLift =
+        chapterVIDTDeckMultiplier *
+          deriv chapterVIDRootToOriginalContour chapterVIDCollisionLift := by
+    exact hdeck.deriv
+  rw [hderiv]
+  exact mul_ne_zero chapterVIDTDeckMultiplier_ne_zero
+    deriv_chapterVIDRootToOriginalContour_collision_ne_zero
 
 /-- The explicit endpoint is itself a genuine order-two zero of Poincaré's literal convergent
 `(z,t)` radicand. -/

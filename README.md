@@ -282,8 +282,13 @@ The strongest newly completed component is the finite algebra in §103:
   It proves the pole radii remain strictly ordered until collision, chooses the unique constant
   convex weight making the initial intermediate circle have radius one, constructs the resulting
   closed contour homotopy, proves it avoids both poles before the endpoint, and proves its final
-  negative-real half-turn is exactly the collision lift. The remaining work is analytic sheet and
-  smoothness data, not choosing a contour set.
+  negative-real half-turn is exactly the collision lift.
+- `ChapterVIDGlobalMorseBridge.lean` proves that the exact deck-transformed `u -> t` map is
+  holomorphic and unramified at D, composes it with the prepared Morse map, and constructs the
+  canonical local inverse from the straight `v` segment back to the actual global `u` coordinate.
+  Near D, the reconstructed `(z,t)` point is proved equal to `chapterVIDMorseSourcePoint`; this
+  removes the former endpoint-only identification. The remaining global work is the compatible
+  square-root sheet and regularity/finite-limit control on the two outer arcs.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

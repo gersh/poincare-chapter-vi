@@ -13,6 +13,7 @@ import PoincareChapterVI.ChapterVIDAdmissibility
 import PoincareChapterVI.ChapterVIDRootCoordinates
 import PoincareChapterVI.ChapterVIDRadialContour
 import PoincareChapterVI.ChapterVIDGlobalLocalBridge
+import PoincareChapterVI.ChapterVIDGlobalMorseBridge
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra
@@ -216,7 +217,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   source radicand is exactly `k+v²` and proves the actual symmetric middle integral divided by
   `-log k` tends to that nonzero amplitude. `ChapterVIThreeArcAsymptotic.lean` proves that the full
   contour inherits this coefficient once the source-sheet three-arc realization is constructed
-  and its two regular arcs are `o(-log k)`. Those two global premises remain.
+  and its two regular arcs are `o(-log k)`. `ChapterVIDGlobalMorseBridge.lean` proves that the
+  explicit global `u=x^(1/3)` coordinate is locally analytically equivalent at D to the same
+  Morse `v` coordinate and that its inverse reconstructs the exact local Morse source point.
+  The compatible global square-root sheet and the two regular-arc bounds remain.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

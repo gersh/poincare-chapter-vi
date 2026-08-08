@@ -38,6 +38,17 @@ theorem continuousOn_chapterVIDRootToOriginalContour :
   unfold chapterVIDRootToOriginalContour
   fun_prop (disch := simp_all)
 
+/-- Away from the ramification point `u=0`, Poincaré's exact change back to the original
+contour variable is holomorphic. -/
+theorem analyticAt_chapterVIDRootToOriginalContour
+    {u : ℂ} (hu : u ≠ 0) :
+    AnalyticAt ℂ chapterVIDRootToOriginalContour u := by
+  unfold chapterVIDRootToOriginalContour
+  exact analyticAt_id.mul
+    ((analyticAt_const.mul
+      (((analyticAt_id.pow 3).inv (pow_ne_zero 3 hu)).sub
+        (analyticAt_id.pow 3))).cexp)
+
 /-- Cubing the changed coordinate recovers the exponential form of Kepler's equation. -/
 theorem chapterVIDRootToOriginalContour_pow (u : ℂ) :
     chapterVIDRootToOriginalContour u ^ 3 =
