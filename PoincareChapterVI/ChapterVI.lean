@@ -33,6 +33,7 @@ import PoincareChapterVI.ChapterVIDRadialClusteredCompiledGrid
 import PoincareChapterVI.ChapterVIDOuterArcUnitClusteredCompiledGrid
 import PoincareChapterVI.ChapterVIDOuterArcPolarCompiledGrid
 import PoincareChapterVI.ChapterVIDOuterArcPolarAdmissibility
+import PoincareChapterVI.ChapterVIDOuterArcRegularity
 import PoincareChapterVI.ChapterVILeanCompCertRoots
 import PoincareChapterVI.ChapterVIDOuterArcInterval
 import PoincareChapterVI.ChapterVIDOuterArcCompiledSample
@@ -248,8 +249,13 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   Morse `v` coordinate and that its inverse reconstructs the exact local Morse source point.
   `ChapterVISquareRootSheet.lean` reduces the compatible outer-arc square-root sheet to
   nonvanishing on a compact parameter rectangle and supplies a finite-cover/Lipschitz interface
-  for discharging that fact with a large LeanCompCert sample certificate. The concrete bounds
-  and the two regular-arc limits remain.
+  for discharging that fact with a large LeanCompCert sample certificate. The concrete compiled
+  polar bounds now construct both outer sheets, and `ChapterVIDOuterArcRegularity.lean` pulls the
+  literal principal numerator through Poincare's `u` coordinate, defines the expected transformed
+  contour velocity, and proves that the resulting normalized sum has a finite limit at D. The
+  formal chain-rule identification with the original curve integral, matching the two outer-sheet
+  signs to the middle Morse sheet, and identifying the resulting three-piece cycle with the
+  continued source contour remain.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

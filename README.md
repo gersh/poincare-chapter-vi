@@ -289,7 +289,8 @@ The strongest newly completed component is the finite algebra in §103:
   Near D, the reconstructed `(z,t)` point is proved equal to `chapterVIDMorseSourcePoint`; this
   removes the former endpoint-only identification. The compiled polar cover below now supplies
   compatible square-root sheets on the two outer-arc rectangles. The remaining global work is to
-  join those sheets to the full deforming three-arc family and its regularity/finite-limit data.
+  join those sheets to the full deforming three-arc family and match their signs to the middle
+  Morse sheet.
 - `ChapterVISquareRootSheet.lean` proves the general sheet theorem needed for those arcs: any
   continuous nonzero complex radicand on a simply connected parameter rectangle has a continuous
   square root with a prescribed base value. It also defines the precise LeanCompCert-facing
@@ -351,6 +352,15 @@ The strongest newly completed component is the finite algebra in §103:
   a kernel proof of `Returns`; using it to construct `CompiledRunVerdict` requires an explicit
   attested or otherwise named run-admission boundary. The analytic and interval theorems remain
   conditional on that transparent premise and introduce no native-evaluation axiom themselves.
+- `ChapterVIDOuterArcRegularity.lean` uses those compiled sheets to close the analytic regular-arc
+  obligation. It pulls the literal principal numerator back through
+  `t(u)=u exp((100/30003)(u^-3-u^3))`, defines the algebraically expected explicit contour
+  velocity, and proves each resulting outer integral—and their normalized sum—is continuous and
+  therefore has a finite limit at D. It also proves pointwise agreement with
+  `chapterVIPrincipalSourceNumerator` whenever the chosen global cubic-root lift agrees with the
+  local source branch. The formal chain-rule identification of this velocity with the original
+  curve differential and sheet/branch compatibility with the middle Morse chart remain; the
+  boundedness assertion for the explicit two outer pieces does not.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
