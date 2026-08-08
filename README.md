@@ -445,7 +445,11 @@ The strongest newly completed component is the finite algebra in §103:
   enclosures, while checked scalar products propagate the exponential remainder bounds. Thus a
   connector cell has no monolithic radicand-containment field and no separately trusted norm or
   remainder fields: its semantic inputs are just dyadic enclosures of the parameter root and
-  affine root coordinate, together with the two exact rational constants. The
+  affine root coordinate, together with the two exact rational constants.
+  `ChapterVILeanCompCertProposals.cartesianRadicandTrace?` now constructs the full reciprocal,
+  norm-budget, error, Laurent, and product trace from those two rectangles; it rejects a cell if
+  the automatically derived exponential-argument box is too wide for the proved remainder
+  estimate. The
   outstanding certificate-generation issue is now explicit: because the local Morse inverse is
   noncomputable, its dyadic cell enclosures must be justified by an interval-Newton or comparable
   analytic bound in Lean; compiled code is not allowed to evaluate that inverse opaquely.

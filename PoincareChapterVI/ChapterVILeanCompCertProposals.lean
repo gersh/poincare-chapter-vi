@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gershon Bialer
 -/
 
-import PoincareChapterVI.ChapterVILeanCompCertRadicandTrace
+import PoincareChapterVI.ChapterVILeanCompCertCartesianRadicandTrace
 import PoincareChapterVI.ChapterVIDOuterArcUnitTrace
 import PoincareChapterVI.ChapterVIDRadialTrace
 
@@ -54,6 +54,40 @@ def mulTrace {precision : ℕ} (x y : Rectangle precision) :
   imagImag := mul precision x.imag y.imag
   realImag := mul precision x.real y.imag
   imagReal := mul precision x.imag y.real
+
+def invTrace {precision : ℕ} (input : Rectangle precision) :
+    ChapterVISignedDyadicComplexRectangle.InvTrace input :=
+  let realSq := mul precision input.real input.real
+  let imagSq := mul precision input.imag input.imag
+  let normInv := positiveReciprocal precision (realSq.add imagSq)
+  ⟨realSq, imagSq, normInv,
+    mul precision input.real normInv,
+    mul precision input.imag.neg normInv⟩
+
+/-- An exact integer budget for the absolute value of every number in a dyadic interval. -/
+def componentBudget {precision : ℕ} (input : Interval precision) : ℤ :=
+  max (max 0 (-input.lower)) input.upper
+
+/-- The automatically proposed L1 norm interval for a complex rectangle. -/
+def l1NormInterval {precision : ℕ} (input : Rectangle precision) : Interval precision :=
+  ⟨0, componentBudget input.real + componentBudget input.imag⟩
+
+/-- The proposed L1 norm interval is sound by construction; unlike rounded arithmetic, this
+small fact is proved directly by exact integer order reasoning. -/
+def l1NormBound {precision : ℕ} (input : Rectangle precision) :
+    input.L1NormBound (l1NormInterval input) := by
+  refine {
+    realBudget := componentBudget input.real
+    imagBudget := componentBudget input.imag
+    realBudget_nonneg := ?_
+    imagBudget_nonneg := ?_
+    real_lower := ?_
+    real_upper := ?_
+    imag_lower := ?_
+    imag_upper := ?_
+    output_lower_nonpos := ?_
+    budget_le_output := ?_ }
+  all_goals simp [componentBudget, l1NormInterval] <;> omega
 
 def cubeTrace {precision : ℕ} (input : Rectangle precision) :
     ChapterVISignedDyadicComplexRectangle.CubeTrace input :=
@@ -160,6 +194,79 @@ def radicandTrace {precision : ℕ} (zeta radius : Interval precision)
   ⟨exponentialCoefficient, inverse10001, polar, zetaInv, argument, uLinear,
     yApprox, uInvLinear, yInvApprox, argumentNorm, argumentNormSq, yScale, yError,
     yInvScale, yInvError, laurentPlus, laurentMinus, product⟩
+
+/-- Propose the complete Cartesian connector trace. A rectangle is rejected exactly when its
+automatically derived exponential-argument norm budget is too wide for the proved first-order
+remainder theorem. All other bad proposals survive as failed claims in the compiled batch. -/
+def cartesianRadicandTrace? {precision : ℕ} (zeta coordinate : Rectangle precision)
+    (exponentialCoefficient inverse10001 : Interval precision) :
+    Option (ChapterVILeanCompCertCartesianRadicandTrace.Trace zeta coordinate) :=
+  let zetaInv := invTrace zeta
+  let coordinateInv := invTrace coordinate
+  let coordinateCube := cubeTrace coordinate
+  let coordinateInvCube := cubeTrace coordinateInv.output
+  let argument := realMulTrace exponentialCoefficient
+    (coordinateInvCube.output.sub coordinateCube.output)
+  let one := ChapterVISignedDyadicComplexRectangle.pointInt precision 1
+  let coordinateLinear := mulTrace coordinate (one.add argument.output)
+  let yApprox := mulTrace zeta coordinateLinear.output
+  let coordinateInvLinear := mulTrace coordinateInv.output (one.sub argument.output)
+  let yInvApprox := mulTrace zetaInv.output coordinateInvLinear.output
+  let zetaNorm := l1NormInterval zeta
+  let coordinateNorm := l1NormInterval coordinate
+  let zetaInvNorm := l1NormInterval zetaInv.output
+  let coordinateInvNorm := l1NormInterval coordinateInv.output
+  let argumentNorm := l1NormInterval argument.output
+  if hargument : argumentNorm.upper ≤ scaleInt precision then
+    let argumentNormSq := mul precision argumentNorm argumentNorm
+    let yScale := mul precision zetaNorm coordinateNorm
+    let yError := mul precision yScale argumentNormSq
+    let yInvScale := mul precision zetaInvNorm coordinateInvNorm
+    let yInvError := mul precision yInvScale argumentNormSq
+    let plusInput :=
+      ((coordinateCube.output.nsmul 10000).add coordinateInvCube.output).add
+        (ChapterVISignedDyadicComplexRectangle.pointInt precision (-200))
+    let minusInput :=
+      (coordinateCube.output.add (coordinateInvCube.output.nsmul 10000)).add
+        (ChapterVISignedDyadicComplexRectangle.pointInt precision (-200))
+    let laurentPlus := realMulTrace inverse10001 plusInput
+    let laurentMinus := realMulTrace inverse10001 minusInput
+    let y := yApprox.output.widenUpper yError
+    let yInv := yInvApprox.output.widenUpper yInvError
+    let product := mulTrace (laurentPlus.output.sub (y.nsmul 2))
+      (laurentMinus.output.sub (yInv.nsmul 2))
+    some {
+      exponentialCoefficient := exponentialCoefficient
+      inverse10001 := inverse10001
+      zetaInv := zetaInv
+      coordinateInv := coordinateInv
+      coordinateCube := coordinateCube
+      coordinateInvCube := coordinateInvCube
+      argument := argument
+      coordinateLinear := coordinateLinear
+      yApprox := yApprox
+      coordinateInvLinear := coordinateInvLinear
+      yInvApprox := yInvApprox
+      zetaNorm := zetaNorm
+      coordinateNorm := coordinateNorm
+      zetaInvNorm := zetaInvNorm
+      coordinateInvNorm := coordinateInvNorm
+      argumentNorm := argumentNorm
+      zetaNormBound := l1NormBound zeta
+      coordinateNormBound := l1NormBound coordinate
+      zetaInvNormBound := l1NormBound zetaInv.output
+      coordinateInvNormBound := l1NormBound coordinateInv.output
+      argumentNormBound := l1NormBound argument.output
+      argumentNorm_upper_le_one := by simpa [scaleInt] using hargument
+      argumentNormSq := argumentNormSq
+      yScale := yScale
+      yError := yError
+      yInvScale := yInvScale
+      yInvError := yInvError
+      laurentPlus := laurentPlus
+      laurentMinus := laurentMinus
+      product := product }
+  else none
 
 end ChapterVILeanCompCertProposals
 
