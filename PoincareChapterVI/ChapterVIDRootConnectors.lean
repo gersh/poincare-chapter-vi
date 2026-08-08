@@ -55,6 +55,9 @@ structure ChapterVIDPrincipalConnectorModel
     chapterVIDCriticalParameterRootAtD (k : ℂ) =
       chapterVIDCommonParameterRootPath
         (chapterVIDCriticalToGlobalParameter k)
+  globalParameter_mem_terminalCell : ∀ k ∈ Set.Icc 0 κ,
+    chapterVICubicClusterNode 28 27 ≤
+      (chapterVIDCriticalToGlobalParameter k : ℝ)
 
 /-- The eventual branch agreement can always be made uniform on one compact interval. -/
 theorem exists_chapterVIDPrincipalConnectorModel
@@ -62,8 +65,20 @@ theorem exists_chapterVIDPrincipalConnectorModel
     Nonempty (ChapterVIDPrincipalConnectorModel massProduct b d) := by
   obtain ⟨rootModel⟩ :=
     exists_chapterVIDPrincipalGlobalRootModel massProduct b d
+  have hparameterReal : Tendsto
+      (fun k : ℝ ↦ (chapterVIDCriticalToGlobalParameter k : ℝ))
+      (nhdsWithin (0 : ℝ) (Set.Ioi 0)) (nhds (1 : ℝ)) :=
+    continuous_subtype_val.continuousAt.tendsto.comp
+      tendsto_chapterVIDCriticalToGlobalParameter
+  have hterminal : ∀ᶠ k : ℝ in nhdsWithin 0 (Set.Ioi 0),
+      chapterVICubicClusterNode 28 27 ≤
+        (chapterVIDCriticalToGlobalParameter k : ℝ) := by
+    have hnode : chapterVICubicClusterNode 28 27 < (1 : ℝ) := by
+      norm_num [chapterVICubicClusterNode]
+    filter_upwards [hparameterReal.eventually (Ioi_mem_nhds hnode)] with k hk
+    exact hk.le
   obtain ⟨ε, hε, hεsub⟩ := Metric.mem_nhdsWithin_iff.mp
-    eventually_chapterVIDCriticalParameterRootAtD_eq_global
+    (eventually_chapterVIDCriticalParameterRootAtD_eq_global.and hterminal)
   let κ : ℝ := min rootModel.δ (ε / 2)
   have hκ : 0 < κ := by
     dsimp [κ]
@@ -74,7 +89,8 @@ theorem exists_chapterVIDPrincipalConnectorModel
     κ := κ
     κ_pos := hκ
     κ_le_delta := hκδ
-    parameterRoot_eq_global := ?_ }⟩
+    parameterRoot_eq_global := ?_
+    globalParameter_mem_terminalCell := ?_ }⟩
   intro k hk
   by_cases hkzero : k = 0
   · subst k
@@ -85,12 +101,22 @@ theorem exists_chapterVIDPrincipalConnectorModel
       chapterVIDCriticalToGlobalParameter_zero]
     exact chapterVIDZRootBase_eq_commonParameterRootPath_one
   · have hkpos : 0 < k := lt_of_le_of_ne hk.1 (Ne.symm hkzero)
-    apply hεsub
-    constructor
-    · rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hkpos]
+    have hball : k ∈ Metric.ball (0 : ℝ) ε := by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hkpos]
       have hκε : κ ≤ ε / 2 := min_le_right _ _
       linarith [hk.2]
-    · exact hkpos
+    exact (hεsub ⟨hball, hkpos⟩).1
+  intro k hk
+  by_cases hkzero : k = 0
+  · subst k
+    rw [chapterVIDCriticalToGlobalParameter_zero]
+    norm_num [chapterVICubicClusterNode]
+  · have hkpos : 0 < k := lt_of_le_of_ne hk.1 (Ne.symm hkzero)
+    have hball : k ∈ Metric.ball (0 : ℝ) ε := by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hkpos]
+      have hκε : κ ≤ ε / 2 := min_le_right _ _
+      linarith [hk.2]
+    exact (hεsub ⟨hball, hkpos⟩).2
 
 /-- Critical value `k` on the compact connector rectangle; `s=1` is the collision. -/
 def ChapterVIDPrincipalConnectorModel.criticalValue
@@ -195,6 +221,60 @@ theorem ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint_re_neg
         (chapterVIDCriticalMorseRootPoint
           ((k : ℂ), (model.L : ℂ))).re - chapterVIDCollisionLift.re ≤ _ at hre
       linarith
+
+/-- Quantitative component bounds for both local connector endpoints. They are a direct
+consequence of the ball used when shrinking the Morse model and therefore require no numerical
+evaluation of the inverse Morse map. -/
+theorem ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint_component_bounds
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalGlobalRootModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (k : ℝ)
+    (hk : k ∈ Set.Icc 0 model.δ) :
+    -3 * ‖chapterVIDCollisionLift‖ / 2 <
+        (model.localConnectorEndpoint side k).re ∧
+      (model.localConnectorEndpoint side k).re <
+        -‖chapterVIDCollisionLift‖ / 2 ∧
+      -‖chapterVIDCollisionLift‖ / 2 <
+        (model.localConnectorEndpoint side k).im ∧
+      (model.localConnectorEndpoint side k).im <
+        ‖chapterVIDCollisionLift‖ / 2 := by
+  let endpoint := model.localConnectorEndpoint side k
+  have hclose : ‖endpoint - chapterVIDCollisionLift‖ <
+      ‖chapterVIDCollisionLift‖ / 2 := by
+    cases side with
+    | initial =>
+        simpa [endpoint, ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+          Complex.dist_eq] using
+          model.root_close k hk (-model.L) Set.left_mem_uIcc
+    | final =>
+        simpa [endpoint, ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+          Complex.dist_eq] using
+          model.root_close k hk model.L Set.right_mem_uIcc
+  have hreAbs : |(endpoint - chapterVIDCollisionLift).re| <
+      ‖chapterVIDCollisionLift‖ / 2 :=
+    (Complex.abs_re_le_norm _).trans_lt hclose
+  have himAbs : |(endpoint - chapterVIDCollisionLift).im| <
+      ‖chapterVIDCollisionLift‖ / 2 :=
+    (Complex.abs_im_le_norm _).trans_lt hclose
+  rw [abs_lt] at hreAbs himAbs
+  have hcollision := chapterVIDCollisionLift_eq_neg_norm
+  have hcollisionRe : chapterVIDCollisionLift.re = -‖chapterVIDCollisionLift‖ := by
+    rw [hcollision]
+    simp
+  have hcollisionIm : chapterVIDCollisionLift.im = 0 := by
+    rw [hcollision]
+    simp
+  simp only [Complex.sub_re, Complex.sub_im, hcollisionRe, hcollisionIm,
+    sub_neg_eq_add, sub_zero] at hreAbs himAbs
+  change -3 * ‖chapterVIDCollisionLift‖ / 2 < endpoint.re ∧
+    endpoint.re < -‖chapterVIDCollisionLift‖ / 2 ∧
+    -‖chapterVIDCollisionLift‖ / 2 < endpoint.im ∧
+    endpoint.im < ‖chapterVIDCollisionLift‖ / 2
+  constructor
+  · linarith [hreAbs.1]
+  constructor
+  · linarith [hreAbs.2]
+  constructor <;> linarith [himAbs.1, himAbs.2]
 
 /-- The two outer endpoints facing the local segment lie on the imaginary axis. -/
 theorem ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint_re

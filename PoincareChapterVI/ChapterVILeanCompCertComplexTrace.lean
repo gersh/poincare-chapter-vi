@@ -284,6 +284,40 @@ theorem RealMulTrace.output_contains_of_allSound {precision : ℕ}
   · simpa [RealMulTrace.output] using hre.contains_mul hr hz.1
   · simpa [RealMulTrace.output] using him.contains_mul hr hz.2
 
+/-- One rounded real-by-complex product implementing an affine line map. Subtraction and the
+final addition are exact at a common dyadic scale. -/
+structure LineMapTrace {precision : ℕ}
+    (source target : ChapterVISignedDyadicComplexRectangle precision)
+    (parameter : ChapterVISignedDyadicInterval precision) where
+  scaled : RealMulTrace parameter (target.sub source)
+
+def LineMapTrace.operations {precision : ℕ}
+    {source target : ChapterVISignedDyadicComplexRectangle precision}
+    {parameter : ChapterVISignedDyadicInterval precision}
+    (trace : LineMapTrace source target parameter) : List (DyadicOperation precision) :=
+  trace.scaled.operations
+
+def LineMapTrace.output {precision : ℕ}
+    {source target : ChapterVISignedDyadicComplexRectangle precision}
+    {parameter : ChapterVISignedDyadicInterval precision}
+    (trace : LineMapTrace source target parameter) :
+    ChapterVISignedDyadicComplexRectangle precision :=
+  trace.scaled.output.add source
+
+theorem LineMapTrace.output_contains_lineMap_of_allSound {precision : ℕ}
+    {source target : ChapterVISignedDyadicComplexRectangle precision}
+    {parameter : ChapterVISignedDyadicInterval precision}
+    (trace : LineMapTrace source target parameter)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {a b : ℂ} {t : ℝ}
+    (ha : source.Contains a) (hb : target.Contains b) (ht : parameter.Contains t) :
+    trace.output.Contains (AffineMap.lineMap a b t) := by
+  have hdifference := sub_contains hb ha
+  have hscaled := trace.scaled.output_contains_of_allSound hall ht hdifference
+  have hsum := add_contains hscaled ha
+  simpa [LineMapTrace.output, AffineMap.lineMap_apply, vsub_eq_sub,
+    vadd_eq_add, smul_eq_mul] using hsum
+
 /-- Four real rounded products implementing one complex multiplication. -/
 structure MulTrace {precision : ℕ}
     (x y : ChapterVISignedDyadicComplexRectangle precision) where

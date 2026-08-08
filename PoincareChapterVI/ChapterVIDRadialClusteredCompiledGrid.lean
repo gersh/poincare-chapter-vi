@@ -180,6 +180,22 @@ theorem xAbs_contains : xAbs.Contains (-chapterVIDRoot) := by
     exact (by linarith [chapterVIDRoot_fine_mem.1] :
       -chapterVIDRoot ≤ 26865396 / 1000000000).trans (by norm_num)
 
+/-- The shared compiled endpoint trace gives a reusable dyadic enclosure of the exact collision
+radius. Connector endpoint bounds consume this result without reevaluating a cubic root. -/
+theorem collisionRadius_contains :
+    collisionRadius.Contains ‖chapterVIDCollisionLift‖ := by
+  have hsound : ∀ operation ∈ endpoint.collisionTrace.operations,
+      operation.Sound := by
+    intro operation hoperation
+    exact allSound_of_returns_zero "chapter-vi-d-radial-clustered-grid-20"
+      operations operations_admissible operations_returns_zero operation
+      (endpoint_operations_mem operation
+        (by simp [ChapterVIDRadialTrace.EndpointTrace.operations, hoperation]))
+  have hroot := endpoint.collisionTrace.output_contains_of_valid endpoint_valid.2
+    hsound (by linarith [chapterVIDRoot_lt_zero]) xAbs_contains
+  rw [← chapterVIDCollisionRadius_eq_rpow] at hroot
+  exact hroot
+
 theorem correction_contains :
     endpoint.correction.Contains chapterVIDCertificateContourCorrection := by
   apply endpoint.correction_contains_of_allSound endpoint_valid
@@ -228,4 +244,3 @@ theorem exists_outputs_contain (parameter : I) :
 end ChapterVIDRadialClusteredCompiledGrid
 
 end PoincareChapterVI
-

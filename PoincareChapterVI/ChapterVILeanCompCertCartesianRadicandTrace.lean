@@ -105,6 +105,16 @@ def Trace.yInv {precision : ℕ}
     (trace : Trace zeta coordinate) : Rectangle precision :=
   trace.yInvApprox.output.widenUpper trace.yInvError
 
+def Trace.factorPlus {precision : ℕ}
+    {zeta coordinate : Rectangle precision}
+    (trace : Trace zeta coordinate) : Rectangle precision :=
+  trace.laurentPlus.output.sub (trace.y.nsmul 2)
+
+def Trace.factorMinus {precision : ℕ}
+    {zeta coordinate : Rectangle precision}
+    (trace : Trace zeta coordinate) : Rectangle precision :=
+  trace.laurentMinus.output.sub (trace.yInv.nsmul 2)
+
 /-- The compiled arithmetic encloses the exponential argument and the two first-order anomaly
 approximations for an arbitrary complex connector coordinate. -/
 theorem Trace.approximations_contain_of_allSound {precision : ℕ}
@@ -320,6 +330,57 @@ theorem Trace.output_contains_sparse_of_allSound {precision : ℕ}
     hfactorPlus hfactorMinus
   change trace.product.output.Contains _
   convert hproduct using 1 <;> ring
+
+/-- The two collision factors are exposed separately. Checking each factor away from zero is
+usually sharper than first multiplying their rectangles and separating the product. -/
+theorem Trace.factors_contain_sparse_of_allSound {precision : ℕ}
+    {zeta coordinate : Rectangle precision}
+    (trace : Trace zeta coordinate)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {u y yInv : ℂ} (hu : coordinate.Contains u)
+    (hinverse10001 : trace.inverse10001.Contains (1 / 10001 : ℝ))
+    (hy : trace.y.Contains y) (hyInv : trace.yInv.Contains yInv) :
+    trace.factorPlus.Contains
+        ((((1 / 10001 : ℝ) : ℂ) *
+            ((10000 : ℂ) * u ^ 3 + (u ^ 3)⁻¹ - 200)) - 2 * y) ∧
+      trace.factorMinus.Contains
+        ((((1 / 10001 : ℝ) : ℂ) *
+            (u ^ 3 + 10000 * (u ^ 3)⁻¹ - 200)) - 2 * yInv) := by
+  have soundOf {operations : List (DyadicOperation precision)}
+      (hsub : ∀ operation ∈ operations, operation ∈ trace.operations) :
+      ∀ operation ∈ operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (hsub operation hoperation)
+  have huInv := trace.coordinateInv.output_contains_inv_of_allSound
+    (soundOf (by intro operation hoperation; simp [Trace.operations, hoperation])) hu
+  have huCube := trace.coordinateCube.output_contains_cube_of_allSound
+    (soundOf (by intro operation hoperation; simp [Trace.operations, hoperation])) hu
+  have huInvCube := trace.coordinateInvCube.output_contains_cube_of_allSound
+    (soundOf (by intro operation hoperation; simp [Trace.operations, hoperation])) huInv
+  have huCubeInv : trace.coordinateInvCube.output.Contains (u ^ 3)⁻¹ := by
+    simpa only [inv_pow] using huInvCube
+  have hminus200 := ChapterVISignedDyadicComplexRectangle.pointInt_contains precision (-200)
+  have hplusInput := ChapterVISignedDyadicComplexRectangle.add_contains
+    (ChapterVISignedDyadicComplexRectangle.add_contains
+      (ChapterVISignedDyadicComplexRectangle.nsmul_contains 10000 huCube) huCubeInv)
+    hminus200
+  have hminusInput := ChapterVISignedDyadicComplexRectangle.add_contains
+    (ChapterVISignedDyadicComplexRectangle.add_contains huCube
+      (ChapterVISignedDyadicComplexRectangle.nsmul_contains 10000 huCubeInv))
+    hminus200
+  have hplus := trace.laurentPlus.output_contains_of_allSound
+    (soundOf (by intro operation hoperation; simp [Trace.operations, hoperation]))
+    hinverse10001 hplusInput
+  have hminus := trace.laurentMinus.output_contains_of_allSound
+    (soundOf (by intro operation hoperation; simp [Trace.operations, hoperation]))
+    hinverse10001 hminusInput
+  constructor
+  · change (trace.laurentPlus.output.sub (trace.y.nsmul 2)).Contains _
+    convert ChapterVISignedDyadicComplexRectangle.sub_contains hplus
+      (ChapterVISignedDyadicComplexRectangle.nsmul_contains 2 hy) using 1 <;> ring
+  · change (trace.laurentMinus.output.sub (trace.yInv.nsmul 2)).Contains _
+    convert ChapterVISignedDyadicComplexRectangle.sub_contains hminus
+      (ChapterVISignedDyadicComplexRectangle.nsmul_contains 2 hyInv) using 1 <;> ring
 
 /-- End-to-end semantic theorem for one checked Cartesian cell. -/
 theorem Trace.output_contains_rootCoordinateRadicand_of_allSound {precision : ℕ}

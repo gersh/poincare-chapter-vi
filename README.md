@@ -447,12 +447,29 @@ The strongest newly completed component is the finite algebra in §103:
   remainder fields: its semantic inputs are just dyadic enclosures of the parameter root and
   affine root coordinate, together with the two exact rational constants.
   `ChapterVILeanCompCertProposals.cartesianRadicandTrace?` now constructs the full reciprocal,
-  norm-budget, error, Laurent, and product trace from those two rectangles; it rejects a cell if
+  norm-budget, error, Laurent, and collision-factor traces from those two rectangles; it rejects a cell if
   the automatically derived exponential-argument box is too wide for the proved remainder
-  estimate. The
-  outstanding certificate-generation issue is now explicit: because the local Morse inverse is
-  noncomputable, its dyadic cell enclosures must be justified by an interval-Newton or comparable
-  analytic bound in Lean; compiled code is not allowed to evaluate that inverse opaquely.
+  estimate. The affine interpolation itself is now expanded into checked operations by
+  `LineMapTrace`, and the two collision factors are separated independently instead of first
+  multiplying their interval rectangles.
+
+  The compiled connector problem has also been reduced from a two-dimensional radial-by-affine
+  mesh to a one-dimensional affine mesh. The local connector model is shrunk so that every
+  parameter root and outer endpoint lies in the final already-certified radial cell; Lean proves
+  the fixed terminal boxes contain those values. `ChapterVIDConnectorInputBounds.lean` likewise
+  proves one explicit dyadic rectangle contains both noncomputable inverse-Morse endpoints.
+  Crucially, it also proves that this symmetric rectangle contains the collision lift itself.
+  Since the critical radicand vanishes there, no amount of affine-cell subdivision can turn that
+  same coarse endpoint box into a sound endpoint-adjacent nonvanishing certificate. The remaining
+  analytic bridge is therefore narrower than general interval evaluation of the inverse map: it
+  must provide a directional or normalized Morse-coordinate enclosure that preserves the exact
+  relation between the endpoint displacement and the critical parameter. The large rational
+  arithmetic trace can then be generated and checked through LeanCompCert.
+
+  `lake exe chapter-vi-connector-cert reference-coarse 128` runs the reference proposal/checking
+  path on the proved coarse boxes. Its expected nonzero result (currently 235 rejected cells,
+  5 unseparated cells, and zero failed integer claims) is a regression witness for this precise
+  missing analytic bridge, not a completed certificate.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

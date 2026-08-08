@@ -48,6 +48,11 @@ def realMulTrace {precision : ℕ} (scalar : Interval precision)
   realOut := mul precision scalar input.real
   imagOut := mul precision scalar input.imag
 
+def lineMapTrace {precision : ℕ} (source target : Rectangle precision)
+    (parameter : Interval precision) :
+    ChapterVISignedDyadicComplexRectangle.LineMapTrace source target parameter :=
+  ⟨realMulTrace parameter (target.sub source)⟩
+
 def mulTrace {precision : ℕ} (x y : Rectangle precision) :
     ChapterVISignedDyadicComplexRectangle.MulTrace x y where
   realReal := mul precision x.real y.real

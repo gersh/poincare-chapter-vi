@@ -23,3 +23,7 @@ name = "PoincareChapterVI"
 [[lean_exe]]
 name = "chapter-vi-polar-cert"
 root = "PoincareChapterVI.PolarCertificateMain"
+
+[[lean_exe]]
+name = "chapter-vi-connector-cert"
+root = "PoincareChapterVI.ConnectorCertificateMain"
