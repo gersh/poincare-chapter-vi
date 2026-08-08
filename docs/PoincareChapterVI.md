@@ -38,8 +38,12 @@ terminal intervals, their certified curvature makes the first path derivative st
 antitone/monotone on the respective sides, and a nonnegative endpoint derivative implies strict
 positivity at every punctured terminal point. `ChapterVIDEndpointOrientation.lean` proves the
 global coordinate's exact derivative is positive real and proves reciprocal strict-derivative
-formulas for both inverse maps. The remaining anchor work is consequently the phase of the
-prepared-unit square root and its uniform propagation after shrinking the `(k,v)` model.
+formulas for both inverse maps. It now also closes the phase calculation: the certified negative
+second derivative of the literal root-coordinate radicand is transported through Poincare's exact
+`u -> t` map, proving that the centered Hadamard unit and the prepared Weierstrass unit are
+negative real at D. Consequently the selected Morse square root is positive imaginary and the
+inverse-Morse contour derivative points strictly downward at D. The remaining anchor work is its
+uniform propagation after shrinking the `(k,v)` model.
 
 This note separates three questions that are easy to conflate:
 
