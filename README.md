@@ -407,7 +407,8 @@ The strongest newly completed component is the finite algebra in §103:
   source connectors, certify their literal radicands, and identify the resulting closed contour
   with the continued source cycle.
 - `ChapterVIDMovingRootBridge.lean`, `ChapterVIDGlobalRootModel.lean`,
-  `ChapterVIDRootConnectors.lean`, and `ChapterVIDConnectorIntegral.lean` now make that boundary
+  `ChapterVIDRootConnectors.lean`, `ChapterVIDConnectorIntegral.lean`, and
+  `ChapterVIDConnectorPlacement.lean` now make that boundary
   concrete. Lean inverts Poincaré's exact `u -> t` map at D, shrinks the local Morse germ to a
   compact root-coordinate model, and defines the upper and lower affine connector rectangles
   with exact endpoints. Their outer boundaries are proved definitionally identical to the two
@@ -417,8 +418,11 @@ The strongest newly completed component is the finite algebra in §103:
   the literal global root coordinates near D, and the compact model records the resulting exact
   equality between the source and root-coordinate radicands. Consequently each connector sheet
   agrees along its entire local seam with either the positive Morse root or its negative, with
-  one constant sign. Producing the two concrete compiled covers per side and proving that the
-  two seam signs give one compatible middle continuation are the remaining connector tasks. The
+  one constant sign. Two certificate-selected connectors are now assembled into the exact
+  connector contribution expected by the global placement package, and their finite collision
+  limit is derived rather than postulated. Producing the two concrete compiled covers per side
+  and proving that the two seam signs give one compatible middle continuation are the remaining
+  connector tasks. The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
   sheet along the full shared boundary.
