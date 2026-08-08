@@ -128,7 +128,9 @@ The source-facing files added after the standalone-project commit are deliberate
   analytic unit nonzero at the pinch. Extending the unit jointly in the parameter is the remaining
   analytic preparation step. The same exact order-two and convergent one-variable factorization
   is proved for every sufficiently nearby parameter fiber; what remains is analytic dependence of
-  those units on the parameter.
+  those units on the parameter. On the singular fiber the chosen unit is given a local
+  holomorphic square root, producing a holomorphic inverse-square-root branch off the pinch that
+  is proved algebraically correct for the actual centered source radicand.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series

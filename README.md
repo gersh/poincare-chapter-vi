@@ -178,7 +178,9 @@ The strongest newly completed component is the finite algebra in §103:
   preparation obligation is the joint parameter-dependent square division, rather than an
   unspecified correspondence between a finite jet and the source function. Lean also proves
   that every sufficiently nearby centered fiber has exact order two and its own convergent
-  nonvanishing unit; only the jointly analytic choice is missing.
+  nonvanishing unit; only the jointly analytic choice is missing. For the singular fiber itself,
+  a locally chosen holomorphic square root of the unit now yields an inverse-square-root branch
+  holomorphic off the pinch and certified against the actual radicand.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

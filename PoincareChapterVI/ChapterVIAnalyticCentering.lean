@@ -1,4 +1,5 @@
 import PoincareChapterVI.ChapterVIAnalyticCriticalCenter
+import PoincareChapterVI.ChapterVIComplexBranch
 import Mathlib.Analysis.Calculus.Deriv.Shift
 
 /-!
@@ -300,5 +301,78 @@ theorem eventually_exists_chapterVIDCenteredFiberUnit :
     hzAnalytic.curry_right
   simpa only [sub_zero, smul_eq_mul] using
     (hfiber.analyticOrderAt_eq_natCast (n := 2)).mp hzOrder
+
+/-! ## The actual inverse-square-root branch on the singular fiber -/
+
+/-- A locally chosen holomorphic square root of the convergent singular-fiber unit. -/
+noncomputable def chapterVIDCenteredFiberUnitRootGerm :
+    ChapterVIHolomorphicSquareRootGerm chapterVIDCenteredFiberUnit 0 :=
+  ChapterVIHolomorphicSquareRootGerm.of_analyticAt
+    analyticAt_chapterVIDCenteredFiberUnit chapterVIDCenteredFiberUnit_zero_ne
+
+/-- The square-root branch `u √U(u)` of the actual centered radicand on the singular fiber. -/
+noncomputable def chapterVIDCenteredFiberSquareRoot (u : ℂ) : ℂ :=
+  u * chapterVIDCenteredFiberUnitRootGerm.root u
+
+/-- The corresponding inverse-square-root branch. -/
+noncomputable def chapterVIDCenteredFiberInverseSquareRoot (u : ℂ) : ℂ :=
+  (chapterVIDCenteredFiberSquareRoot u)⁻¹
+
+/-- The square-root branch is holomorphic on the unit-root germ's domain. -/
+theorem differentiableOn_chapterVIDCenteredFiberSquareRoot :
+    DifferentiableOn ℂ chapterVIDCenteredFiberSquareRoot
+      chapterVIDCenteredFiberUnitRootGerm.domain := by
+  intro u hu
+  exact differentiableAt_id.differentiableWithinAt.mul
+    (chapterVIDCenteredFiberUnitRootGerm.differentiableOn_root u hu)
+
+/-- The inverse branch is holomorphic off the pinching point. -/
+theorem differentiableOn_chapterVIDCenteredFiberInverseSquareRoot :
+    DifferentiableOn ℂ chapterVIDCenteredFiberInverseSquareRoot
+      ({0}ᶜ ∩ chapterVIDCenteredFiberUnitRootGerm.domain) := by
+  apply (differentiableOn_chapterVIDCenteredFiberSquareRoot.mono Set.inter_subset_right).inv
+  intro u hu
+  exact mul_ne_zero hu.1
+    (chapterVIDCenteredFiberUnitRootGerm.root_ne_zero u hu.2)
+
+/-- Wherever the convergent factorization holds, the constructed square root squares to the
+*actual* centered source radicand. -/
+theorem chapterVIDCenteredFiberSquareRoot_sq_eq
+    {u : ℂ}
+    (hfactor : chapterVIDCenteredRadicand (chapterVIDZBase, u) =
+      u ^ 2 * chapterVIDCenteredFiberUnit u)
+    (hroot : u ∈ chapterVIDCenteredFiberUnitRootGerm.domain) :
+    chapterVIDCenteredFiberSquareRoot u ^ 2 =
+      chapterVIDCenteredRadicand (chapterVIDZBase, u) := by
+  rw [chapterVIDCenteredFiberSquareRoot, mul_pow,
+    chapterVIDCenteredFiberUnitRootGerm.root_sq u hroot, hfactor]
+
+/-- Algebraic correctness of the inverse branch for the actual radicand. -/
+theorem chapterVIDCenteredFiberInverseSquareRoot_sq_mul
+    {u : ℂ} (hu : u ≠ 0)
+    (hfactor : chapterVIDCenteredRadicand (chapterVIDZBase, u) =
+      u ^ 2 * chapterVIDCenteredFiberUnit u)
+    (hroot : u ∈ chapterVIDCenteredFiberUnitRootGerm.domain) :
+    chapterVIDCenteredFiberInverseSquareRoot u ^ 2 *
+      chapterVIDCenteredRadicand (chapterVIDZBase, u) = 1 := by
+  rw [← chapterVIDCenteredFiberSquareRoot_sq_eq hfactor hroot]
+  have hsquareRoot : chapterVIDCenteredFiberSquareRoot u ≠ 0 :=
+    mul_ne_zero hu (chapterVIDCenteredFiberUnitRootGerm.root_ne_zero u hroot)
+  simp [chapterVIDCenteredFiberInverseSquareRoot, hsquareRoot]
+
+/-- On an actual punctured neighborhood of the pinch, the holomorphic inverse branch squares
+against the exact centered source radicand to one. -/
+theorem eventually_chapterVIDCenteredFiberInverseSquareRoot_sq_mul :
+    ∀ᶠ u in nhdsWithin (0 : ℂ) ({0}ᶜ : Set ℂ),
+      chapterVIDCenteredFiberInverseSquareRoot u ^ 2 *
+        chapterVIDCenteredRadicand (chapterVIDZBase, u) = 1 := by
+  have hroot : ∀ᶠ u in nhds (0 : ℂ),
+      u ∈ chapterVIDCenteredFiberUnitRootGerm.domain :=
+    chapterVIDCenteredFiberUnitRootGerm.isOpen_domain.mem_nhds
+      chapterVIDCenteredFiberUnitRootGerm.base_mem
+  filter_upwards [self_mem_nhdsWithin,
+    eventually_chapterVIDCenteredRadicand_eq_sq_mul_fiberUnit.filter_mono nhdsWithin_le_nhds,
+    hroot.filter_mono nhdsWithin_le_nhds] with u hu hfactor huRoot
+  exact chapterVIDCenteredFiberInverseSquareRoot_sq_mul hu hfactor huRoot
 
 end PoincareChapterVI
