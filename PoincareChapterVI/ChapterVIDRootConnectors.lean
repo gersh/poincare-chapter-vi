@@ -347,4 +347,57 @@ theorem ChapterVIDPrincipalConnectorModel.rectangleRadicand_final_one
   rw [model.parameterRoot_eq_global (model.criticalValue s)
     (model.criticalValue_mem s)]
 
+/-- On the boundary shared with the local middle path, the upper connector radicand is exactly
+the prepared Morse radicand at `v=-L`. -/
+theorem ChapterVIDPrincipalConnectorModel.rectangleRadicand_initial_one
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) :
+    model.rectangleRadicand .initial (s, 1) =
+      (model.criticalValue s : ℂ) + ((-model.rootModel.L : ℝ) : ℂ) ^ 2 := by
+  have hk := model.criticalValue_mem_rootModel s
+  have hroot := model.rootModel.root_radicand_eq
+    (model.criticalValue s) hk (-model.rootModel.L) Set.left_mem_uIcc
+  have hmorse := model.rootModel.radicand_eq
+    (model.criticalValue s) hk (-model.rootModel.L) Set.left_mem_uIcc
+  have hmorse' : chapterVIDRadicand
+      (chapterVIDCriticalMorseSourcePointAtD
+        ((model.criticalValue s : ℂ), ((-model.rootModel.L : ℝ) : ℂ))) =
+      (model.criticalValue s : ℂ) + ((-model.rootModel.L : ℝ) : ℂ) ^ 2 := by
+    simpa only [chapterVIDRealCriticalMorseSourcePoint] using hmorse
+  unfold ChapterVIDPrincipalConnectorModel.rectangleRadicand
+    ChapterVIDPrincipalConnectorModel.rectanglePoint
+    ChapterVIDPrincipalGlobalRootModel.connectorPoint
+    ChapterVIDPrincipalGlobalRootModel.connectorSource
+    ChapterVIDPrincipalGlobalRootModel.connectorTarget
+    ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint at ⊢
+  simp only [AffineMap.lineMap_apply]
+  simp
+  simpa using hroot.trans hmorse'
+
+/-- The lower connector has the same exact local-normal-form identity at `v=+L`. -/
+theorem ChapterVIDPrincipalConnectorModel.rectangleRadicand_final_zero
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) :
+    model.rectangleRadicand .final (s, 0) =
+      (model.criticalValue s : ℂ) + ((model.rootModel.L : ℝ) : ℂ) ^ 2 := by
+  have hk := model.criticalValue_mem_rootModel s
+  have hroot := model.rootModel.root_radicand_eq
+    (model.criticalValue s) hk model.rootModel.L Set.right_mem_uIcc
+  have hmorse := model.rootModel.radicand_eq
+    (model.criticalValue s) hk model.rootModel.L Set.right_mem_uIcc
+  have hmorse' : chapterVIDRadicand
+      (chapterVIDCriticalMorseSourcePointAtD
+        ((model.criticalValue s : ℂ), (model.rootModel.L : ℂ))) =
+      (model.criticalValue s : ℂ) + (model.rootModel.L : ℂ) ^ 2 := by
+    simpa only [chapterVIDRealCriticalMorseSourcePoint] using hmorse
+  unfold ChapterVIDPrincipalConnectorModel.rectangleRadicand
+    ChapterVIDPrincipalConnectorModel.rectanglePoint
+    ChapterVIDPrincipalGlobalRootModel.connectorPoint
+    ChapterVIDPrincipalGlobalRootModel.connectorSource
+    ChapterVIDPrincipalGlobalRootModel.connectorTarget
+    ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint at ⊢
+  simp only [AffineMap.lineMap_apply]
+  simp
+  exact hroot.trans hmorse'
+
 end PoincareChapterVI

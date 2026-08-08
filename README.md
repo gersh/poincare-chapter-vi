@@ -413,9 +413,13 @@ The strongest newly completed component is the finite algebra in §103:
   with exact endpoints. Their outer boundaries are proved definitionally identical to the two
   compiled quarters. For either connector, finite nonvanishing covers for the root coordinate
   and literal radicand now construct the square-root sheet and prove the fully transformed
-  connector integral has a finite limit. Producing those two concrete compiled covers per side,
-  and matching the resulting continued sheet to the local Morse sheet, are the remaining
-  connector tasks. The connector/outer sign is no longer a premise: each connector sheet is
+  connector integral has a finite limit. The local Kepler inverses are now proved to recover
+  the literal global root coordinates near D, and the compact model records the resulting exact
+  equality between the source and root-coordinate radicands. Consequently each connector sheet
+  agrees along its entire local seam with either the positive Morse root or its negative, with
+  one constant sign. Producing the two concrete compiled covers per side and proving that the
+  two seam signs give one compatible middle continuation are the remaining connector tasks. The
+  connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
   sheet along the full shared boundary.
 - The two regular quarters now use the exact rational unit-circle parametrization

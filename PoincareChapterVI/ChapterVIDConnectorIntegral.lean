@@ -57,6 +57,27 @@ def connectorOuterBoundaryPoint
   | .final =>
       (chapterVIDCriticalToGlobalParameter (model.criticalValue s), 0)
 
+/-- Connector-rectangle point on the boundary shared with the local Morse segment. -/
+def connectorLocalBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) : I × I :=
+  match side with
+  | .initial => (s, 1)
+  | .final => (s, 0)
+
+/-- The common positive-real normal-form radicand at either endpoint `v=±L`. -/
+def connectorLocalBoundaryRadicand
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) : ℂ :=
+  ((model.criticalValue s + model.rootModel.L ^ 2 : ℝ) : ℂ)
+
+/-- Canonical positive square root used by the local logarithmic integral. -/
+def connectorLocalBoundaryRoot
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) : ℂ :=
+  Complex.sqrt (model.connectorLocalBoundaryRadicand s)
+
 theorem rectangleRadicand_connectorBoundaryPoint
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -67,6 +88,66 @@ theorem rectangleRadicand_connectorBoundaryPoint
   cases side
   · exact model.rectangleRadicand_initial_zero s
   · exact model.rectangleRadicand_final_one s
+
+theorem rectangleRadicand_connectorLocalBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) :
+    model.rectangleRadicand side (model.connectorLocalBoundaryPoint side s) =
+      model.connectorLocalBoundaryRadicand s := by
+  cases side
+  · simpa [connectorLocalBoundaryPoint, connectorLocalBoundaryRadicand] using
+      model.rectangleRadicand_initial_one s
+  · simpa [connectorLocalBoundaryPoint, connectorLocalBoundaryRadicand] using
+      model.rectangleRadicand_final_zero s
+
+theorem connectorLocalBoundaryRadicand_re_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) :
+    0 < (model.connectorLocalBoundaryRadicand s).re := by
+  have hk : 0 ≤ model.criticalValue s := (model.criticalValue_mem s).1
+  have hL : 0 < model.rootModel.L ^ 2 := sq_pos_of_pos model.rootModel.L_pos
+  simp only [connectorLocalBoundaryRadicand, Complex.ofReal_re]
+  nlinarith
+
+theorem continuous_connectorLocalBoundaryRadicand
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) :
+    Continuous model.connectorLocalBoundaryRadicand := by
+  unfold connectorLocalBoundaryRadicand
+  exact Complex.ofRealCLM.continuous.comp
+    ((continuous_ChapterVIDPrincipalConnectorModel_criticalValue model).add continuous_const)
+
+theorem continuous_connectorLocalBoundaryRoot
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) :
+    Continuous model.connectorLocalBoundaryRoot := by
+  rw [continuous_iff_continuousAt]
+  intro s
+  exact (Complex.continuousAt_sqrt
+    (Or.inl (model.connectorLocalBoundaryRadicand_re_pos s).le)).comp_of_eq
+      model.continuous_connectorLocalBoundaryRadicand.continuousAt rfl
+
+theorem connectorLocalBoundaryRoot_sq
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) :
+    model.connectorLocalBoundaryRoot s ^ 2 =
+      model.connectorLocalBoundaryRadicand s := by
+  unfold connectorLocalBoundaryRoot Complex.sqrt
+  exact Complex.cpow_nat_inv_pow (model.connectorLocalBoundaryRadicand s)
+    (by norm_num : (2 : ℕ) ≠ 0)
+
+theorem connectorLocalBoundaryRoot_ne_zero
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d) (s : I) :
+    model.connectorLocalBoundaryRoot s ≠ 0 := by
+  intro hzero
+  have hsq := model.connectorLocalBoundaryRoot_sq s
+  rw [hzero, zero_pow (by norm_num)] at hsq
+  have hpos := model.connectorLocalBoundaryRadicand_re_pos s
+  have hre := congrArg Complex.re hsq
+  simp only [Complex.zero_re] at hre
+  linarith
 
 /-- The compact local critical-value interval maps continuously into the compiled global radial
 parameter. -/
@@ -104,6 +185,15 @@ theorem continuous_connectorBoundaryPoint
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
     (side : ChapterVIDOuterArcSide) :
     Continuous (model.connectorBoundaryPoint side) := by
+  cases side
+  · exact continuous_id.prodMk continuous_const
+  · exact continuous_id.prodMk continuous_const
+
+theorem continuous_connectorLocalBoundaryPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.connectorLocalBoundaryPoint side) := by
   cases side
   · exact continuous_id.prodMk continuous_const
   · exact continuous_id.prodMk continuous_const
@@ -162,6 +252,44 @@ theorem ChapterVIDConnectorCompiledCertificate.exists_squareRootSheet
       exact hsets.1.2.prod hsets.2.2
   exact certificate.radicand.exists_continuousSquareRootSheet
     certificate.radicand.lipschitz.continuous base baseRoot hbaseRoot
+
+/-- Along the seam with the local Morse segment, any connector sheet is globally either the
+positive local sheet or its negative. The sign is constant; no pointwise branch ambiguity
+remains. -/
+theorem connectorSheet_eq_or_eq_neg_localBoundary
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side)) :
+    (∀ s : I,
+      sheet.root (model.connectorLocalBoundaryPoint side s) =
+        model.connectorLocalBoundaryRoot s) ∨
+    (∀ s : I,
+      sheet.root (model.connectorLocalBoundaryPoint side s) =
+        -model.connectorLocalBoundaryRoot s) := by
+  let connectorRoot : I → ℂ := fun s ↦
+    sheet.root (model.connectorLocalBoundaryPoint side s)
+  let localRoot : I → ℂ := model.connectorLocalBoundaryRoot
+  have hconnector : Continuous connectorRoot :=
+    sheet.continuous_root.comp (model.continuous_connectorLocalBoundaryPoint side)
+  have hlocal : Continuous localRoot :=
+    model.continuous_connectorLocalBoundaryRoot
+  have hsq : Set.EqOn (connectorRoot ^ 2) (localRoot ^ 2) Set.univ := by
+    intro s _
+    simp only [Pi.pow_apply, connectorRoot, localRoot]
+    rw [sheet.root_sq, model.connectorLocalBoundaryRoot_sq]
+    exact model.rectangleRadicand_connectorLocalBoundaryPoint side s
+  have hne : ∀ {s : I}, s ∈ (Set.univ : Set I) → localRoot s ≠ 0 := by
+    intro s _
+    exact model.connectorLocalBoundaryRoot_ne_zero s
+  rcases (isPreconnected_univ.eq_or_eq_neg_of_sq_eq
+      hconnector.continuousOn hlocal.continuousOn hsq hne) with h | h
+  · left
+    intro s
+    exact h (Set.mem_univ s)
+  · right
+    intro s
+    simpa only [Pi.neg_apply] using h (Set.mem_univ s)
 
 /-- Extend the compact connector root coordinate to a real integration parameter. -/
 def rectanglePointReal
@@ -408,6 +536,35 @@ theorem exists_sheet_boundary_eq_outer_tendsto_connectorIntegral
   refine ⟨sheet, ?_, htendsto⟩
   intro s
   exact congrFun hboundary s
+
+/-- Full seam-normalized connector package. The compiled certificate gives a finite connector
+limit, the outer seam is fixed canonically, and the local seam has one globally constant sign
+relative to the positive Morse square root. Either sign preserves a nonzero logarithmic
+coefficient. -/
+theorem exists_sheet_outer_boundary_local_sign_tendsto_connectorIntegral
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : ChapterVIDConnectorCompiledCertificate model side) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side),
+      (∀ s : I,
+        sheet.root (model.connectorBoundaryPoint side s) =
+          model.connectorOuterBoundaryRoot run side s) ∧
+      ((∀ s : I,
+          sheet.root (model.connectorLocalBoundaryPoint side s) =
+            model.connectorLocalBoundaryRoot s) ∨
+        (∀ s : I,
+          sheet.root (model.connectorLocalBoundaryPoint side s) =
+            -model.connectorLocalBoundaryRoot s)) ∧
+      Tendsto (model.connectorIntegral side sheet)
+        (𝓝 (1 : I))
+        (𝓝 (model.connectorIntegral side sheet 1)) := by
+  obtain ⟨sheet, houter, htendsto⟩ :=
+    model.exists_sheet_boundary_eq_outer_tendsto_connectorIntegral
+      run side certificate
+  exact ⟨sheet, houter,
+    model.connectorSheet_eq_or_eq_neg_localBoundary side sheet, htendsto⟩
 
 end ChapterVIDPrincipalConnectorModel
 

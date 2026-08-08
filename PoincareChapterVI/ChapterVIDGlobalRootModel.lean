@@ -41,6 +41,12 @@ structure ChapterVIDPrincipalGlobalRootModel
     chapterVIDRootToOriginalContour
         (chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ))) =
       chapterVIDPrincipalLocalSourceFiber (k : ℂ) (v : ℂ)
+  root_radicand_eq : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
+    chapterVIDRootCoordinateRadicand
+        (chapterVIDCriticalParameterRootAtD (k : ℂ))
+        (chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ))) =
+      chapterVIDRadicand
+        (chapterVIDCriticalMorseSourcePointAtD ((k : ℂ), (v : ℂ)))
   root_ne_zero : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
     chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ)) ≠ 0
   parameterRoot_pow : ∀ k ∈ Set.Icc 0 δ,
@@ -63,6 +69,14 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
           (chapterVIDCriticalMorseSourcePointAtD point).2} ∈
         𝓝 ((0 : ℂ), (0 : ℂ)) :=
     eventually_chapterVIDRootToOriginalContour_criticalMorseRootPoint
+  have hradicand :
+      {point : ℂ × ℂ |
+        chapterVIDRootCoordinateRadicand
+            (chapterVIDCriticalParameterRootAtD point.1)
+            (chapterVIDCriticalMorseRootPoint point) =
+          chapterVIDRadicand (chapterVIDCriticalMorseSourcePointAtD point)} ∈
+        𝓝 ((0 : ℂ), (0 : ℂ)) :=
+    eventually_chapterVIDRootCoordinateRadicand_criticalMorseRootPoint
   have hparameterInverseAnalytic :
       {k : ℂ | AnalyticAt ℂ chapterVIDCriticalParameterInverseAtD k} ∈ 𝓝 0 :=
     analyticAt_chapterVIDCriticalParameterInverseAtD.eventually_analyticAt
@@ -99,14 +113,18 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
         chapterVIDRootToOriginalContour
             (chapterVIDCriticalMorseRootPoint point) =
           (chapterVIDCriticalMorseSourcePointAtD point).2 ∧
+        chapterVIDRootCoordinateRadicand
+            (chapterVIDCriticalParameterRootAtD point.1)
+            (chapterVIDCriticalMorseRootPoint point) =
+          chapterVIDRadicand (chapterVIDCriticalMorseSourcePointAtD point) ∧
         chapterVIDCriticalMorseRootPoint point ≠ 0 ∧
         chapterVIDCriticalParameterRootAtD point.1 ^ 3 =
           chapterVIDCriticalParameterInverseAtD point.1} ∈
         𝓝 ((0 : ℂ), (0 : ℂ)) := by
     filter_upwards [hanalytic, hparameterInverseAnalytic',
-      hparameterRootAnalytic', hsource, hne, hparameter]
-      with point ha hzi hzeta hs hn hp
-    exact ⟨ha, hzi, hzeta, hs, hn, hp⟩
+      hparameterRootAnalytic', hsource, hradicand, hne, hparameter]
+      with point ha hzi hzeta hs hrad hn hp
+    exact ⟨ha, hzi, hzeta, hs, hrad, hn, hp⟩
   obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp hall
   let r : ℝ := min (min model.δ model.L) (ε / 2)
   have hr : 0 < r := by
@@ -167,6 +185,7 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
     parameterInverse_analyticAt := ?_
     parameterRoot_analyticAt := ?_
     root_source_eq := ?_
+    root_radicand_eq := ?_
     root_ne_zero := ?_
     parameterRoot_pow := ?_ }⟩
   · intro k hk v hv
@@ -184,11 +203,13 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
     simpa only [chapterVIDPrincipalLocalSourceFiber_eq] using hs
   · intro k hk v hv
     exact (hball (hrealPoint k hk v hv)).2.2.2.2.1
+  · intro k hk v hv
+    exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.1
   · intro k hk
     have hv : (0 : ℝ) ∈ Set.uIcc (-r) r := by
       rw [Set.uIcc_of_le (by linarith [hr])]
       constructor <;> linarith
-    exact (hball (hrealPoint k hk 0 hv)).2.2.2.2.2
+    exact (hball (hrealPoint k hk 0 hv)).2.2.2.2.2.2
 
 /-- The affine real Morse coordinate along the compact middle segment. -/
 def ChapterVIDPrincipalGlobalRootModel.morseLine
