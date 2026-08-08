@@ -106,11 +106,13 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   coefficient sequence from the function-level decomposition. Establishing that decomposition
   and larger-disk analyticity for the actual contour amplitude, uniformly in the orbital
   parameters, remains open.
-  `tendsto_chapterVI_quadraticPinch_sub_log` evaluates
-  the real symmetric prepared
-  quadratic model and proves its exact logarithmic asymptotic. Identifying the actual convergent
+  `tendsto_chapterVI_quadraticPinch_sub_log` evaluates the real symmetric prepared quadratic model
+  and proves its exact logarithmic asymptotic.
+  `tendsto_chapterVI_weightedQuadraticPinch_div_neg_log` further proves that a continuous
+  Lipschitz amplitude changes the leading logarithmic coefficient by exactly its value at the
+  pinch; its varying part has a uniformly bounded integral. Identifying the actual convergent
   analytic germ with the formal series, transporting the complex contour and square-root branch,
-  handling the analytic unit, and proving the remainder estimate remain open. The predicates
+  and proving these statements uniformly in the external parameters remain open. The predicates
   below state the corresponding restricted-problem inputs.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform

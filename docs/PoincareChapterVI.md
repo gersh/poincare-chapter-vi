@@ -47,7 +47,7 @@ transcription of the 1892 text.
 | §95 | Candidate singularities arise when moving singularities of the integrand obstruct contour deformation | No source-level analytic theorem | A parameterized contour-deformation theorem for multivalued algebraic integrands; modern language suggests vanishing cycles and Picard–Lefschetz theory |
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
-| §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves its logarithmic asymptotic | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, the analytic unit, and the remainder |
+| §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves that a continuous Lipschitz amplitude contributes its value at the pinch as the leading log coefficient, with uniformly bounded varying-amplitude remainder | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, parameter dependence, and the nonlocal remainder |
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarbouxTransfer.lean` proves scalar Cauchy-product coefficients, derives coefficients from a function-level varying-log germ, constructs `G(z)=G(z₀)+(1-z/z₀)H(z)` by holomorphic divided difference, and applies a weighted-convolution estimate; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral and larger-disk analyticity of `G`, uniformly in the orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, prevents root-label permutation, and reaches the compiled §103 contradiction | Derive the two-coordinate coefficient germ, its finite singular enumeration, common radius, and regular-factor analyticity from the Chapter V uniform-integral relation and the actual contour integral |
@@ -122,7 +122,9 @@ The source-facing files added after the standalone-project commit are deliberate
   derivative identity for `P = ∑ Uᵢ²`, the exact derivative-equation reduction modulo `P`, and
   the degree-seven estimate for the reduced curve.
 - `ChapterVIPinchModel.lean`: exact integration of the real symmetric quadratic-pinch model,
-  decomposition into `-log k` plus a regular term, and the regular term's limit as `k → 0⁺`.
+  decomposition into `-log k` plus a regular term, and stability of the leading logarithmic
+  coefficient under a continuous Lipschitz amplitude. The amplitude's varying part is proved
+  uniformly bounded and the weighted integral divided by `-log k` tends to its pinch value.
 - `Section103/Geometry.lean`, `Section103/RuppertCertificate.lean`,
   `Section103/RuppertKernel.lean`, `Section103/RuppertBounds.lean`,
   `Section103/RuppertNormalization.lean`, `Section103/RuppertIrreducibility.lean`, and
@@ -244,9 +246,11 @@ Riemann surface and the contour behave. A modern reconstruction should state:
    cycle and hence produces an actual logarithmic singularity.
 
 This is the conceptual bottleneck. The local quadratic factorization by itself does not establish
-the nonzero logarithmic coefficient. `ChapterVIPinchModel.lean` now proves that the bare real
-symmetric model has the expected logarithm; the missing theorem must transport that calculation
-through the complex cycle, branch choice, analytic unit, and remaining contour contribution.
+the nonzero logarithmic coefficient. `ChapterVIPinchModel.lean` now proves that the real symmetric
+model has the expected logarithm even after multiplication by a continuous Lipschitz unit: the
+coefficient is exactly the unit's value at the pinch. The missing theorem must transport that
+calculation through the complex moving cycle and branch choice, derive the required parameter-
+uniform estimates, and control the remaining contour contribution.
 
 ### 2. From a local logarithm to a coefficient theorem (§100)
 
