@@ -24,7 +24,7 @@ continuous function, and it uses no numerical or compiled certificate.
 noncomputable section
 
 open Filter Set Topology
-open scoped Interval
+open scoped Interval ComplexOrder
 
 namespace PoincareChapterVI
 
@@ -205,6 +205,82 @@ def chapterVIDPrincipalLocalVanishingCycleIntegral
     chapterVIParametricQuadraticPinchIntegrand
       (fun parameter coordinate ↦
         chapterVIDPrincipalRealMorseAmplitude massProduct b d (parameter, coordinate)) k t
+
+/-- The holomorphic normal-form integrand whose restriction to the positive real slice is the
+integrand above.  The principal complex square root is the positive sheet along that slice. -/
+def chapterVIDPrincipalNormalIntegrand
+    (massProduct : ℂ) (b d : ℤ) (k : ℝ) (v : ℂ) : ℂ :=
+  chapterVIDPrincipalMorseAmplitude massProduct b d ((k : ℂ), v) /
+    Complex.sqrt ((k : ℂ) + v ^ 2)
+
+/-- On `k>0` and the real middle cycle, the complex positive square-root sheet is exactly the
+real quadratic-pinch kernel used in the asymptotic theorem. -/
+theorem chapterVIDPrincipalNormalIntegrand_ofReal
+    (massProduct : ℂ) (b d : ℤ) {k : ℝ} (hk : 0 < k) (t : ℝ) :
+    chapterVIDPrincipalNormalIntegrand massProduct b d k (t : ℂ) =
+      chapterVIParametricQuadraticPinchIntegrand
+        (fun parameter coordinate ↦
+          chapterVIDPrincipalRealMorseAmplitude massProduct b d (parameter, coordinate)) k t := by
+  have hpositive : 0 < t ^ 2 + k := by nlinarith [sq_nonneg t]
+  have hnonnegative : (0 : ℂ) ≤ ((t ^ 2 + k : ℝ) : ℂ) := by
+    exact_mod_cast hpositive.le
+  have hsqrt : Complex.sqrt ((k : ℂ) + (t : ℂ) ^ 2) =
+      (Real.sqrt (t ^ 2 + k) : ℂ) := by
+    rw [show (k : ℂ) + (t : ℂ) ^ 2 = ((t ^ 2 + k : ℝ) : ℂ) by
+      push_cast
+      ring]
+    rw [Complex.sqrt_of_nonneg hnonnegative]
+    congr 1
+  rw [chapterVIDPrincipalNormalIntegrand, hsqrt]
+  simp only [chapterVIParametricQuadraticPinchIntegrand,
+    chapterVIQuadraticPinchIntegrand, chapterVIDPrincipalRealMorseAmplitude]
+  rw [Complex.real_smul]
+  push_cast
+  rw [inv_mul_eq_div]
+
+/-- The interval integral evaluated below is literally the complex curve integral of the
+normal-form one-form along the straight middle path from `-L` to `L`. -/
+theorem chapterVIDPrincipalNormal_curveIntegral_segment_eq
+    (massProduct : ℂ) (b d : ℤ) {L k : ℝ} (hk : 0 < k) :
+    (∫ᶜ v in Path.segment (-L : ℂ) (L : ℂ),
+      chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalNormalIntegrand massProduct b d k) v) =
+      chapterVIDPrincipalLocalVanishingCycleIntegral massProduct b d L k := by
+  rw [curveIntegral_segment]
+  let integrand : ℝ → ℂ := fun t ↦
+    chapterVIParametricQuadraticPinchIntegrand
+      (fun parameter coordinate ↦
+        chapterVIDPrincipalRealMorseAmplitude massProduct b d (parameter, coordinate)) k t
+  calc
+    (∫ s in 0..1,
+      chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalNormalIntegrand massProduct b d k)
+        (AffineMap.lineMap (-L : ℂ) (L : ℂ) s) ((L : ℂ) - (-L : ℂ))) =
+        (2 * L) • ∫ s in 0..1, integrand (2 * L * s + -L) := by
+      rw [← intervalIntegral.integral_smul]
+      apply intervalIntegral.integral_congr
+      intro s _
+      change chapterVIComplexScalarOneForm
+          (chapterVIDPrincipalNormalIntegrand massProduct b d k)
+          (AffineMap.lineMap (-L : ℂ) (L : ℂ) s) ((L : ℂ) - (-L : ℂ)) =
+        (2 * L) • integrand (2 * L * s + -L)
+      rw [chapterVIComplexScalarOneForm_apply]
+      have hline : AffineMap.lineMap (-L : ℂ) (L : ℂ) s =
+          ((2 * L * s + -L : ℝ) : ℂ) := by
+        simp [AffineMap.lineMap_apply]
+        ring
+      rw [hline, chapterVIDPrincipalNormalIntegrand_ofReal massProduct b d hk]
+      dsimp only [integrand]
+      rw [Complex.real_smul]
+      push_cast
+      ring
+    _ = ∫ t in -L..L, integrand t := by
+      have hsubstitution := intervalIntegral.smul_integral_comp_mul_add
+        (f := integrand) (a := 0) (b := 1) (c := 2 * L) (-L)
+      convert hsubstitution using 1
+      · ring_nf
+    _ = chapterVIDPrincipalLocalVanishingCycleIntegral massProduct b d L k := by
+      rfl
 
 /-- Poincare's local logarithmic calculation for the literal principal source term at D.  There
 is a fixed symmetric middle cycle on which the coefficient of `-log k` is exactly the complete

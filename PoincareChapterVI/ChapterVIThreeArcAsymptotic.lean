@@ -36,6 +36,28 @@ def chapterVIDPrincipalLocalPhiContribution
   (2 * Real.pi * Complex.I : ℂ)⁻¹ *
     chapterVIDPrincipalLocalVanishingCycleIntegral massProduct b d L k
 
+/-- For every positive parameter, the local contribution is literally the normalized complex
+curve integral on the straight middle path in the exact Morse chart. -/
+theorem chapterVIDPrincipalLocalPhiContribution_eq_curveIntegral
+    (massProduct : ℂ) (b d : ℤ) {L k : ℝ} (hk : 0 < k) :
+    chapterVIDPrincipalLocalPhiContribution massProduct b d L k =
+      (2 * Real.pi * Complex.I : ℂ)⁻¹ *
+        (∫ᶜ v in Path.segment (-L : ℂ) (L : ℂ),
+          chapterVIComplexScalarOneForm
+            (chapterVIDPrincipalNormalIntegrand massProduct b d k) v) := by
+  rw [chapterVIDPrincipalLocalPhiContribution,
+    chapterVIDPrincipalNormal_curveIntegral_segment_eq massProduct b d hk]
+
+/-- The same identity expressed through the generic §99 three-arc API. -/
+theorem chapterVIDPrincipalLocalPhiContribution_eq_localArcContribution
+    (massProduct : ℂ) (b d : ℤ) {L k : ℝ} (hk : 0 < k) :
+    chapterVIDPrincipalLocalPhiContribution massProduct b d L k =
+      chapterVILocalArcContribution
+        (fun _ v ↦ chapterVIDPrincipalNormalIntegrand massProduct b d k v)
+        0 (Path.segment (-L : ℂ) (L : ℂ)) := by
+  rw [chapterVIDPrincipalLocalPhiContribution_eq_curveIntegral massProduct b d hk]
+  rfl
+
 /-- The local `Φ` contribution has the expected normalized logarithmic coefficient. -/
 theorem tendsto_chapterVIDPrincipalLocalPhiContribution
     {massProduct : ℂ} (b d : ℤ)
