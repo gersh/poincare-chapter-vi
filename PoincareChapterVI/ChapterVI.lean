@@ -9,12 +9,14 @@ import PoincareChapterVI.ChapterVIContour
 import PoincareChapterVI.ChapterVICurveAlgebra
 import PoincareChapterVI.ChapterVIDarboux
 import PoincareChapterVI.ChapterVIDarbouxSpectrum
+import PoincareChapterVI.ChapterVIDarbouxTransfer
 import PoincareChapterVI.ChapterVIJacobian
 import PoincareChapterVI.ChapterVILatticeReduction
 import PoincareChapterVI.ChapterVIPinchModel
 import PoincareChapterVI.Section103.Certificate
 import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.ChapterVISingularityAlgebra
+import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
 import PoincareChapterVI.Section103.RuppertKernel
@@ -87,6 +89,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   determined by its coefficient sequence. `ChapterVIDarbouxSpectrum.lean` replaces the ratio
   argument when equally dominant singularities coexist: a finite exponential annihilator and
   Vandermonde inverse recover the normalized unit-circle spectrum modulo a vanishing error.
+  `ChapterVIDarbouxTransfer.lean` proves the intervening coefficient step for finitely many
+  constant leading logarithms: equality of analytic germs determines their Taylor coefficients,
+  and a remainder analytic on a strictly larger disk vanishes after the common Darboux
+  normalization. The radius is explicit, so the recovered bases are `R z₀⁻¹`, rather than
+  silently assuming `R = 1`.
   `tendsto_chapterVI_quadraticPinch_sub_log` evaluates
   the real symmetric prepared
   quadratic model and proves its exact logarithmic asymptotic. Identifying the actual convergent
@@ -103,8 +110,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   §102--103 contradiction to Darboux coefficient data factoring through two essential orientation
   coordinates. Both an isolated leading singularity and a locally uniform finite spectrum of
   equally dominant singularities are supported; the latter uses continuity to prevent local
-  root-label permutation. The recovery theorems derive the rank-at-most-two assertion for the
-  canonical differential of all constructed second-kind roots. In §103,
+  root-label permutation. `ChapterVISection102DarbouxTransfer.lean` converts a finite logarithmic
+  germ decomposition with a larger-disk analytic remainder into that spectrum interface and
+  hence the §103 contradiction. The recovery theorems derive the rank-at-most-two assertion for
+  the canonical differential of all constructed second-kind roots. In §103,
   `chapterVI_curvePolynomial_derivative` verifies the corrected identity
   `x ∂P/∂x = 2 ∑ VᵢUᵢ + 2P`; the printing has `+P`, which agrees only after restricting to `P=0`.
   `chapterVI_cubicDerivativeCurveEquation_reduction` verifies the subsequent reduction modulo

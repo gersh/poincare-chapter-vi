@@ -29,7 +29,9 @@ import PoincareChapterVI.Section103.SingularityParameterTangent
 import PoincareChapterVI.Section103.ReducedCurveTangent
 import PoincareChapterVI.Section103.MovingAlgebraicBranches
 import PoincareChapterVI.ChapterVIDarbouxSpectrum
+import PoincareChapterVI.ChapterVIDarbouxTransfer
 import PoincareChapterVI.ChapterVISection102
+import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.DeformationBridge
 import PoincareChapterVI.Section103.ImplicitDeformation
 

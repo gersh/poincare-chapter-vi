@@ -106,16 +106,22 @@ The strongest newly completed component is the finite algebra in §103:
   `∏ⱼ (X-λⱼ)`, proves its recurrence, and uses Vandermonde invertibility to recover the complete
   unit-circle spectrum from coefficients modulo `o(1)`. Continuity prevents local permutation of
   the recovered roots, yielding the same compiled §103 contradiction.
+- for a finite sum of constant leading boundary logarithms, equality of analytic germs now gives
+  the exact Taylor-coefficient decomposition. A remainder analytic on a strictly larger disk is
+  proved to vanish after `(n+1)R^(n+1)` normalization. The common radius `R` remains explicit,
+  and this source-facing data now feeds the finite-spectrum and compiled §103 contradiction.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
 concrete moving algebraic branches, physical derivative identification, formal chain rule,
 identification of the reduced curve with the constant-`z` tangent derivative, and the
-three-versus-two rank contradiction are now established. What remains in §§102–103 is the analytic
-construction of the normalized coefficient expansions from Poincaré's actual contour integral,
-including a locally uniform error estimate and common normalization radius, and the derivation of
-their two-coordinate dependence from the Chapter V uniform-integral relation. The finite
-separation of equally dominant singularities is now formalized. The
+three-versus-two rank contradiction are now established. What remains in §§102–103 is to derive
+the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
+including the reduction of a varying analytic log amplitude to its constant leading value, and
+to derive the coefficient family and common radius from the Chapter V uniform-integral relation.
+Once a constant-leading-log decomposition with a larger-disk analytic remainder is supplied,
+coefficient extraction, normalization, equal-modulus separation, and the §103 contradiction are
+formalized. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this

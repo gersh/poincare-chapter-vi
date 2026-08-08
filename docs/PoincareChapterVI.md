@@ -25,7 +25,8 @@ and formal-series subarguments. The central analytic and geometric steps remain 
   apparent;
 - deriving the local logarithmic expansion from a convergent Weierstrass preparation and a
   parameter-dependent contour;
-- proving a Darboux remainder estimate strong enough to give eventual nonvanishing;
+- deriving the finite constant-leading-logarithm decomposition (including control of the varying
+  analytic log amplitude) from the contour pinch;
 - deriving Poincaré's §102 rank-at-most-two conclusion for the singular-root differential from
   the Chapter V input. The actual moving algebraic equations, their analytic branches at all 24
   certified points, and the ensuing §103 rank contradiction are now formalized.
@@ -41,15 +42,15 @@ transcription of the 1892 text.
 | --- | --- | --- | --- |
 | §90 | Full three-body Hamiltonian `F = F₀ + μF₁`; isolate the principal mutual-distance term | The existing project has a restricted circular problem and a first mass derivative, not this full Hamiltonian | Decide whether the target is the full problem in Poincaré's variables or the circular restricted theorem; define the exact source Hamiltonian and prove the coordinate/mass expansion |
 | §§91–92 | Osculating variables, the first homological equation, and invariance under a coordinate change | The product-rule/homological algebra has restricted analogues | Formalize the source coordinate maps, domains, symplecticity, and the precise notion of a uniform first integral used in Chapter V–VI |
-| §93 | Darboux's one-variable coefficient estimates | `eventually_ne_zero_of_tendsto_div_one` proves only the final elementary nonvanishing implication | A singularity-analysis theorem with explicit hypotheses, competing boundary singularities, and a controlled analytic remainder |
+| §93 | Darboux's one-variable coefficient estimates | `ChapterVIDarbouxTransfer.lean` proves coefficient extraction and normalized decay for finitely many constant leading boundary logarithms plus a remainder analytic on a larger disk; `ChapterVIDarbouxSpectrum.lean` separates competing equal-modulus bases | Derive those hypotheses from the actual contour singularities, including a varying analytic logarithmic amplitude and uniform parameter control |
 | §94 | Convert coefficients on `(m₁,m₂)=(an+b,cn+d)` to coefficients of one Laurent series `Φ(z)` | `ChapterVILatticeReduction.lean` proves the affine-lattice reindexing; `ChapterVIContour.lean` proves finite and absolutely summable Laurent coefficient extraction | Define the actual Fourier series and prove its holomorphic convergence on an annulus, allowing all substitutions, sum/integral interchanges, and branch choices |
 | §95 | Candidate singularities arise when moving singularities of the integrand obstruct contour deformation | No source-level analytic theorem | A parameterized contour-deformation theorem for multivalued algebraic integrands; modern language suggests vanishing cycles and Picard–Lefschetz theory |
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves its logarithmic asymptotic | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, the analytic unit, and the remainder |
-| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact model coefficients, asymptotic-to-nonvanishing, and `Dₙ₊₁/Dₙ → z₀⁻¹` for an isolated singularity. `ChapterVIDarbouxSpectrum.lean` handles equally dominant terms: their annihilating recurrence and Vandermonde recovery determine the complete normalized unit-circle spectrum modulo `o(1)` | Derive the logarithmic expansion of the actual integral; prove every retained leading factor is nonzero; establish the locally uniform remainder and common normalization radius |
+| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` treats one exact log; `ChapterVIDarbouxTransfer.lean` derives Taylor coefficients from equality of analytic germs and proves that a larger-disk analytic remainder disappears after explicit common-radius normalization; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral, reduce each analytic factor `Φ₃(z)` to its nonzero constant leading value with a controlled subleading logarithmic remainder, and prove uniformity in the orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
-| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed factor `-z₁⁶/ζ⁷` and the equivalence of the scaled-root and ratio determinant vanishings. `ChapterVISection102.lean` derives the contradiction from either isolated Darboux terms or a locally uniform finite spectrum of equally dominant terms; in the latter case continuity prevents root-label permutation | Derive the two-coordinate normalized coefficient data from the Chapter V uniform-integral relation and actual contour integral, including analytic enumeration, common-radius normalization, and uniform asymptotic errors |
+| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), converts a finite logarithmic germ decomposition into the normalized spectrum, prevents root-label permutation, and reaches the compiled §103 contradiction | Derive the two-coordinate coefficient germ, its finite singular enumeration, and its common radius from the Chapter V uniform-integral relation and the actual contour integral |
 | §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
 
 ## What the current Lean files actually establish
@@ -62,11 +63,13 @@ parameter derivative with the certified rotation source.
 coordinate calculation: the explicit singularity parameter has Poincaré's displayed
 logarithmic differential, its polynomial kernel direction is exactly the direction defining the
 reduced septic, and the certified sextic derivative vanishes in that direction at all 24 points.
-The still-open bridge is now narrower: construct either `TwoCoordinateDarbouxFactorization` or
-`TwoCoordinateUnitSpectrumFactorization` from the actual contour integral and derive its
-two-coordinate dependence from the Chapter V uniform-integral relation. Isolated-root recovery,
-finite equal-modulus spectrum recovery, prevention of local root permutation, coefficient
-dependence to root constancy, the root rank bound, and the §103 contradiction are formalized.
+The still-open bridge is now narrower: construct
+`TwoCoordinateFiniteLogarithmicFactorization` from the actual contour integral and Chapter V.
+This means proving the function-level logarithmic germ decomposition, the nonzero leading
+amplitudes, the common boundary radius, the larger-disk remainder (or first reducing the varying
+analytic log amplitudes to that form), and two-coordinate dependence. Analytic-germ uniqueness,
+coefficient extraction, common-radius normalization, finite equal-modulus spectrum recovery,
+prevention of local root permutation, and the §103 contradiction are formalized.
 
 The source-facing files added after the standalone-project commit are deliberately small lemmas:
 
@@ -84,6 +87,9 @@ The source-facing files added after the standalone-project commit are deliberate
 - `ChapterVIDarbouxSpectrum.lean`: the annihilating recurrence and Vandermonde moment map for a
   finite exponential spectrum, uniqueness of normalized unit-circle spectra modulo `o(1)`, and
   local label stability for continuously moving roots.
+- `ChapterVIDarbouxTransfer.lean`: Taylor coefficients of the logarithmic germ, finite weighted
+  log sums, coefficient uniqueness from equality of analytic germs, and normalized decay of a
+  larger-disk analytic remainder.
 - `ChapterVIJacobian.lean`: the exact determinant row reduction in §102 from the six scaled
   singularities to five singularity ratios and the resulting equivalence of determinant
   vanishing, without assuming the missing analytic/rank input.
@@ -91,6 +97,8 @@ The source-facing files added after the standalone-project commit are deliberate
   differential of all 24 constructed second-kind roots, rank-nullity extraction of a nonzero
   common stationary direction, both isolated and equal-modulus coefficient-to-root Darboux
   recovery bridges, and the contradiction with the compiled §103 restriction certificate.
+- `ChapterVISection102DarbouxTransfer.lean`: the correctly scaled equal-modulus interface and its
+  construction from a finite constant-leading-logarithm germ decomposition.
 - `ChapterVICurveAlgebra.lean`: the five-term cubic-form simplification in §103, the corrected
   derivative identity for `P = ∑ Uᵢ²`, the exact derivative-equation reduction modulo `P`, and
   the degree-seven estimate for the reduced curve.
@@ -223,17 +231,21 @@ through the complex cycle, branch choice, analytic unit, and remaining contour c
 
 ### 2. From a local logarithm to a coefficient theorem (§100)
 
-The needed statement is more precise than “a logarithm has coefficients `-z₀⁻ⁿ/n`.” One must
-prove that on the relevant annulus:
+`ChapterVIDarbouxTransfer.lean` now closes the coefficient calculation once the following
+constant-leading-logarithm decomposition is available on the relevant disk:
 
 ```text
-Φ(z) = H(z) + G(z) log(1-z/z₀),    G(z₀) ≠ 0,
+Φ(z) = H(z) + ∑ⱼ Aⱼ log(1-z/zⱼ),    Aⱼ ≠ 0,
 ```
 
-with all other singularities on the same modulus either absent or included in the asymptotic, and
-with a remainder smaller than the leading term. Multiple boundary singularities can cancel on a
-subsequence, so eventual nonvanishing does not follow from a single local calculation unless the
-global boundary-singularity statement rules this out.
+where all `zⱼ` have the common boundary radius and `H` is analytic on a strictly larger disk.
+Lean proves the exact Taylor coefficients from equality of analytic germs, proves the normalized
+coefficients of `H` tend to zero, and separates all equal-modulus bases. The remaining source
+work is to obtain this form from Poincaré's actual `Φ₂(z)+Φ₃(z) log(z-z₀)` expressions. In
+particular, the nonconstant part of each analytic factor `Φ₃` produces subleading logarithmic
+terms rather than a larger-disk analytic function and still needs a Darboux estimate. Multiple
+boundary singularities can also cancel on a subsequence, which is why the formal theorem recovers
+the entire finite spectrum rather than asserting eventual nonvanishing of the combined sequence.
 
 ### 3. The intersection count (§103)
 
