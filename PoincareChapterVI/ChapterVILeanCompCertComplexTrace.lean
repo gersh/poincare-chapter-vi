@@ -25,6 +25,7 @@ structure ChapterVISignedDyadicComplexRectangle (precision : ℕ) where
 namespace ChapterVISignedDyadicComplexRectangle
 
 open ChapterVILeanCompCertBatch
+open scoped ComplexConjugate
 
 def Contains {precision : ℕ}
     (rectangle : ChapterVISignedDyadicComplexRectangle precision) (value : ℂ) : Prop :=
@@ -45,6 +46,12 @@ def sub {precision : ℕ}
     ChapterVISignedDyadicComplexRectangle precision :=
   x.add y.neg
 
+/-- Exact rectangular complex conjugation at a fixed dyadic scale. -/
+def conjugate {precision : ℕ}
+    (x : ChapterVISignedDyadicComplexRectangle precision) :
+    ChapterVISignedDyadicComplexRectangle precision :=
+  ⟨x.real, x.imag.neg⟩
+
 theorem add_contains {precision : ℕ}
     {x y : ChapterVISignedDyadicComplexRectangle precision} {a b : ℂ}
     (ha : x.Contains a) (hb : y.Contains b) :
@@ -63,6 +70,57 @@ theorem sub_contains {precision : ℕ}
     (ha : x.Contains a) (hb : y.Contains b) :
     (x.sub y).Contains (a - b) := by
   simpa [sub, sub_eq_add_neg] using add_contains ha (neg_contains hb)
+
+theorem conjugate_contains {precision : ℕ}
+    {x : ChapterVISignedDyadicComplexRectangle precision} {a : ℂ}
+    (ha : x.Contains a) : x.conjugate.Contains (conj a) := by
+  constructor
+  · simpa [conjugate] using ha.1
+  · simpa [conjugate] using ChapterVISignedDyadicInterval.neg_contains ha.2
+
+theorem conjugate_contains_inv_of_norm_one {precision : ℕ}
+    {x : ChapterVISignedDyadicComplexRectangle precision} {a : ℂ}
+    (ha : x.Contains a) (hnorm : ‖a‖ = 1) : x.conjugate.Contains a⁻¹ := by
+  rw [Complex.inv_eq_conj hnorm]
+  exact conjugate_contains ha
+
+/-- Two rounded real products scale a complex rectangle by a real interval. -/
+structure RealMulTrace {precision : ℕ}
+    (scalar : ChapterVISignedDyadicInterval precision)
+    (input : ChapterVISignedDyadicComplexRectangle precision) where
+  realOut : ChapterVISignedDyadicInterval precision
+  imagOut : ChapterVISignedDyadicInterval precision
+
+def RealMulTrace.operations {precision : ℕ}
+    {scalar : ChapterVISignedDyadicInterval precision}
+    {input : ChapterVISignedDyadicComplexRectangle precision}
+    (trace : RealMulTrace scalar input) : List (DyadicOperation precision) :=
+  [ .mul scalar input.real trace.realOut
+  , .mul scalar input.imag trace.imagOut ]
+
+def RealMulTrace.output {precision : ℕ}
+    {scalar : ChapterVISignedDyadicInterval precision}
+    {input : ChapterVISignedDyadicComplexRectangle precision}
+    (trace : RealMulTrace scalar input) :
+    ChapterVISignedDyadicComplexRectangle precision :=
+  ⟨trace.realOut, trace.imagOut⟩
+
+theorem RealMulTrace.output_contains_of_allSound {precision : ℕ}
+    {scalar : ChapterVISignedDyadicInterval precision}
+    {input : ChapterVISignedDyadicComplexRectangle precision}
+    (trace : RealMulTrace scalar input)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {r : ℝ} {z : ℂ} (hr : scalar.Contains r) (hz : input.Contains z) :
+    trace.output.Contains ((r : ℂ) * z) := by
+  have hre : ChapterVISignedDyadicInterval.MulCertificate
+      scalar input.real trace.realOut :=
+    hall (.mul scalar input.real trace.realOut) (by simp [RealMulTrace.operations])
+  have him : ChapterVISignedDyadicInterval.MulCertificate
+      scalar input.imag trace.imagOut :=
+    hall (.mul scalar input.imag trace.imagOut) (by simp [RealMulTrace.operations])
+  constructor
+  · simpa [RealMulTrace.output] using hre.contains_mul hr hz.1
+  · simpa [RealMulTrace.output] using him.contains_mul hr hz.2
 
 /-- Four real rounded products implementing one complex multiplication. -/
 structure MulTrace {precision : ℕ}
@@ -132,6 +190,39 @@ theorem MulTrace.output_contains_mul_of_batch {precision : ℕ}
       (hoperations operation hoperation)
   · exact ha
   · exact hb
+
+/-- Two complex multiplication traces computing a cube. -/
+structure CubeTrace {precision : ℕ}
+    (input : ChapterVISignedDyadicComplexRectangle precision) where
+  square : MulTrace input input
+  cube : MulTrace square.output input
+
+def CubeTrace.operations {precision : ℕ}
+    {input : ChapterVISignedDyadicComplexRectangle precision}
+    (trace : CubeTrace input) : List (DyadicOperation precision) :=
+  trace.square.operations ++ trace.cube.operations
+
+def CubeTrace.output {precision : ℕ}
+    {input : ChapterVISignedDyadicComplexRectangle precision}
+    (trace : CubeTrace input) : ChapterVISignedDyadicComplexRectangle precision :=
+  trace.cube.output
+
+theorem CubeTrace.output_contains_cube_of_allSound {precision : ℕ}
+    {input : ChapterVISignedDyadicComplexRectangle precision}
+    (trace : CubeTrace input)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {value : ℂ} (hvalue : input.Contains value) :
+    trace.output.Contains (value ^ 3) := by
+  have hsquareSound : ∀ operation ∈ trace.square.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [CubeTrace.operations, hoperation])
+  have hcubeSound : ∀ operation ∈ trace.cube.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [CubeTrace.operations, hoperation])
+  have hsquare := trace.square.output_contains_mul_of_allSound
+    hsquareSound hvalue hvalue
+  have hcube := trace.cube.output_contains_mul_of_allSound hcubeSound hsquare hvalue
+  simpa [CubeTrace.output, pow_succ, pow_two, mul_assoc] using hcube
 
 /-- Five primitive operations implementing complex inversion through
 `conj(z) / (re(z)^2 + im(z)^2)`. -/
