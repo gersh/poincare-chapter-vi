@@ -26,12 +26,14 @@ the literal transformed radicand nonzero throughout the radial continuation yiel
 contradiction. The exact change back to the §94 variable,
 `t=u exp((100/30003)((u^3)⁻¹-u^3))`, is now verified; its endpoint maps to the same anomaly pair
 D as the local germ, and the two selected lifts differ by a certified cubic deck transformation.
-The explicit global endpoint has analytic order two and reaches the prepared local model with a
-nonzero logarithmic coefficient. The actual §94 numerator is analytic and
-nonzero at D, the convergent local Morse model is `k+v²`, and the three-arc decomposition isolates
-its nonzero logarithmic middle contribution. The remaining global obligation is to place and
-transport the physical integration cycle around those checked pole paths and control the two
-regular arcs; the general §98 Riemann-surface discussion is not being represented as complete.
+The explicit global endpoint has analytic order two and reaches the prepared local model. The
+actual §94 numerator is analytic and nonzero at D. On one certified real rectangle the literal
+source radicand is exactly `k+v²`, its complete numerator/Jacobian amplitude is `C¹`, and Lean
+proves that the fixed symmetric middle-cycle integral divided by `-log k` tends to the nonzero
+amplitude at D. The normalized three-arc theorem passes this coefficient to the full contour once
+the two outer arcs are proved lower order. The remaining global obligation is to place and
+transport the physical integration cycle around those checked pole paths and discharge that
+regular-arc premise; the general §98 Riemann-surface discussion is not represented as complete.
 
 The strongest newly completed component is the finite algebra in §103:
 
@@ -257,12 +259,20 @@ The strongest newly completed component is the finite algebra in §103:
   analytic and nonzero, pulls it into the `(k,v)` chart, and proves the resulting leading
   amplitude is nonzero. Its exact value contains the inverse Morse root, matching the defining
   identity on p. 323 and making explicit the apparent error in the subsequently printed formula.
+- `ChapterVILocalVanishingCycle.lean` restricts that literal holomorphic amplitude to real
+  positive critical values, extracts one compact rectangle on which the source radicand is
+  exactly `k+v²`, and proves the normalized symmetric middle-cycle integral tends to its nonzero
+  value at D. This is a calculation for Poincaré's actual source term, not only an abstract model.
 - the §99 contour localization is now an exact path theorem. For
   `C₀=C₀' * C₀'' * C₀'''`, Lean splits the normalized integral into the two regular-arc
   contributions plus the middle pinched contribution. A source-facing theorem starts at the
   literal unit-circle `Φ` and performs the same split after a checked deformation. The
   deformation remains explicit data because it is precisely the global admissibility/sheet
   obligation that Poincaré only sketches.
+- `ChapterVIThreeArcAsymptotic.lean` combines those results: if the checked source-sheet
+  deformation identifies this middle cycle and the two complementary arc integrals are
+  `o(-log k)`, the full continued principal integral has the same explicitly nonzero logarithmic
+  coefficient. Its continuation structure is the current global interface.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

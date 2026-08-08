@@ -21,6 +21,8 @@ import PoincareChapterVI.ChapterVIDarbouxTransfer
 import PoincareChapterVI.ChapterVIJacobian
 import PoincareChapterVI.ChapterVILatticeReduction
 import PoincareChapterVI.ChapterVIPinchModel
+import PoincareChapterVI.ChapterVILocalVanishingCycle
+import PoincareChapterVI.ChapterVIThreeArcAsymptotic
 import PoincareChapterVI.Section103.Certificate
 import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.ChapterVISingularityAlgebra
@@ -206,9 +208,12 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `C₀=C₀' * C₀'' * C₀'''` and, after a checked deformation from the literal unit circle, proves
   that `Phi` is the sum of the two regular-arc terms and the middle pinch term.
   `ChapterVIPrincipalIntegrand.lean` constructs D's local cubic root of `z`, defines the actual
-  §94 monomial numerator, and proves its Morse-chart leading amplitude is nonzero. What remains
-  is to construct the global source-sheet deformation supplied as a premise to the split theorem,
-  place its middle arc in the local root chart, and prove the two regular-arc terms analytic.
+  §94 monomial numerator, and proves its Morse-chart leading amplitude is nonzero.
+  `ChapterVILocalVanishingCycle.lean` extracts a compact real rectangle on which the literal
+  source radicand is exactly `k+v²` and proves the actual symmetric middle integral divided by
+  `-log k` tends to that nonzero amplitude. `ChapterVIThreeArcAsymptotic.lean` proves that the full
+  contour inherits this coefficient once the source-sheet three-arc realization is constructed
+  and its two regular arcs are `o(-log k)`. Those two global premises remain.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

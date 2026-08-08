@@ -185,6 +185,44 @@ theorem integral_chapterVIParametricQuadraticPinchIntegrand_eq
         ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
       rw [intervalIntegral.integral_smul_const]
 
+/-- Local form of `integral_chapterVIParametricQuadraticPinchIntegrand_eq`.  Only continuity on
+the interval of integration is mathematically needed.  This form is what applies to an analytic
+germ produced by the local Morse coordinate: no arbitrary extension of that germ to the whole
+real line is required. -/
+theorem integral_chapterVIParametricQuadraticPinchIntegrand_eq_of_continuousOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {k a b : ℝ}
+    (hamplitude : ContinuousOn (amplitude k) (Set.uIcc a b)) (hk : 0 < k) :
+    (∫ t in a..b, chapterVIParametricQuadraticPinchIntegrand amplitude k t) =
+      (∫ t in a..b, chapterVIQuadraticPinchIntegrand k t) • amplitude k 0 +
+        ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+  have hkernel : Continuous
+      (fun t ↦ chapterVIQuadraticPinchIntegrand k t) :=
+    continuous_chapterVIQuadraticPinchIntegrand hk
+  have hconstant : Continuous
+      (fun t ↦ chapterVIQuadraticPinchIntegrand k t • amplitude k 0) :=
+    hkernel.smul continuous_const
+  have hremainder : ContinuousOn
+      (chapterVIParametricQuadraticPinchRemainder amplitude k) (Set.uIcc a b) :=
+    hkernel.continuousOn.smul (hamplitude.sub continuousOn_const)
+  calc
+    (∫ t in a..b, chapterVIParametricQuadraticPinchIntegrand amplitude k t) =
+        ∫ t in a..b,
+          chapterVIQuadraticPinchIntegrand k t • amplitude k 0 +
+            chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+      apply intervalIntegral.integral_congr
+      intro t _
+      simp only [chapterVIParametricQuadraticPinchIntegrand,
+        chapterVIParametricQuadraticPinchRemainder, smul_sub]
+      abel
+    _ = (∫ t in a..b, chapterVIQuadraticPinchIntegrand k t • amplitude k 0) +
+        ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+      rw [intervalIntegral.integral_add
+        (hconstant.intervalIntegrable a b) hremainder.intervalIntegrable]
+    _ = (∫ t in a..b, chapterVIQuadraticPinchIntegrand k t) • amplitude k 0 +
+        ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+      rw [intervalIntegral.integral_smul_const]
+
 /-- A uniform Lipschitz estimate in the contour coordinate makes the vector-valued remainder
 uniformly bounded as the pinch parameter tends to zero. -/
 theorem norm_integral_chapterVIParametricQuadraticPinchRemainder_le
@@ -520,6 +558,68 @@ theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_eventuall
   congr 1
   rw [div_eq_mul_inv, mul_comm]
 
+/-- Local-continuity version of the parametric pinch theorem.  The amplitude is required to be
+continuous only on the fixed middle interval.  This is the form appropriate for Poincare's
+locally prepared analytic germ. -/
+theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_eventually_lipschitzOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {center : E} {C L : ℝ}
+    (hamplitude : ∀ᶠ k in 𝓝[>] (0 : ℝ),
+      ContinuousOn (amplitude k) (Set.uIcc (-L) L))
+    (hcenter : Tendsto (fun k ↦ amplitude k 0) (𝓝[>] 0) (𝓝 center))
+    (hC : 0 ≤ C) (hL : 0 < L)
+    (hLipschitz : ∀ᶠ k in 𝓝[>] (0 : ℝ), ∀ t ∈ Ι (-L) L,
+      ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        (∫ t in -L..L, chapterVIParametricQuadraticPinchIntegrand amplitude k t))
+      (𝓝[>] 0) (𝓝 center) := by
+  let remainder : ℝ → E := fun k ↦
+    ∫ t in -L..L, chapterVIParametricQuadraticPinchRemainder amplitude k t
+  have hdenominator : Tendsto (fun k : ℝ ↦ -Real.log k) (𝓝[>] 0) atTop := by
+    apply tendsto_neg_atTop_iff.mpr
+    exact Real.tendsto_log_nhdsGT_zero
+  have hremainderBound : ∀ᶠ k in 𝓝[>] (0 : ℝ), ‖remainder k‖ ≤ 2 * C * L := by
+    filter_upwards [self_mem_nhdsWithin, hLipschitz] with k hk hkLipschitz
+    exact norm_integral_chapterVIParametricQuadraticPinchRemainder_le
+      hC hk hL.le hkLipschitz
+  have hremainderBounded :
+      IsBoundedUnder (· ≤ ·) (𝓝[>] (0 : ℝ)) (norm ∘ remainder) := by
+    apply isBoundedUnder_of_eventually_le (a := 2 * C * L)
+    simpa [Function.comp_def] using hremainderBound
+  have hinverse :
+      Tendsto (fun k : ℝ ↦ (-Real.log k)⁻¹) (𝓝[>] 0) (𝓝 0) :=
+    hdenominator.inv_tendsto_atTop
+  have hremainderRatio :
+      Tendsto (fun k ↦ (-Real.log k)⁻¹ • remainder k) (𝓝[>] 0) (𝓝 0) :=
+    hinverse.zero_smul_isBoundedUnder_le hremainderBounded
+  have hbaseRatio := tendsto_chapterVI_quadraticPinch_div_neg_log hL
+  have hmain : Tendsto
+      (fun k ↦
+        ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) / (-Real.log k)) •
+          amplitude k 0)
+      (𝓝[>] 0) (𝓝 center) := by
+    simpa using hbaseRatio.smul hcenter
+  have hcombined : Tendsto
+      (fun k ↦
+        ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) / (-Real.log k)) •
+            amplitude k 0 +
+          (-Real.log k)⁻¹ • remainder k)
+      (𝓝[>] 0) (𝓝 center) := by
+    simpa using hmain.add hremainderRatio
+  apply hcombined.congr'
+  filter_upwards [self_mem_nhdsWithin, hamplitude] with k hk hkcontinuous
+  rw [integral_chapterVIParametricQuadraticPinchIntegrand_eq_of_continuousOn
+    hkcontinuous hk]
+  change ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) / (-Real.log k)) •
+        amplitude k 0 + (-Real.log k)⁻¹ • remainder k =
+    (-Real.log k)⁻¹ •
+      ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) • amplitude k 0 +
+        remainder k)
+  rw [smul_add, smul_smul]
+  congr 1
+  rw [div_eq_mul_inv, mul_comm]
+
 /-- A `C¹` realization of the prepared amplitude on one compact parameter-contour rectangle
 automatically satisfies the uniform remainder estimate and therefore has Poincare's logarithmic
 pinch limit.  This removes the hand-supplied Lipschitz constant from the source-facing analytic
@@ -546,6 +646,35 @@ theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_contDiffO
   filter_upwards [Ioc_mem_nhdsGT hδ] with k hk
   intro t ht
   exact hCuniform k ⟨hk.1.le, hk.2⟩ t ht
+
+/-- A `C¹` amplitude on the compact local rectangle has Poincare's logarithmic limit without any
+global-continuity premise. -/
+theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_contDiffOn_local
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ × ℝ → E} {center : E} {δ L : ℝ}
+    (hcenter : Tendsto (fun k ↦ amplitude (k, 0)) (𝓝[>] 0) (𝓝 center))
+    (hδ : 0 < δ) (hL : 0 < L)
+    (hcontDiff : ContDiffOn ℝ 1 amplitude
+      (Set.Icc 0 δ ×ˢ Set.uIcc (-L) L)) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        (∫ t in -L..L,
+          chapterVIParametricQuadraticPinchIntegrand
+            (fun parameter coordinate ↦ amplitude (parameter, coordinate)) k t))
+      (𝓝[>] 0) (𝓝 center) := by
+  rcases exists_uniform_chapterVI_contour_lipschitz_of_contDiffOn hL.le hcontDiff with
+    ⟨C, hC, hCuniform⟩
+  apply
+    tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul_of_eventually_lipschitzOn
+      (amplitude := fun parameter coordinate ↦ amplitude (parameter, coordinate))
+      (center := center) (C := C) ?_ hcenter hC hL
+  · filter_upwards [Ioc_mem_nhdsGT hδ] with k hk
+    intro t ht
+    exact hCuniform k ⟨hk.1.le, hk.2⟩ t ht
+  · filter_upwards [Ioc_mem_nhdsGT hδ] with k hk
+    exact hcontDiff.continuousOn.comp
+      (continuous_const.prodMk continuous_id).continuousOn (fun t ht ↦ by
+        exact ⟨⟨hk.1.le, hk.2⟩, ht⟩)
 
 /-- Source-facing vector-valued local limit.  The amplitude may depend on the external pinch
 parameter, its center value need only converge, and its variation in the contour coordinate is
