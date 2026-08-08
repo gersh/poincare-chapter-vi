@@ -97,7 +97,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `(1-z/z₀)^k log(1-z/z₀)`: all positive-order terms are proved subleading, so only the value of
   the analytic log amplitude at the singularity contributes to the recovered spectrum. Tannery's
   theorem extends this transfer to an infinite analytic-amplitude series under an explicit
-  summable uniform coefficient bound. Deriving that bound from the actual analytic germ,
+  summable uniform coefficient bound. More source-faithfully, factoring a varying amplitude as
+  `G(z₀) + (1-z/z₀)H(z)` reduces its tail to convolution with an exact `O(1/n²)` kernel; Lean
+  derives the required weighted summability directly when `H` is analytic on a disk larger than
+  the boundary circle. Establishing this larger-disk factorization for the actual contour germ,
   uniformly in the orbital parameters, remains open.
   `tendsto_chapterVI_quadraticPinch_sub_log` evaluates
   the real symmetric prepared
@@ -116,9 +119,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   coordinates. Both an isolated leading singularity and a locally uniform finite spectrum of
   equally dominant singularities are supported; the latter uses continuity to prevent local
   root-label permutation. `ChapterVISection102DarbouxTransfer.lean` converts either a finite
-  logarithmic germ decomposition, finite log-amplitude jets, or a full analytic amplitude with
-  explicit Tannery control and a larger-disk analytic remainder into that spectrum interface and
-  hence the §103 contradiction. The recovery theorems
+  logarithmic germ decomposition, finite log-amplitude jets, a full analytic amplitude with
+  explicit Tannery control, or the regular-factor analytic form above with a larger-disk analytic
+  remainder into that spectrum interface and hence the §103 contradiction. The recovery theorems
   derive the rank-at-most-two assertion for the canonical differential of all constructed
   second-kind roots. In §103,
   `chapterVI_curvePolynomial_derivative` verifies the corrected identity

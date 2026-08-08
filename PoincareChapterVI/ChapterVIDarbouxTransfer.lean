@@ -194,6 +194,343 @@ def chapterVIFirstVanishingLogCoefficient (singularityInverse : ℂ) (index : �
   chapterVILogTaylorCoefficient singularityInverse (index + 1) -
     singularityInverse * chapterVILogTaylorCoefficient singularityInverse index
 
+/-- Full Taylor coefficient sequence of
+`(1 - z * singularityInverse) * log (1 - z * singularityInverse)`, including degree zero. -/
+def chapterVIFirstVanishingLogTaylorCoefficient
+    (singularityInverse : ℂ) (degree : ℕ) : ℂ :=
+  chapterVILogTaylorCoefficient singularityInverse degree -
+    singularityInverse * if degree = 0 then 0
+      else chapterVILogTaylorCoefficient singularityInverse (degree - 1)
+
+@[simp] theorem chapterVIFirstVanishingLogTaylorCoefficient_succ
+    (singularityInverse : ℂ) (index : ℕ) :
+    chapterVIFirstVanishingLogTaylorCoefficient singularityInverse (index + 1) =
+      chapterVIFirstVanishingLogCoefficient singularityInverse index := by
+  simp [chapterVIFirstVanishingLogTaylorCoefficient,
+    chapterVIFirstVanishingLogCoefficient]
+
+/-- Away from its degree-one exceptional coefficient, the first-vanishing logarithmic kernel has
+the exact `1 / (d(d-1))` decay used in the convolution proof for a varying analytic amplitude. -/
+theorem chapterVIFirstVanishingLogTaylorCoefficient_eq
+    (singularityInverse : ℂ) {degree : ℕ} (hdegree : 2 ≤ degree) :
+    chapterVIFirstVanishingLogTaylorCoefficient singularityInverse degree =
+      singularityInverse ^ degree / (degree * (degree - 1) : ℕ) := by
+  have hdegree0 : degree ≠ 0 := by omega
+  have hdegreePred0 : degree - 1 ≠ 0 := by omega
+  have hdegreePred : degree - 1 + 1 = degree := by omega
+  unfold chapterVIFirstVanishingLogTaylorCoefficient chapterVILogTaylorCoefficient
+  simp only [if_neg hdegree0]
+  rw [show singularityInverse ^ degree =
+      singularityInverse * singularityInverse ^ (degree - 1) by
+    nth_rewrite 1 [← hdegreePred]
+    rw [pow_succ']]
+  push_cast
+  field_simp
+  rw [show (degree : ℂ) = (degree - 1 : ℕ) + 1 by exact_mod_cast hdegreePred.symm]
+  ring
+
+/-- Radius-scaled full coefficients of the first-vanishing logarithmic kernel.  This scaling
+turns a boundary singularity into a unit-modulus sequence. -/
+def chapterVIScaledFirstVanishingLogTaylorCoefficient
+    (radius : ℝ≥0) (singularityInverse : ℂ) (degree : ℕ) : ℂ :=
+  (radius : ℂ) ^ degree *
+    chapterVIFirstVanishingLogTaylorCoefficient singularityInverse degree
+
+theorem norm_chapterVIScaledFirstVanishingLogTaylorCoefficient
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1)
+    {degree : ℕ} (hdegree : 2 ≤ degree) :
+    ‖chapterVIScaledFirstVanishingLogTaylorCoefficient
+      radius singularityInverse degree‖ =
+      1 / (degree * (degree - 1) : ℕ) := by
+  rw [chapterVIScaledFirstVanishingLogTaylorCoefficient,
+    chapterVIFirstVanishingLogTaylorCoefficient_eq singularityInverse hdegree]
+  rw [norm_mul, norm_div, norm_pow]
+  have hscaled : ‖(radius : ℂ)‖ * ‖singularityInverse‖ = 1 := by
+    simpa [chapterVIUnitBase, norm_mul] using hunit
+  rw [norm_pow]
+  rw [← mul_div_assoc]
+  rw [← mul_pow, hscaled, one_pow, one_div]
+  simp
+
+theorem norm_natCast_mul_chapterVIScaledFirstVanishingLogTaylorCoefficient
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1)
+    {degree : ℕ} (hdegree : 2 ≤ degree) :
+    ‖(degree : ℂ) * chapterVIScaledFirstVanishingLogTaylorCoefficient
+      radius singularityInverse degree‖ = 1 / (degree - 1 : ℕ) := by
+  rw [norm_mul, norm_natCast,
+    norm_chapterVIScaledFirstVanishingLogTaylorCoefficient hunit hdegree]
+  have hdegree0 : (degree : ℝ) ≠ 0 := by positivity
+  have hdegreePred0 : ((degree - 1 : ℕ) : ℝ) ≠ 0 := by
+    exact_mod_cast (show degree - 1 ≠ 0 by omega)
+  push_cast
+  field_simp
+
+/-- The radius-scaled first-vanishing logarithmic kernel is `o(1/d)`. -/
+theorem tendsto_natCast_mul_chapterVIScaledFirstVanishingLogTaylorCoefficient
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1) :
+    Tendsto (fun degree : ℕ ↦ (degree : ℂ) *
+      chapterVIScaledFirstVanishingLogTaylorCoefficient
+        radius singularityInverse degree) atTop (nhds 0) := by
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  have hmodel : Tendsto (fun degree : ℕ ↦ (1 : ℝ) / (degree - 1 : ℕ))
+      atTop (nhds 0) :=
+    (tendsto_const_div_atTop_nhds_zero_nat (1 : ℝ)).comp
+      (tendsto_sub_atTop_nat 1)
+  apply hmodel.congr'
+  filter_upwards [eventually_ge_atTop 2] with degree hdegree
+  exact (norm_natCast_mul_chapterVIScaledFirstVanishingLogTaylorCoefficient
+    hunit hdegree).symm
+
+/-- In particular, the scaled first-vanishing logarithmic kernel itself tends to zero. -/
+theorem tendsto_chapterVIScaledFirstVanishingLogTaylorCoefficient
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1) :
+    Tendsto (chapterVIScaledFirstVanishingLogTaylorCoefficient
+      radius singularityInverse) atTop (nhds 0) := by
+  have hweighted :=
+    tendsto_natCast_mul_chapterVIScaledFirstVanishingLogTaylorCoefficient hunit
+  rw [tendsto_zero_iff_norm_tendsto_zero] at hweighted ⊢
+  apply squeeze_zero (fun _ ↦ norm_nonneg _) (fun degree ↦ ?_) hweighted
+  cases degree with
+  | zero => simp [chapterVIScaledFirstVanishingLogTaylorCoefficient,
+      chapterVIFirstVanishingLogTaylorCoefficient, chapterVILogTaylorCoefficient]
+  | succ degree =>
+      rw [norm_mul, norm_natCast]
+      exact le_mul_of_one_le_left (norm_nonneg _) (by norm_num)
+
+/-- Cauchy product truncated at a fixed Taylor degree. -/
+def chapterVITruncatedConvolution (left right : ℕ → ℂ) (degree : ℕ) : ℂ :=
+  ∑ index ∈ Finset.range (degree + 1), left index * right (degree - index)
+
+/-- A weighted `ℓ¹ * c₀` convolution lemma tailored to Darboux transfer.  If both a kernel and
+its degree-weighted sequence tend to zero, convolution with coefficients having a summable first
+moment is still `o(1 / degree)`. -/
+theorem tendsto_natCast_mul_chapterVITruncatedConvolution
+    (left kernel : ℕ → ℂ)
+    (hleft : Summable fun index ↦ ‖left index‖)
+    (hleftMoment : Summable fun index : ℕ ↦ (index : ℝ) * ‖left index‖)
+    (hkernel : Tendsto kernel atTop (nhds 0))
+    (hweightedKernel : Tendsto (fun degree : ℕ ↦ (degree : ℂ) * kernel degree)
+      atTop (nhds 0)) :
+    Tendsto (fun degree : ℕ ↦ (degree : ℂ) *
+      chapterVITruncatedConvolution left kernel degree) atTop (nhds 0) := by
+  obtain ⟨weightedBound, hweightedBoundPos, hweightedBound⟩ :=
+    (Metric.isBounded_range_of_tendsto _ hweightedKernel).exists_pos_norm_le
+  obtain ⟨kernelBound, hkernelBoundPos, hkernelBound⟩ :=
+    (Metric.isBounded_range_of_tendsto _ hkernel).exists_pos_norm_le
+  let term : ℕ → ℕ → ℂ := fun degree index ↦
+    if index ≤ degree then
+      (degree : ℂ) * left index * kernel (degree - index)
+    else 0
+  let bound : ℕ → ℝ := fun index ↦
+    weightedBound * ‖left index‖ +
+      kernelBound * ((index : ℝ) * ‖left index‖)
+  have hsummableBound : Summable bound :=
+    (hleft.mul_left weightedBound).add (hleftMoment.mul_left kernelBound)
+  have hterm (index : ℕ) : Tendsto (fun degree ↦ term degree index)
+      atTop (nhds 0) := by
+    have hweightedShift := hweightedKernel.comp (tendsto_sub_atTop_nat index)
+    have hkernelShift := hkernel.comp (tendsto_sub_atTop_nat index)
+    have hsum : Tendsto (fun degree : ℕ ↦
+        ((degree - index : ℕ) : ℂ) * kernel (degree - index) +
+          (index : ℂ) * kernel (degree - index)) atTop (nhds 0) := by
+      simpa using hweightedShift.add (hkernelShift.const_mul (index : ℂ))
+    have hproduct : Tendsto (fun degree : ℕ ↦ left index *
+        (((degree - index : ℕ) : ℂ) * kernel (degree - index) +
+          (index : ℂ) * kernel (degree - index))) atTop (nhds 0) := by
+      simpa using hsum.const_mul (left index)
+    apply hproduct.congr'
+    filter_upwards [eventually_ge_atTop index] with degree hdegree
+    simp only [term, if_pos hdegree]
+    have hdegreeSplit : degree - index + index = degree := Nat.sub_add_cancel hdegree
+    rw [show (degree : ℂ) = (degree - index : ℕ) + index by
+      exact_mod_cast hdegreeSplit.symm]
+    ring
+  have hdominated : ∀ degree index, ‖term degree index‖ ≤ bound index := by
+    intro degree index
+    by_cases hindex : index ≤ degree
+    · simp only [term, if_pos hindex]
+      have hdegreeSplit : degree - index + index = degree := Nat.sub_add_cancel hindex
+      have heq : (degree : ℂ) * left index * kernel (degree - index) =
+          left index * (((degree - index : ℕ) : ℂ) * kernel (degree - index) +
+            (index : ℂ) * kernel (degree - index)) := by
+        rw [show (degree : ℂ) = (degree - index : ℕ) + index by
+          exact_mod_cast hdegreeSplit.symm]
+        ring
+      rw [heq, norm_mul]
+      calc
+        ‖left index‖ * ‖((degree - index : ℕ) : ℂ) * kernel (degree - index) +
+            (index : ℂ) * kernel (degree - index)‖ ≤
+            ‖left index‖ *
+              (‖((degree - index : ℕ) : ℂ) * kernel (degree - index)‖ +
+                ‖(index : ℂ) * kernel (degree - index)‖) := by
+              gcongr
+              exact norm_add_le _ _
+        _ ≤ ‖left index‖ *
+            (weightedBound + (index : ℝ) * kernelBound) := by
+              gcongr
+              · exact hweightedBound _ ⟨degree - index, rfl⟩
+              · rw [norm_mul, norm_natCast]
+                exact mul_le_mul_of_nonneg_left
+                  (hkernelBound _ ⟨degree - index, rfl⟩) (Nat.cast_nonneg index)
+        _ = bound index := by simp [bound]; ring
+    · simp only [term, if_neg hindex, norm_zero]
+      dsimp [bound]
+      positivity
+  have htsum : Tendsto (fun degree ↦ ∑' index, term degree index)
+      atTop (nhds (∑' _index : ℕ, (0 : ℂ))) :=
+    tendsto_tsum_of_dominated_convergence hsummableBound hterm
+      (Eventually.of_forall hdominated)
+  have heq (degree : ℕ) : (∑' index, term degree index) =
+      (degree : ℂ) * chapterVITruncatedConvolution left kernel degree := by
+    rw [tsum_eq_sum (s := Finset.range (degree + 1))]
+    · unfold chapterVITruncatedConvolution
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro index hindex
+      simp only [term, if_pos (Nat.le_of_lt_succ (Finset.mem_range.mp hindex))]
+      ring
+    · intro index hindex
+      have hnotle : ¬index ≤ degree := by
+        simpa [Finset.mem_range, Nat.lt_succ_iff] using hindex
+      simp [term, hnotle]
+  simpa [heq] using htsum
+
+/-- Scaling a Cauchy product coefficient by `R^degree` scales each factor coefficient by its own
+degree. -/
+theorem chapterVITruncatedConvolution_scaled (radius : ℝ≥0)
+    (left right : ℕ → ℂ) (degree : ℕ) :
+    (radius : ℂ) ^ degree * chapterVITruncatedConvolution left right degree =
+      chapterVITruncatedConvolution
+        (fun index ↦ (radius : ℂ) ^ index * left index)
+        (fun index ↦ (radius : ℂ) ^ index * right index) degree := by
+  unfold chapterVITruncatedConvolution
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro index hindex
+  have hle : index ≤ degree := Nat.le_of_lt_succ (Finset.mem_range.mp hindex)
+  have hpow : (radius : ℂ) ^ degree =
+      (radius : ℂ) ^ index * (radius : ℂ) ^ (degree - index) := by
+    rw [← pow_add, Nat.add_sub_of_le hle]
+  rw [hpow]
+  ring
+
+/-- Coefficients of an analytic function multiplied by the first-vanishing logarithmic kernel,
+indexed at Taylor degree `index + 1`. -/
+def chapterVIRegularAmplitudeLogRemainderCoefficient
+    (singularityInverse : ℂ) (amplitudeCoefficient : ℕ → ℂ) (index : ℕ) : ℂ :=
+  chapterVITruncatedConvolution amplitudeCoefficient
+    (chapterVIFirstVanishingLogTaylorCoefficient singularityInverse) (index + 1)
+
+/-- Coefficients of a function analytic on a disk strictly larger than radius `R` are absolutely
+summable after `R^n` scaling, even after multiplication by one power of `n`. -/
+theorem summable_radiusScaledCoefficient_and_moment
+    {radius analyticRadius : ℝ≥0} {amplitudeCoefficient : ℕ → ℂ}
+    {amplitude : ℂ → ℂ} (hradii : radius < analyticRadius)
+    (hamplitude : HasFPowerSeriesOnBall amplitude
+      (FormalMultilinearSeries.ofScalars ℂ amplitudeCoefficient) 0 analyticRadius) :
+    Summable (fun index ↦
+        ‖(radius : ℂ) ^ index * amplitudeCoefficient index‖) ∧
+      Summable (fun index : ℕ ↦
+        (index : ℝ) * ‖(radius : ℂ) ^ index * amplitudeCoefficient index‖) := by
+  let powerSeries := FormalMultilinearSeries.ofScalars ℂ amplitudeCoefficient
+  have hradiiENNReal : (radius : ENNReal) < (analyticRadius : ENNReal) :=
+    ENNReal.coe_lt_coe.mpr hradii
+  have hradiusSeries : (radius : ENNReal) < powerSeries.radius :=
+    hradiiENNReal.trans_le hamplitude.r_le
+  obtain ⟨ratio, hratio, constant, hconstant, hbound⟩ :=
+    powerSeries.norm_mul_pow_le_mul_pow_of_lt_radius hradiusSeries
+  have hratioNorm : ‖ratio‖ < 1 := by
+    rw [Real.norm_eq_abs, abs_of_pos hratio.1]
+    exact hratio.2
+  have hgeometric : Summable (fun index : ℕ ↦ constant * ratio ^ index) := by
+    exact (summable_geometric_of_norm_lt_one hratioNorm).mul_left constant
+  have hmomentGeometric : Summable
+      (fun index : ℕ ↦ constant * ((index : ℝ) * ratio ^ index)) := by
+    have h := summable_norm_pow_mul_geometric_of_norm_lt_one (R := ℝ) 1 hratioNorm
+    have h' : Summable (fun index : ℕ ↦ (index : ℝ) * ratio ^ index) := by
+      simpa [Real.norm_eq_abs, abs_of_nonneg hratio.1.le] using h
+    exact h'.mul_left constant
+  constructor
+  · apply hgeometric.of_nonneg_of_le (fun _ ↦ norm_nonneg _)
+    intro index
+    have hcoefficientNorm :
+        ‖amplitudeCoefficient index‖ = ‖powerSeries index‖ := by
+      simp [powerSeries]
+    rw [norm_mul, norm_pow, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg radius.coe_nonneg, hcoefficientNorm]
+    simpa [mul_comm] using hbound index
+  · apply hmomentGeometric.of_nonneg_of_le (fun _ ↦ mul_nonneg
+      (Nat.cast_nonneg _) (norm_nonneg _))
+    intro index
+    have hcoefficientNorm :
+        ‖amplitudeCoefficient index‖ = ‖powerSeries index‖ := by
+      simp [powerSeries]
+    rw [norm_mul, norm_pow, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg radius.coe_nonneg, hcoefficientNorm]
+    calc
+      (index : ℝ) * ((radius : ℝ) ^ index * ‖powerSeries index‖) =
+          (index : ℝ) * (‖powerSeries index‖ * (radius : ℝ) ^ index) := by ring
+      _ ≤ (index : ℝ) * (constant * ratio ^ index) :=
+        mul_le_mul_of_nonneg_left (hbound index) (Nat.cast_nonneg index)
+      _ = constant * ((index : ℝ) * ratio ^ index) := by ring
+
+/-- A regular analytic amplitude multiplying `(1-zλ) log(1-zλ)` is Darboux-subleading whenever
+its radius-scaled Taylor coefficients have a summable first moment.  This is the coefficient
+form of writing a varying amplitude as its singular value plus a vanishing factor. -/
+theorem tendsto_chapterVINormalizedCoefficient_regularAmplitudeLogRemainder
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1)
+    (amplitudeCoefficient : ℕ → ℂ)
+    (hsummable : Summable fun index ↦
+      ‖(radius : ℂ) ^ index * amplitudeCoefficient index‖)
+    (hsummableMoment : Summable fun index : ℕ ↦
+      (index : ℝ) * ‖(radius : ℂ) ^ index * amplitudeCoefficient index‖) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVIRegularAmplitudeLogRemainderCoefficient
+          singularityInverse amplitudeCoefficient)) atTop (nhds 0) := by
+  let scaledAmplitude : ℕ → ℂ := fun index ↦
+    (radius : ℂ) ^ index * amplitudeCoefficient index
+  let scaledKernel : ℕ → ℂ :=
+    chapterVIScaledFirstVanishingLogTaylorCoefficient radius singularityInverse
+  have hconvolution := tendsto_natCast_mul_chapterVITruncatedConvolution
+    scaledAmplitude scaledKernel hsummable hsummableMoment
+      (tendsto_chapterVIScaledFirstVanishingLogTaylorCoefficient hunit)
+      (tendsto_natCast_mul_chapterVIScaledFirstVanishingLogTaylorCoefficient hunit)
+  have hshift := hconvolution.comp (tendsto_add_atTop_nat 1)
+  apply hshift.congr'
+  apply Eventually.of_forall
+  intro index
+  unfold chapterVINormalizedCoefficient chapterVIRegularAmplitudeLogRemainderCoefficient
+    scaledAmplitude scaledKernel chapterVIScaledFirstVanishingLogTaylorCoefficient
+  simp only [Function.comp_apply]
+  rw [← chapterVITruncatedConvolution_scaled radius amplitudeCoefficient
+    (chapterVIFirstVanishingLogTaylorCoefficient singularityInverse) (index + 1)]
+  push_cast
+  ring
+
+/-- Analyticity of the regular amplitude on a disk strictly larger than the boundary circle
+automatically supplies the summable first moment required by the convolution theorem. -/
+theorem tendsto_chapterVINormalizedCoefficient_regularAmplitudeLogRemainder_of_analytic
+    {radius analyticRadius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1)
+    (hradii : radius < analyticRadius)
+    (amplitudeCoefficient : ℕ → ℂ) (amplitude : ℂ → ℂ)
+    (hamplitude : HasFPowerSeriesOnBall amplitude
+      (FormalMultilinearSeries.ofScalars ℂ amplitudeCoefficient) 0 analyticRadius) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVIRegularAmplitudeLogRemainderCoefficient
+          singularityInverse amplitudeCoefficient)) atTop (nhds 0) := by
+  obtain ⟨hsummable, hsummableMoment⟩ :=
+    summable_radiusScaledCoefficient_and_moment hradii hamplitude
+  exact tendsto_chapterVINormalizedCoefficient_regularAmplitudeLogRemainder
+    hunit amplitudeCoefficient hsummable hsummableMoment
+
 /-- After Darboux normalization, the first vanishing logarithmic amplitude has the exact
 subleading form `unitBase^(n+1) / n`. -/
 theorem chapterVINormalizedCoefficient_firstVanishingLog
@@ -560,6 +897,86 @@ theorem tendsto_chapterVINormalizedCoefficient_sub_finiteLogAmplitudeJetSpectrum
   simp only [Finset.sum_add_distrib]
   unfold remainder
   rw [Pi.sub_apply]
+  unfold chapterVINormalizedCoefficient at hleading ⊢
+  rw [mul_add, hleading]
+  ring
+
+/-- A finite collection of logarithmic singularities with genuinely analytic varying
+amplitudes. Each amplitude is represented as its value at the singularity plus the vanishing
+factor times a regular analytic function. -/
+def chapterVIFiniteRegularAnalyticLogAmplitudeCoefficient {r : ℕ}
+    (singularityInverse leadingAmplitude : Fin r → ℂ)
+    (regularAmplitudeCoefficient : Fin r → ℕ → ℂ) (index : ℕ) : ℂ :=
+  ∑ j, (leadingAmplitude j *
+      chapterVILogTaylorCoefficient (singularityInverse j) (index + 1) +
+    chapterVIRegularAmplitudeLogRemainderCoefficient
+      (singularityInverse j) (regularAmplitudeCoefficient j) index)
+
+/-- Darboux transfer for the source-faithful factorization
+`G(z) = G(z₀) + (1-z/z₀)H(z)`: if each regular factor `H` is analytic beyond the common boundary
+circle, only `G(z₀)` contributes to the leading finite spectrum. -/
+theorem tendsto_chapterVINormalizedCoefficient_sub_finiteRegularAnalyticLogAmplitudeSpectrum
+    {r : ℕ} {radius : ℝ≥0} (hradius : radius ≠ 0)
+    (singularityInverse leadingAmplitude : Fin r → ℂ)
+    (regularAmplitudeCoefficient : Fin r → ℕ → ℂ)
+    (regularAmplitude : Fin r → ℂ → ℂ) (analyticRadius : Fin r → ℝ≥0)
+    (hunit : ∀ j, ‖chapterVIUnitBase radius (singularityInverse j)‖ = 1)
+    (hradii : ∀ j, radius < analyticRadius j)
+    (hanalytic : ∀ j, HasFPowerSeriesOnBall (regularAmplitude j)
+      (FormalMultilinearSeries.ofScalars ℂ (regularAmplitudeCoefficient j)) 0
+      (analyticRadius j)) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+          (chapterVIFiniteRegularAnalyticLogAmplitudeCoefficient
+            singularityInverse leadingAmplitude regularAmplitudeCoefficient) -
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularityInverse j))
+          (fun j ↦ chapterVILogSpectrumWeight radius
+            (singularityInverse j) (leadingAmplitude j)))
+      atTop (nhds 0) := by
+  let remainder : ℕ → ℂ := fun index ↦ ∑ j,
+    chapterVIRegularAmplitudeLogRemainderCoefficient
+      (singularityInverse j) (regularAmplitudeCoefficient j) index
+  have hremainderTerm (j : Fin r) : Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVIRegularAmplitudeLogRemainderCoefficient
+          (singularityInverse j) (regularAmplitudeCoefficient j))) atTop (nhds 0) :=
+    tendsto_chapterVINormalizedCoefficient_regularAmplitudeLogRemainder_of_analytic
+      (hunit j) (hradii j) (regularAmplitudeCoefficient j) (regularAmplitude j) (hanalytic j)
+  have hremainder : Tendsto (chapterVINormalizedCoefficient radius remainder)
+      atTop (nhds 0) := by
+    have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin r))
+      (fun j _ ↦ hremainderTerm j)
+    convert hsum using 1
+    · funext index
+      exact chapterVINormalizedCoefficient_finset_sum radius Finset.univ
+        (fun j ↦ chapterVIRegularAmplitudeLogRemainderCoefficient
+          (singularityInverse j) (regularAmplitudeCoefficient j)) index
+    · simp
+  convert hremainder using 1
+  funext index
+  have hleading :
+      chapterVINormalizedCoefficient radius
+          (fun n ↦ ∑ j, leadingAmplitude j *
+            chapterVILogTaylorCoefficient (singularityInverse j) (n + 1)) index =
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularityInverse j))
+          (fun j ↦ chapterVILogSpectrumWeight radius
+            (singularityInverse j) (leadingAmplitude j)) index := by
+    classical
+    simp_rw [chapterVILogTaylorCoefficient_succ]
+    unfold chapterVINormalizedCoefficient chapterVIFiniteExponentialMoment
+      chapterVILogSpectrumWeight chapterVIUnitBase chapterVILogSingularityCoefficient
+    simp only
+    rw [Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro j hj
+    have hradiusComplex : (radius : ℂ) ≠ 0 := by exact_mod_cast hradius
+    rw [mul_pow]
+    field_simp
+    ring
+  unfold chapterVIFiniteRegularAnalyticLogAmplitudeCoefficient remainder
+  simp only [Finset.sum_add_distrib, Pi.sub_apply]
   unfold chapterVINormalizedCoefficient at hleading ⊢
   rw [mul_add, hleading]
   ring
