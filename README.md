@@ -101,15 +101,21 @@ The strongest newly completed component is the finite algebra in §103:
   uniquely determines the inverse singularity even when its leading coefficient varies. A
   two-essential-coordinate factorization of the isolated coefficient sequences now implies the
   canonical root-differential rank bound and contradicts the compiled §103 calculation.
+- equally dominant singularities no longer require a convergent consecutive-coefficient ratio.
+  For a normalized leading spectrum `∑ⱼ Eⱼ λⱼⁿ`, Lean constructs the annihilator
+  `∏ⱼ (X-λⱼ)`, proves its recurrence, and uses Vandermonde invertibility to recover the complete
+  unit-circle spectrum from coefficients modulo `o(1)`. Continuity prevents local permutation of
+  the recovered roots, yielding the same compiled §103 contradiction.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
 concrete moving algebraic branches, physical derivative identification, formal chain rule,
 identification of the reduced curve with the constant-`z` tangent derivative, and the
 three-versus-two rank contradiction are now established. What remains in §§102–103 is the analytic
-construction of those isolated coefficient sequences from Poincaré's actual contour integral,
-including separation of equally dominant singularities, and the derivation of their
-two-coordinate dependence from the Chapter V uniform-integral relation. The
+construction of the normalized coefficient expansions from Poincaré's actual contour integral,
+including a locally uniform error estimate and common normalization radius, and the derivation of
+their two-coordinate dependence from the Chapter V uniform-integral relation. The finite
+separation of equally dominant singularities is now formalized. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this

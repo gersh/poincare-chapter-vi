@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import Mathlib.LinearAlgebra.Determinant
 import PoincareChapterVI.ChapterVIDarboux
+import PoincareChapterVI.ChapterVIDarbouxSpectrum
 import PoincareChapterVI.Section103.MovingAlgebraicBranches
 
 /-!
@@ -117,6 +118,21 @@ def branchSingularityValue (rotation : Orientation)
         (-2) 3 (1 / 3) (1 / 5) (point.1 0) (point.1 1) := by
   simp [branchSingularityValue, movingLocalSystem]
 
+/-- The branch singularity value has the derivative already computed by the concrete IFT
+construction. -/
+theorem hasDerivAt_branchSingularityValue
+    (rotation : Orientation) (point : FiniteSingularPoint) :
+    HasDerivAt (branchSingularityValue rotation point)
+      (branchSingularityParameterDerivative rotation point.1 point.2) 0 := by
+  change HasDerivAt
+    (fun γ ↦ SingularityParameterTangent.halfAngleSingularityParameter
+      (-2) 3 (1 / 3) (1 / 5)
+      ((movingLocalSystem rotation point.1 point.2).branch γ).1
+      ((movingLocalSystem rotation point.1 point.2).branch γ).2)
+    (branchSingularityParameterDerivative rotation point.1 point.2) 0
+  exact MovingAlgebraicBranches.hasDerivAt_branchSingularityParameter
+    rotation point.1 point.2
+
 /-- The concrete IFT branch stays away from the coordinate axes near its certified base point,
 so Poincaré's exponential singularity parameter remains nonzero. -/
 theorem eventually_branchSingularityValue_ne_zero
@@ -178,6 +194,124 @@ structure TwoCoordinateDarbouxFactorization
         (leadingCoefficient point rotation γ)
   eventually_leadingCoefficient_ne_zero : ∀ rotation point, ∀ᶠ γ in nhds 0,
     leadingCoefficient point rotation γ ≠ 0
+
+/-- Equal-modulus version of the §102 coefficient input.  Instead of isolating one singularity,
+the normalized coefficient sequence is approximated by a finite exponential spectrum on the unit
+circle.  `distinguished` identifies the concrete IFT branch within that spectrum.
+
+This structure makes the competing-singularity obligations explicit: local uniform asymptotics,
+distinct bases, nonzero leading weights, a common unit-modulus normalization, and dependence of
+the normalized coefficients through two essential coordinates. -/
+structure TwoCoordinateUnitSpectrumFactorization (spectrumSize : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential) where
+  baseEssential : Essential
+  normalizedCoefficient : FiniteSingularPoint → Essential → ℕ → ℂ
+  spectrumBase : FiniteSingularPoint → Orientation → ℂ → Fin spectrumSize → ℂ
+  spectrumWeight : FiniteSingularPoint → Orientation → ℂ → Fin spectrumSize → ℂ
+  distinguished : FiniteSingularPoint → Fin spectrumSize
+  distinguished_eq : ∀ point rotation γ,
+    spectrumBase point rotation γ (distinguished point) =
+      (branchSingularityValue rotation point γ)⁻¹
+  eventually_base_injective : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    Function.Injective (spectrumBase point rotation γ)
+  eventually_base_unit : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ i, ‖spectrumBase point rotation γ i‖ = 1
+  eventually_weight_ne_zero : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ i, spectrumWeight point rotation γ i ≠ 0
+  eventually_asymptotic : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    Tendsto
+      (normalizedCoefficient point
+          (baseEssential + γ • essentialCoordinates rotation) -
+        PoincareChapterVI.chapterVIFiniteExponentialMoment
+          (spectrumBase point rotation γ) (spectrumWeight point rotation γ))
+      atTop (nhds 0)
+
+/-- Along a direction invisible to the essential coordinates, the normalized coefficient
+sequence is unchanged.  Finite-spectrum Darboux uniqueness therefore fixes the complete set of
+equally dominant inverse singularities, even when no consecutive-coefficient ratio converges. -/
+theorem TwoCoordinateUnitSpectrumFactorization.eventually_spectrumRange_eq
+    (spectrumSize : ℕ) (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateUnitSpectrumFactorization spectrumSize essentialCoordinates)
+    (rotation : Orientation) (hrotation : essentialCoordinates rotation = 0)
+    (point : FiniteSingularPoint) :
+    ∀ᶠ γ in nhds 0,
+      Set.range (factorization.spectrumBase point rotation γ) =
+        Set.range (factorization.spectrumBase point rotation 0) := by
+  have hbaseZero :=
+    (factorization.eventually_base_injective point rotation).self_of_nhds
+  have hunitZero :=
+    (factorization.eventually_base_unit point rotation).self_of_nhds
+  have hweightZero :=
+    (factorization.eventually_weight_ne_zero point rotation).self_of_nhds
+  have hasymptoticZero :=
+    (factorization.eventually_asymptotic point rotation).self_of_nhds
+  filter_upwards [factorization.eventually_base_injective point rotation,
+    factorization.eventually_base_unit point rotation,
+    factorization.eventually_weight_ne_zero point rotation,
+    factorization.eventually_asymptotic point rotation] with
+      γ hbase hunit hweight hasymptotic
+  apply PoincareChapterVI.spectra_eq_of_commonCoefficient_tendsto_finiteExponentialMoments
+    hbase hbaseZero hunit hunitZero hweight hweightZero
+  · simpa [hrotation] using hasymptotic
+  · simpa using hasymptoticZero
+
+/-- Continuity of the concrete IFT branch prevents a locally fixed finite spectrum from
+permuting its labels.  Hence finite-spectrum Darboux recovery gives the same local branch
+constancy as the isolated-singularity argument. -/
+theorem TwoCoordinateUnitSpectrumFactorization.eventually_branchSingularityValue_eq
+    (spectrumSize : ℕ) (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateUnitSpectrumFactorization spectrumSize essentialCoordinates)
+    (rotation : Orientation) (hrotation : essentialCoordinates rotation = 0)
+    (point : FiniteSingularPoint) :
+    (fun γ ↦ branchSingularityValue rotation point γ) =ᶠ[nhds 0]
+      fun _ ↦ branchSingularityValue rotation point 0 := by
+  let distinguished := factorization.distinguished point
+  let baseAtZero := factorization.spectrumBase point rotation 0
+  have hbaseZero : Function.Injective baseAtZero := by
+    exact (factorization.eventually_base_injective point rotation).self_of_nhds
+  have hsingularityZero :=
+    (eventually_branchSingularityValue_ne_zero rotation point).self_of_nhds
+  have hvalue : Tendsto (branchSingularityValue rotation point) (nhds 0)
+      (nhds (branchSingularityValue rotation point 0)) :=
+    (hasDerivAt_branchSingularityValue rotation point).continuousAt.tendsto
+  have hinverse : Tendsto
+      (fun γ ↦ (branchSingularityValue rotation point γ)⁻¹) (nhds 0)
+      (nhds (branchSingularityValue rotation point 0)⁻¹) :=
+    hvalue.inv₀ hsingularityZero
+  have hdistinguished : Tendsto
+      (fun γ ↦ factorization.spectrumBase point rotation γ distinguished) (nhds 0)
+      (nhds (baseAtZero distinguished)) := by
+    convert hinverse using 1
+    · funext γ
+      exact factorization.distinguished_eq point rotation γ
+    · exact congrArg nhds (factorization.distinguished_eq point rotation 0)
+  have hrange := factorization.eventually_spectrumRange_eq
+    spectrumSize essentialCoordinates rotation hrotation point
+  have hmem : ∀ᶠ γ in nhds 0,
+      factorization.spectrumBase point rotation γ distinguished ∈ Set.range baseAtZero := by
+    filter_upwards [hrange] with γ hγ
+    rw [← hγ]
+    exact ⟨distinguished, rfl⟩
+  have hlabel := PoincareChapterVI.eventually_eq_of_tendsto_of_eventually_mem_finiteSpectrum
+    hbaseZero distinguished hdistinguished hmem
+  filter_upwards [hlabel] with γ hγ
+  apply inv_injective
+  rw [← factorization.distinguished_eq point rotation γ,
+    ← factorization.distinguished_eq point rotation 0]
+  exact hγ
+
+/-- Package finite-spectrum recovery as the concrete local constancy input consumed by §103. -/
+theorem TwoCoordinateUnitSpectrumFactorization.branchConstancy_of_mem_ker
+    (spectrumSize : ℕ) (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateUnitSpectrumFactorization spectrumSize essentialCoordinates)
+    (rotation : Orientation) (hrotation : essentialCoordinates rotation = 0) :
+    BranchSingularityConstancy rotation where
+  eventually_constant := by
+    intro point hpoint
+    let indexedPoint : FiniteSingularPoint := ⟨point, hpoint⟩
+    have hconstant := factorization.eventually_branchSingularityValue_eq
+      spectrumSize essentialCoordinates rotation hrotation indexedPoint
+    simpa [branchSingularityValue, indexedPoint, movingLocalSystem] using hconstant
 
 /-- Explicit dependence through two coordinates supplies the coefficient-constancy form needed
 by Darboux uniqueness. -/
@@ -334,6 +468,19 @@ theorem not_twoCoordinateDarbouxFactorization
     (factorization : TwoCoordinateDarbouxFactorization essentialCoordinates) : False :=
   not_darbouxCoefficientRecovery essentialCoordinates
     (factorization.toCoefficientRecovery essentialCoordinates)
+
+/-- Equal-modulus source-facing contradiction.  A locally uniform finite Darboux spectrum may
+contain several competing singularities, but Vandermonde recovery fixes its set of bases and
+continuity fixes the label of every concrete branch.  The compiled §103 restriction certificate
+then rules out the asserted two-coordinate dependence. -/
+theorem not_twoCoordinateUnitSpectrumFactorization
+    (spectrumSize : ℕ) (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateUnitSpectrumFactorization spectrumSize essentialCoordinates) :
+    False := by
+  apply MovingAlgebraicBranches.not_twoParameter_movingAlgebraicFamily essentialCoordinates
+  intro rotation hrotation
+  exact factorization.branchConstancy_of_mem_ker
+    spectrumSize essentialCoordinates rotation hrotation
 
 /-- Differential form of Poincaré's assertion that all second-kind singular roots depend on only
 two essential coordinates.  Each root has a covector on the two-dimensional essential-coordinate
