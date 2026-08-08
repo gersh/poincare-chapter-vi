@@ -8,7 +8,7 @@ import LeanCompCert.Verified.Decide
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.Topology.Order.IntermediateValue
-import PoincareChapterVI.ChapterVISingularityAlgebra
+import PoincareChapterVI.ChapterVISourceCoordinates
 
 /-!
 # A certified concrete point D from Poincaré's §96 discussion
@@ -185,10 +185,45 @@ theorem chapterVIDX_sub_tau_ne_zero : chapterVIDX - 1 / 100 ≠ 0 := by
   norm_num [chapterVIDX] at hre
   nlinarith [chapterVIDRoot_lt_zero]
 
+theorem chapterVID_one_sub_tau_mul_x_ne_zero :
+    1 - (1 / 100 : ℂ) * chapterVIDX ≠ 0 := by
+  intro h
+  have hre := congrArg Complex.re h
+  norm_num [chapterVIDX] at hre
+  nlinarith [chapterVIDRoot_lt_zero]
+
 theorem chapterVIDY_ne_zero : chapterVIDY ≠ 0 := by
   unfold chapterVIDY
   exact div_ne_zero (pow_ne_zero _ chapterVIDX_sub_tau_ne_zero)
     (mul_ne_zero (mul_ne_zero (by norm_num) (by norm_num)) chapterVIDX_ne_zero)
+
+theorem chapterVID_firstKeplerCritical :
+    chapterVIKeplerExponentialDerivative chapterVIDEccentricity chapterVIDX ≠ 0 := by
+  rw [chapterVIKeplerExponentialDerivative_ne_zero_iff
+    chapterVIDEccentricity chapterVIDX_ne_zero]
+  intro hzero
+  have halgebraic :
+      100 * chapterVIDX ^ 2 - 10001 * chapterVIDX + 100 = 0 := by
+    field_simp [chapterVIDX_ne_zero] at hzero
+    norm_num [chapterVIDEccentricity] at hzero
+    linear_combination (-10001 / 2) * hzero
+  have hreal :
+      100 * chapterVIDRoot ^ 2 - 10001 * chapterVIDRoot + 100 = 0 := by
+    change 100 * (chapterVIDRoot : ℂ) ^ 2 -
+      10001 * (chapterVIDRoot : ℂ) + 100 = 0 at halgebraic
+    rw [← Complex.ofReal_pow] at halgebraic
+    have hre := congrArg Complex.re halgebraic
+    have hpow : ((chapterVIDRoot : ℂ) ^ 2).re = chapterVIDRoot ^ 2 := by
+      rw [← Complex.ofReal_pow]
+      exact Complex.ofReal_re _
+    norm_num [hpow] at hre ⊢
+    exact hre
+  nlinarith [sq_nonneg chapterVIDRoot, chapterVIDRoot_lt_zero]
+
+theorem chapterVID_secondKeplerCritical :
+    chapterVIKeplerExponentialDerivative 0 chapterVIDY ≠ 0 := by
+  unfold chapterVIKeplerExponentialDerivative
+  norm_num
 
 theorem chapterVID_halfAngle_sine :
     (1 + (1 / 100 : ℂ) ^ 2) * chapterVIDEccentricity = 2 * (1 / 100 : ℂ) := by

@@ -107,6 +107,11 @@ The source-facing files added after the standalone-project commit are deliberate
   `[-27/1000,-26/1000]`; the file proves that root simple, places the resulting `(x,y)` exactly
   on collision curve (3), and proves the companion factor nonzero. This is a rigorous local
   algebraic instance, not yet a verification of Poincaré's global admissibility deformation.
+- `ChapterVIDFiberDerivative.lean`: the exact differential-ideal identity behind equation (7),
+  the derivatives of both actual inverse-coordinate anomaly functions on the fixed-`z` fiber,
+  and the resulting proof that Poincaré's literal collision factor has zero first derivative at
+  the certified `D` point. The equation-(7) root is supplied by the compiled certificate; the
+  local inverse and differentiation steps are kernel-checked analytic arguments.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series
@@ -504,7 +509,8 @@ The merged Lean Pool classical restricted-three-body development is consumed as 
 homological equation, resonant disturbing average, joint eccentric-anomaly analyticity, and the
 classical nonintegrability endpoint. Those results are useful infrastructure, but they do not
 replace the complex two-variable Chapter VI construction. LeanCompCert is used for the large
-finite polynomial and matrix identities in the §103 endgame; it cannot certify the infinite
+finite polynomial and matrix identities in the §103 endgame and for the rational endpoint signs
+isolating the concrete equation-(7) root at `D`; it cannot certify the infinite
 convergence, local inverse, Weierstrass-preparation, or contour-cycle claims merely from a finite
 coefficient cutoff.
 

@@ -24,6 +24,9 @@ import PoincareChapterVI
 #print axioms PoincareChapterVI.chapterVIDRoot_secondKindSeven
 #print axioms PoincareChapterVI.chapterVID_collisionFactorPlus
 #print axioms PoincareChapterVI.chapterVID_collisionFactorMinus_ne_zero
+#print axioms PoincareChapterVI.hasDerivAt_chapterVIDFiberX
+#print axioms PoincareChapterVI.hasDerivAt_chapterVIDFiberY
+#print axioms PoincareChapterVI.deriv_chapterVIDPoincareCollisionFactorPlus_eq_zero
 #print axioms PoincareChapterVI.chapterVISection103_affineCoefficient_eq_gaussian
 #print axioms PoincareChapterVI.chapterVIRuppertInverse_mul_minor
 #print axioms PoincareChapterVI.chapterVIRuppertGaussianMinor_det_ne_zero

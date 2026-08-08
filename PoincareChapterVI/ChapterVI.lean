@@ -21,6 +21,7 @@ import PoincareChapterVI.ChapterVISingularityAlgebra
 import PoincareChapterVI.ChapterVISourceCoordinates
 import PoincareChapterVI.ChapterVIDoubleZero
 import PoincareChapterVI.ChapterVIDCandidate
+import PoincareChapterVI.ChapterVIDFiberDerivative
 import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
