@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import Mathlib.Analysis.Fourier.AddCircle
 import PoincareChapterVI.ChapterVIContour
+import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra
 import PoincareChapterVI.ChapterVIDarboux
@@ -122,7 +123,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   contour coordinate, and continuity automatically promotes slit-plane values on an entire cycle
   family to an open common branch chart containing it. Identifying the actual convergent analytic
   germ with the formal series and proving the source cycle's factor values lie in one such chart
-  remain open. The predicates below state the corresponding restricted-problem inputs.
+  remain open. `ChapterVIContourTransport.lean` proves genuine non-affine contour invariance for
+  a relative `C²` path homotopy in that chart: for a holomorphic scalar integrand Lean constructs
+  the closed one-form and discharges Stokes' theorem automatically. What remains is to construct
+  this homotopy for Poincaré's actual admissible collision cycle. The predicates below state the
+  corresponding restricted-problem inputs.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

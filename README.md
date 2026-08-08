@@ -141,7 +141,9 @@ The strongest newly completed component is the finite algebra in §103:
   on a joint parameter-contour domain such as `ℂ × ℂ`; continuity automatically constructs an open
   common chart from slit-plane values along the whole cycle family. The still-open transport is
   verifying those values for Poincaré's actual moving cycle and carrying that cycle to the
-  controlled symmetric model.
+  controlled symmetric model. The non-affine transport theorem itself is now formalized: a
+  relative `C²` path homotopy inside the branch chart preserves the prepared inverse-square-root
+  contour integral, with closedness of the holomorphic one-form proved automatically.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
