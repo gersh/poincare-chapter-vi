@@ -297,6 +297,13 @@ The strongest newly completed component is the finite algebra in §103:
   useful for the sample table; it does not replace the covering or analytic estimates. A final
   parametric-integration theorem proves that continuous outer-arc data then have finite endpoint
   limits, exactly the sufficient condition used by `ChapterVIThreeArcAsymptotic.lean`.
+- `ChapterVIDCertificateContour.lean` replaces the unsafe naive linear interpolation by the
+  explicit radius `q(s)^(1/6) * (r_D / q_D^(1/6))^s`. Lean proves its positivity, continuity,
+  exact unit-circle start, and exact arrival at D. `ChapterVIDOuterArcs.lean` restricts its two
+  regular quarters, proves the literal radicand is continuous there, and names the concrete
+  nonvanishing-certificate types. The exploratory script
+  `research/chapter_vi_outer_arc_scan.py` records why this radius was selected; its floating-point
+  output is explicitly not accepted as proof.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

@@ -92,6 +92,29 @@ def chapterVIDRootCoordinateRadicand (ζ u : ℂ) : ℂ :=
   chapterVIPlanarSourceRadicand chapterVIDEccentricity chapterVIDComplement
     0 1 2 2 (u ^ 3) (chapterVIDRootSecondAnomaly ζ u)
 
+set_option maxHeartbeats 800000 in
+/-- The transformed literal source radicand is continuous at every point where both root
+coordinates are nonzero. -/
+theorem continuousAt_chapterVIDRootCoordinateRadicand
+    {point : ℂ × ℂ} (hζ : point.1 ≠ 0) (hu : point.2 ≠ 0) :
+    ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootCoordinateRadicand p.1 p.2) point := by
+  have hx : ContinuousAt (fun p : ℂ × ℂ ↦ p.2 ^ 3) point :=
+    continuousAt_snd.pow 3
+  have ht : ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootToOriginalContour p.2) point :=
+    (analyticAt_chapterVIDRootToOriginalContour hu).continuousAt.comp_of_eq
+      continuousAt_snd rfl
+  have hy : ContinuousAt
+      (fun p : ℂ × ℂ ↦ p.1 * chapterVIDRootToOriginalContour p.2) point :=
+    continuousAt_fst.mul ht
+  unfold chapterVIDRootCoordinateRadicand chapterVIDRootSecondAnomaly
+    chapterVIPlanarSourceRadicand
+    chapterVIPlanarCollisionFactorPlus chapterVIPlanarCollisionFactorMinus
+    chapterVIPlanarKeplerLaurentPlus chapterVIPlanarKeplerLaurentMinus
+    chapterVIPlanarDistanceFactorPlus chapterVIPlanarDistanceFactorMinus
+  fun_prop (disch := simp_all [chapterVIDRootToOriginalContour_ne_zero])
+
 theorem chapterVIDRootCoordinateRadicand_eq_factors (ζ u : ℂ) :
     chapterVIDRootCoordinateRadicand ζ u =
       chapterVIDRootCoordinateCollisionFactorPlus ζ u *
