@@ -359,8 +359,11 @@ The strongest newly completed component is the finite algebra in §103:
   named cubic-root and square-root branches agree. Each outer integral—and their normalized
   sum—is continuous and therefore has a finite limit at D. The numerator agrees pointwise with
   `chapterVIPrincipalSourceNumerator` whenever the chosen global cubic-root lift agrees with the
-  local source branch. Sheet/branch compatibility with the middle Morse chart remains; the chain
-  rule and boundedness assertion for the two outer pieces do not.
+  local source branch. The positive-real-part certificate further gives a canonical principal
+  square-root sheet on each outer rectangle; Lean proves these sheets agree at their shared
+  positive-real endpoint, eliminating the two arbitrary outer signs. Compatibility with the
+  middle Morse chart remains; the chain rule and boundedness assertion for the two outer pieces
+  do not.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

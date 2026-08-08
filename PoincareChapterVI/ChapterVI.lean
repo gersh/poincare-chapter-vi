@@ -254,8 +254,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   literal principal numerator through Poincare's `u` coordinate, proves the exact transformed
   contour velocity by the chain rule, identifies the interval expression with the original curve
   integral under named branch-agreement hypotheses, and proves that the resulting normalized sum
-  has a finite limit at D. Matching the two outer-sheet signs to the middle Morse sheet and
-  identifying the resulting three-piece cycle with the continued source contour remain.
+  has a finite limit at D. Because the certificate places both outer radicands in the positive
+  real half-plane, it also selects the canonical principal square root and proves the two outer
+  sheets agree at their common positive-real endpoint. Matching this canonical outer sheet to the
+  middle Morse sheet and identifying the resulting three-piece cycle with the continued source
+  contour remain.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

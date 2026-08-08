@@ -378,6 +378,65 @@ theorem sheetRoot_ne_zero_of_run
     (ChapterVIDOuterArcPolarCompiledGrid.radicand_ne_zero_of_run run side
       (point.1, clampUnit point.2))
 
+/-- The positive-real-part certificate places the whole radicand image in the principal square-
+root domain.  Consequently the outer sheet can be chosen canonically, with no independent sign
+choice on either rectangle. -/
+def principalSheet
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (side : ChapterVIDOuterArcSide) :
+    ChapterVIContinuousSquareRootSheet (chapterVIDOuterArcRadicand side) where
+  root st := Complex.sqrt (chapterVIDOuterArcRadicand side st)
+  continuous_root := by
+    rw [continuous_iff_continuousAt]
+    intro st
+    exact (Complex.continuousAt_sqrt
+      (Or.inl (ChapterVIDOuterArcPolarCompiledGrid.radicand_re_pos_of_run
+        run side st).le)).comp_of_eq
+      (continuous_chapterVIDOuterArcRadicand side).continuousAt rfl
+  root_sq st := by
+    unfold Complex.sqrt
+    exact Complex.cpow_nat_inv_pow (chapterVIDOuterArcRadicand side st)
+      (by norm_num : (2 : ℕ) ≠ 0)
+
+@[simp]
+theorem principalSheet_root
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (side : ChapterVIDOuterArcSide) (st : I × I) :
+    (principalSheet run side).root st =
+      Complex.sqrt (chapterVIDOuterArcRadicand side st) :=
+  rfl
+
+/-- The two outer quarters share the same base point on the positive real ray. -/
+theorem outerArcPoint_initial_zero_eq_final_one (s : I) :
+    chapterVIDOuterArcPoint .initial (s, 0) =
+      chapterVIDOuterArcPoint .final (s, 1) := by
+  simp [chapterVIDOuterArcPoint]
+
+theorem outerArcRadicand_initial_zero_eq_final_one (s : I) :
+    chapterVIDOuterArcRadicand .initial (s, 0) =
+      chapterVIDOuterArcRadicand .final (s, 1) := by
+  unfold chapterVIDOuterArcRadicand
+  rw [outerArcPoint_initial_zero_eq_final_one]
+
+/-- Canonical principal sheets automatically agree where the two outer quarters meet; no sign
+choice remains at the positive-real base point. -/
+theorem principalSheet_initial_zero_eq_final_one
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict) (s : I) :
+    (principalSheet run .initial).root (s, 0) =
+      (principalSheet run .final).root (s, 1) := by
+  simp only [principalSheet_root]
+  rw [outerArcRadicand_initial_zero_eq_final_one]
+
+theorem sourcePath_initial_zero_eq_final_one (s : I) :
+    sourcePath .initial s 0 = sourcePath .final s 1 := by
+  change chapterVIDRootToOriginalContour (rootCoordinate .initial (s, 0)) =
+    chapterVIDRootToOriginalContour (rootCoordinate .final (s, 1))
+  congr 1
+  unfold rootCoordinate
+  rw [clampUnit_of_mem (by constructor <;> norm_num : (0 : ℝ) ∈ Set.Icc 0 1),
+    clampUnit_of_mem (by constructor <;> norm_num : (1 : ℝ) ∈ Set.Icc 0 1)]
+  exact outerArcPoint_initial_zero_eq_final_one s
+
 /-- Poincare's unnormalized principal contribution on one certified outer quarter. -/
 def integral
     (massProduct : ℂ) (b d : ℤ) (side : ChapterVIDOuterArcSide)
@@ -543,6 +602,31 @@ theorem exists_sheets_tendsto_regularContribution_collision_of_run
   exact ⟨initialSheet, finalSheet,
     tendsto_regularContribution_collision_of_run run massProduct b d
       initialSheet finalSheet⟩
+
+/-- The regular contribution with the canonical principal square root selected by the compiled
+positive-real-part certificate. -/
+def principalRegularContribution
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (massProduct : ℂ) (b d : ℤ) : I → ℂ :=
+  regularContribution massProduct b d
+    (principalSheet run .initial) (principalSheet run .final)
+
+theorem continuous_principalRegularContribution
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (massProduct : ℂ) (b d : ℤ) :
+    Continuous (principalRegularContribution run massProduct b d) :=
+  continuous_regularContribution_of_run run massProduct b d
+    (principalSheet run .initial) (principalSheet run .final)
+
+/-- With the compiled certificate, the canonical two-outer-arc contribution has a finite limit at
+D without any existential sheet choices. -/
+theorem tendsto_principalRegularContribution_collision
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    (massProduct : ℂ) (b d : ℤ) :
+    Tendsto (principalRegularContribution run massProduct b d)
+      (nhds (1 : I))
+      (nhds (principalRegularContribution run massProduct b d 1)) :=
+  (continuous_principalRegularContribution run massProduct b d).continuousAt
 
 end ChapterVIDOuterArcRegularity
 
