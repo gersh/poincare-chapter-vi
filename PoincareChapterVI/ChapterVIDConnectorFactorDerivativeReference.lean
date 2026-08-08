@@ -71,7 +71,8 @@ def trace (side : ChapterVIDOuterArcSide) (index : Fin (cells side)) :=
 check for the companion factor. -/
 def cellOperations (side : ChapterVIDOuterArcSide) (index : Fin (cells side)) :
     List (DyadicOperation 20) :=
-  (trace side index).operations ++
+  (coordinateTrace side (meshIndex side index)).operations ++
+    (trace side index).operations ++
     [separationOperation (trace side index).output .imagPositive,
       separationOperation
         (radicandTrace side (meshIndex side index)).factorMinus .realPositive]

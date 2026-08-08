@@ -11,8 +11,14 @@ Lean data and is split into 64 independently compiled 32-cell bulk artifacts plu
 endpoint-anchor artifacts. Generated kernel proofs check each shard's 64-bit admissibility,
 receipts reconstruct every interval certificate,
 and the results assemble into the factor-bulk continuation interface without a monolithic kernel
-evaluation. This resolves compiled-result ingestion, but not the mathematical endpoint issue: the
-cutoff `261/1024` still lacks a proof that it lies inside the noncomputably obtained factor collar.
+evaluation. A second 41-shard campaign checks the literal affine-connector derivative on 492
+terminal cells. Its artifacts include the line-map operations, and Lean turns every accepted row
+into a `HasDerivAt` theorem plus strict derivative positivity for the actual model connector.
+This resolves compiled-result ingestion and removes the old fixed-cutoff premise, but not the
+scale-dependent endpoint issue: 30 endpoint-adjacent cells still contain the double zero because
+the Morse length is selected noncomputably. A sound compiled completion therefore needs either a
+scale-normalized trace or a constructive quantitative Morse witness; a receipt alone cannot
+supply that missing analytic relation.
 
 This note separates three questions that are easy to conflate:
 

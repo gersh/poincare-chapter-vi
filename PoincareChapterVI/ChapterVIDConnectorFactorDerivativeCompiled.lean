@@ -21,6 +21,8 @@ reference campaign.  Their treatment is a separate analytic obligation.
 
 noncomputable section
 
+open scoped unitInterval
+
 namespace PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference
 
 open ChapterVILeanCompCertBatch
@@ -84,7 +86,18 @@ theorem ReferenceCompiledRunVerdict.traceOperationSound
     (operation : DyadicOperation 20)
     (hoperation : operation ∈ (trace side index).operations) : operation.Sound := by
   apply run.cellOperationSound side index operation
-  exact List.mem_append_left _ hoperation
+  simp only [cellOperations, List.mem_append]
+  exact Or.inl (Or.inr hoperation)
+
+theorem ReferenceCompiledRunVerdict.coordinateOperationSound
+    (run : ReferenceCompiledRunVerdict)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    (operation : DyadicOperation 20)
+    (hoperation : operation ∈
+      (coordinateTrace side (meshIndex side index)).operations) : operation.Sound := by
+  apply run.cellOperationSound side index operation
+  simp only [cellOperations, List.mem_append]
+  exact Or.inl (Or.inl hoperation)
 
 /-- Semantic reconstruction of a derivative rectangle from one compiled row. -/
 theorem ReferenceCompiledRunVerdict.derivativeProduct_contains
@@ -131,5 +144,109 @@ theorem ReferenceCompiledRunVerdict.companion_re_pos
     (by simp [cellOperations])
   exact SlitPlaneSeparation.realPositive.value_pos_of_lower_pos hz
     (by simpa [separationOperation, DyadicOperation.Sound] using hsound)
+
+/-- Every operation in the Cartesian radicand trace underlying a derivative row is sound. -/
+theorem ReferenceCompiledRunVerdict.radicandOperationSound
+    (run : ReferenceCompiledRunVerdict)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    (operation : DyadicOperation 20)
+    (hoperation : operation ∈
+      (radicandTrace side (meshIndex side index)).operations) : operation.Sound := by
+  apply run.traceOperationSound side index operation
+  simp [trace, ChapterVILeanCompCertCartesianFactorDerivativeTrace.Trace.operations,
+    hoperation]
+
+/-- A compiled derivative row applies to the literal affine connector in the model.  In
+particular, the coordinate, anomaly, and connector direction enclosures are reconstructed from
+the row's checked line-map and Cartesian-radicand operations rather than accepted as premises. -/
+theorem ReferenceCompiledRunVerdict.modelDerivative_im_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ReferenceCompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    (point : I × I)
+    (hregion : point ∈ meshRegion (meshIndex side index)) :
+    0 < (chapterVIDRootCoordinateCollisionFactorPlusDerivative
+        (model.connectorParameterRoot point.1) (model.rectanglePoint side point) *
+      (model.rootModel.connectorTarget side (model.criticalValue point.1) -
+        model.rootModel.connectorSource side (model.criticalValue point.1))).im := by
+  let terminal := terminalCell model side (meshIndex side index)
+  let affine := terminal.toCoarseEndpointCell.toAffineCell
+  have haffineRegion : affine.region = meshRegion (meshIndex side index) := by
+    cases side <;> rfl
+  have haffineCoordinateOperations : affine.coordinateTrace.operations =
+      (coordinateTrace side (meshIndex side index)).operations := by
+    cases side <;> rfl
+  have haffineCoordinateOutput : affine.coordinateTrace.output =
+      (coordinateTrace side (meshIndex side index)).output := by
+    cases side <;> rfl
+  have haffineSource : affine.source = sourceRectangle side := by
+    cases side <;> rfl
+  have haffineTarget : affine.target = targetRectangle side := by
+    cases side <;> rfl
+  have hcoordinate : ∀ operation ∈ affine.coordinateTrace.operations, operation.Sound := by
+    intro operation hoperation
+    rw [haffineCoordinateOperations] at hoperation
+    exact run.coordinateOperationSound side index operation hoperation
+  have hu : (coordinateTrace side (meshIndex side index)).output.Contains
+      (model.rectanglePoint side point) := by
+    have hline := affine.coordinateTrace.output_contains_lineMap_of_allSound hcoordinate
+      (affine.source_contains point (by rw [haffineRegion]; exact hregion))
+      (affine.target_contains point (by rw [haffineRegion]; exact hregion))
+      (affine.parameter_contains point (by rw [haffineRegion]; exact hregion))
+    rw [haffineCoordinateOutput] at hline
+    simpa [ChapterVIDPrincipalConnectorModel.rectanglePoint,
+      ChapterVIDPrincipalGlobalRootModel.connectorPoint] using hline
+  have hζ : ChapterVIDConnectorInputBounds.terminalZetaRectangle.Contains
+      (model.connectorParameterRoot point.1) := by
+    simpa [ChapterVIDPrincipalConnectorModel.connectorParameterRoot] using
+      ChapterVIDConnectorInputBounds.terminalZetaRectangle_contains model point.1
+  have hy : (radicandTrace side (meshIndex side index)).y.Contains
+      (chapterVIDRootSecondAnomaly
+        (model.connectorParameterRoot point.1) (model.rectanglePoint side point)) := by
+    exact ((radicandTrace side (meshIndex side index)).anomalies_contain_of_allSound
+      (run.radicandOperationSound side index) hζ hu
+      ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient_contains
+      (model.connectorParameterRoot_ne_zero point.1)
+      (model.rectanglePoint_ne_zero side point)).1
+  have hdirection : (delta side).Contains
+      (model.rootModel.connectorTarget side (model.criticalValue point.1) -
+        model.rootModel.connectorSource side (model.criticalValue point.1)) := by
+    have hsub := ChapterVISignedDyadicComplexRectangle.sub_contains
+      (affine.target_contains point (by rw [haffineRegion]; exact hregion))
+      (affine.source_contains point (by rw [haffineRegion]; exact hregion))
+    rw [haffineTarget, haffineSource] at hsub
+    exact hsub
+  exact run.derivativeProduct_im_pos side index hu hy hdirection
+
+/-- The compiled inequality is the derivative inequality for the actual real connector
+parameter.  This packages the analytic differentiation theorem together with the checked row,
+so downstream monotonicity arguments do not need to identify the interval expression by hand. -/
+theorem ReferenceCompiledRunVerdict.modelLineImag_hasDerivAt_and_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ReferenceCompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    (s t : I) (hregion : (s, t) ∈ meshRegion (meshIndex side index)) :
+    let derivative :=
+      (chapterVIDRootCoordinateCollisionFactorPlusDerivative
+          (model.connectorParameterRoot s) (model.rectanglePoint side (s, t)) *
+        (model.rootModel.connectorTarget side (model.criticalValue s) -
+          model.rootModel.connectorSource side (model.criticalValue s))).im
+    HasDerivAt
+        (chapterVIDRootCoordinateCollisionFactorPlusLineImag
+          (model.connectorParameterRoot s)
+          (model.rootModel.connectorSource side (model.criticalValue s))
+          (model.rootModel.connectorTarget side (model.criticalValue s)))
+        derivative (t : ℝ) ∧
+      0 < derivative := by
+  dsimp only
+  constructor
+  · apply hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlusLineImag
+      (model.connectorParameterRoot_ne_zero s)
+    simpa [ChapterVIDPrincipalConnectorModel.rectanglePoint,
+      ChapterVIDPrincipalGlobalRootModel.connectorPoint] using
+      model.rectanglePoint_ne_zero side (s, t)
+  · exact run.modelDerivative_im_pos model side index (s, t) hregion
 
 end PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference

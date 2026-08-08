@@ -520,8 +520,13 @@ The strongest newly completed component is the finite algebra in §103:
   factor on 240 initial-side cells (`763` through `1002`) and 252 final-side cells (`9` through
   `260`). These 492 cells are divided into 41 independently compilable 12-cell artifacts;
   generated kernel proofs establish 64-bit admissibility for every shard, and the reference
-  evaluator reports zero failed integer claims. Hash-bound receipts yield
-  `ReferenceCompiledRunVerdict.derivativeProduct_im_pos` without trusting the proposal generator.
+  evaluator reports zero failed integer claims. Each shard now includes the affine line-map
+  operations as well as the derivative trace (984 operations and 8,472 integer claims per
+  12-cell shard). Hash-bound receipts yield
+  `ReferenceCompiledRunVerdict.modelLineImag_hasDerivAt_and_pos`: Lean reconstructs the actual
+  model coordinate, anomaly, and source-to-target direction, proves the displayed expression is
+  the real derivative of the literal connector factor, and proves that derivative is positive,
+  without trusting the proposal generator or accepting enclosure hypotheses from a caller.
   The remaining endpoint problem is now exactly 30 cells—21 initial and 9 final—where the
   interval box still contains the scale-dependent double zero. No fixed continuity-collar width
   is assumed for them.

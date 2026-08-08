@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import PoincareChapterVI.ChapterVILeanCompCertCartesianRadicandTrace
 import PoincareChapterVI.ChapterVILeanCompCertProposals
+import Mathlib.Analysis.Complex.RealDeriv
 
 /-!
 # Cartesian interval trace for the connector collision-factor derivative
@@ -77,6 +78,37 @@ theorem hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlus
   filter_upwards [eventually_ne_nhds hu] with w hw
   rw [chapterVIDRootCoordinateCollisionFactorPlus_eq_polarCertificateFormula hζ hw]
   simp [chapterVIDRootCoordinateCollisionFactorPlusFormula, inv_pow]
+
+/-- Imaginary part of the first collision factor along an affine line in root coordinates. -/
+def chapterVIDRootCoordinateCollisionFactorPlusLineImag
+    (ζ source target : ℂ) (t : ℝ) : ℝ :=
+  (chapterVIDRootCoordinateCollisionFactorPlus ζ
+    (AffineMap.lineMap source target t)).im
+
+set_option backward.isDefEq.respectTransparency.types false in
+/-- The displayed complex derivative is exactly the real derivative used by the connector
+monotonicity argument.  Multiplication by `-I` turns imaginary part into real part, allowing the
+standard complex-to-real derivative theorem to discharge the final projection. -/
+theorem hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlusLineImag
+    {ζ source target : ℂ} {t : ℝ}
+    (hζ : ζ ≠ 0) (hu : AffineMap.lineMap source target t ≠ 0) :
+    HasDerivAt (chapterVIDRootCoordinateCollisionFactorPlusLineImag ζ source target)
+      (chapterVIDRootCoordinateCollisionFactorPlusDerivative ζ
+        (AffineMap.lineMap source target t) * (target - source)).im t := by
+  let line : ℂ → ℂ := fun w ↦ (target - source) * w + source
+  have hline := ((hasDerivAt_id (t : ℂ)).const_mul (target - source)).add_const source
+  have hu' : line (t : ℂ) ≠ 0 := by
+    simpa [line, AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add,
+      smul_eq_mul, mul_comm] using hu
+  have hfactor := hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlus hζ hu'
+  have hcomp := hfactor.comp (t : ℂ) hline
+  have him := (hcomp.mul_const (-Complex.I)).real_of_complex
+  change HasDerivAt
+    (fun x : ℝ ↦ (chapterVIDRootCoordinateCollisionFactorPlus ζ
+      (AffineMap.lineMap source target x)).im) _ t
+  simpa [line, Function.comp_apply,
+    AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul,
+    Complex.mul_re, Complex.mul_im, mul_comm] using him
 
 namespace ChapterVILeanCompCertCartesianFactorDerivativeTrace
 
