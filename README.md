@@ -487,9 +487,12 @@ The strongest newly completed component is the finite algebra in §103:
   261 endpoint-adjacent unseparated cells, and zero failed integer claims across both connectors.
   The same run reports branch-cut intersections for the coarse product rectangles. Thus the
   compiled seam interface is proved, but a passing artifact still needs tighter one-dimensional
-  enclosures (or a multi-chart transport certificate); the current diagnostic is not silently
-  treated as a successful run. This is a regression witness for the cutoff-matching obligation,
-  not a completed certificate.
+  enclosures or factor-wise branch transport; the current diagnostic is not silently treated as
+  a successful run. More sharply, the two factor traces show zero nonpositive-real-cut
+  intersections for the minus factor and exactly the same 261 endpoint cells for the plus factor
+  as the nonvanishing failure count. This isolates the next route: use principal roots of the two
+  factors on the compiled bulk and join the plus factor through the analytic Morse collar. This
+  is a regression witness for the cutoff-matching obligation, not a completed certificate.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

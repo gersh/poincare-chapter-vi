@@ -70,6 +70,8 @@ structure Stats where
   meetsPositiveRealRay : Nat := 0
   meetsNegativeImagRay : Nat := 0
   meetsPositiveImagRay : Nat := 0
+  plusMeetsNegativeRealRay : Nat := 0
+  minusMeetsNegativeRealRay : Nat := 0
   failedClaims : Nat := 0
   deriving Repr
 
@@ -121,6 +123,14 @@ def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle)
               stats := { stats with meetsPositiveImagRay := stats.meetsPositiveImagRay + 1 }
             let plusFactor := trace.laurentPlus.output.sub (trace.y.nsmul 2)
             let minusFactor := trace.laurentMinus.output.sub (trace.yInv.nsmul 2)
+            if plusFactor.real.lower ≤ 0 && plusFactor.imag.lower ≤ 0 &&
+                0 ≤ plusFactor.imag.upper then
+              stats := { stats with
+                plusMeetsNegativeRealRay := stats.plusMeetsNegativeRealRay + 1 }
+            if minusFactor.real.lower ≤ 0 && minusFactor.imag.lower ≤ 0 &&
+                0 ≤ minusFactor.imag.upper then
+              stats := { stats with
+                minusMeetsNegativeRealRay := stats.minusMeetsNegativeRealRay + 1 }
             match separation? plusFactor, separation? minusFactor with
             | none, _ | _, none =>
                 stats := { stats with unseparated := stats.unseparated + 1 }
@@ -144,6 +154,8 @@ def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle)
   IO.println s!"product boxes meeting the nonnegative real ray: {stats.meetsPositiveRealRay}"
   IO.println s!"product boxes meeting the nonpositive imaginary ray: {stats.meetsNegativeImagRay}"
   IO.println s!"product boxes meeting the nonnegative imaginary ray: {stats.meetsPositiveImagRay}"
+  IO.println s!"plus-factor boxes meeting the nonpositive real ray: {stats.plusMeetsNegativeRealRay}"
+  IO.println s!"minus-factor boxes meeting the nonpositive real ray: {stats.minusMeetsNegativeRealRay}"
   IO.println s!"failed integer claims: {stats.failedClaims}"
   pure (if stats.argumentRejected = 0 && stats.unseparated = 0 &&
       stats.failedClaims = 0 then 0 else 1)
