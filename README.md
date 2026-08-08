@@ -145,7 +145,9 @@ The strongest newly completed component is the finite algebra in §103:
   relative `C²` path homotopy inside the branch chart preserves the prepared inverse-square-root
   contour integral, with closedness of the holomorphic one-form proved automatically. For convex
   branch subdomains Lean constructs the canonical pointwise affine path homotopy and proves its
-  image stays in the domain.
+  image stays in the domain; `C²` extensions of the endpoint paths automatically discharge the
+  homotopy regularity condition. This yields a direct convex-domain theorem for the prepared
+  inverse square-root branch.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

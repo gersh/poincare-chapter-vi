@@ -106,6 +106,30 @@ theorem chapterVIAffinePathHomotopy_apply
       AffineMap.lineMap (initial t) (final t) (s : ℝ) :=
   rfl
 
+/-- `C²` regularity of the two extended paths implies `C²` regularity of their canonical affine
+homotopy on the closed unit square. -/
+theorem contDiffOn_two_chapterVIAffinePathHomotopy
+    {a b : ℂ} {initial final : Path a b}
+    (hinitial : ContDiff ℝ 2 initial.extend)
+    (hfinal : ContDiff ℝ 2 final.extend) :
+    ContDiffOn ℝ 2
+      (fun st : ℝ × ℝ ↦ Set.IccExtend zero_le_one
+        ((chapterVIAffinePathHomotopy initial final).toHomotopy.extend st.1) st.2)
+      (Icc 0 1) := by
+  let model : ℝ × ℝ → ℂ := fun st ↦
+    AffineMap.lineMap (initial.extend st.2) (final.extend st.2) st.1
+  have hmodel : ContDiff ℝ 2 model := by
+    dsimp only [model, AffineMap.lineMap_apply]
+    simp only [vsub_eq_sub, vadd_eq_add]
+    fun_prop
+  apply hmodel.contDiffOn.congr
+  rintro ⟨s, t⟩ hst
+  rw [Icc_prod_eq] at hst
+  simp only [model, ContinuousMap.Homotopy.extend_of_mem_I _ hst.1,
+    Set.IccExtend_of_mem zero_le_one _ hst.2]
+  change AffineMap.lineMap (initial ⟨t, hst.2⟩) (final ⟨t, hst.2⟩) s = _
+  rw [Path.extend_apply, Path.extend_apply]
+
 /-- The complete checked data for transporting a complex contour through a branch domain while
 fixing its two endpoints.  Symmetry of `dω` is the closed-one-form condition used by Stokes'
 theorem. -/
@@ -257,5 +281,44 @@ theorem chapterVI_curveIntegral_eq_of_holomorphic_affineHomotopy
   intro s _ t _
   rw [chapterVIAffinePathHomotopy_apply]
   exact hconvex.lineMap_mem (hinitial t) (hfinal t) s.2
+
+/-- Fully automatic affine transport from `C²` regularity of the two extended paths. -/
+theorem chapterVI_curveIntegral_eq_of_holomorphic_convex
+    {a b : ℂ} {f : ℂ → ℂ} {initial final : Path a b} {domain : Set ℂ}
+    (hconvex : Convex ℝ domain)
+    (hinitial : ∀ t, initial t ∈ domain)
+    (hfinal : ∀ t, final t ∈ domain)
+    (hinitialC2 : ContDiff ℝ 2 initial.extend)
+    (hfinalC2 : ContDiff ℝ 2 final.extend)
+    (hf : DifferentiableOn ℂ f domain)
+    (hfClosure : ContinuousOn f (closure domain)) :
+    (∫ᶜ z in initial, chapterVIComplexScalarOneForm f z) =
+      ∫ᶜ z in final, chapterVIComplexScalarOneForm f z :=
+  chapterVI_curveIntegral_eq_of_holomorphic_affineHomotopy
+    hconvex hinitial hfinal hf hfClosure
+    (contDiffOn_two_chapterVIAffinePathHomotopy hinitialC2 hfinalC2)
+
+/-- Direct convex-domain transport for Poincaré's prepared inverse square-root branch. -/
+theorem chapterVI_preparedInverseSquareRoot_curveIntegral_eq_of_convex
+    {a b : ℂ} {quadratic unit : ℂ → ℂ} {carrier : Set ℂ}
+    (chart : ChapterVIPreparedBranchChart quadratic unit carrier)
+    (hconvex : Convex ℝ chart.domain)
+    (hquadratic : Differentiable ℂ quadratic) (hunit : Differentiable ℂ unit)
+    {initial final : Path a b}
+    (hinitial : ∀ t, initial t ∈ chart.domain)
+    (hfinal : ∀ t, final t ∈ chart.domain)
+    (hinitialC2 : ContDiff ℝ 2 initial.extend)
+    (hfinalC2 : ContDiff ℝ 2 final.extend)
+    (hclosure : ContinuousOn
+      (chapterVIPreparedInverseSquareRoot quadratic unit) (closure chart.domain)) :
+    (∫ᶜ z in initial,
+      chapterVIComplexScalarOneForm
+        (chapterVIPreparedInverseSquareRoot quadratic unit) z) =
+    ∫ᶜ z in final,
+      chapterVIComplexScalarOneForm
+        (chapterVIPreparedInverseSquareRoot quadratic unit) z := by
+  exact chapterVI_curveIntegral_eq_of_holomorphic_convex
+    hconvex hinitial hfinal hinitialC2 hfinalC2
+    (chart.differentiableOn_inverseSquareRoot hquadratic hunit) hclosure
 
 end PoincareChapterVI
