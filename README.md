@@ -38,7 +38,10 @@ The same compact local model now records that the derivative of the inverse Mors
 exactly its named Jacobian at every point of the rectangle, supplying the velocity datum needed
 for the path-level curve-integral change of variables. Lean now also constructs the literal
 source-coordinate middle `Path` as the inverse-Morse image of the straight `[-L,L]` segment and
-proves its continuity and exact endpoints.
+proves its continuity, exact endpoints, and exact derivative. The resulting source curve integral
+is formally identical to the normal-form curve integral and hence to the logarithmic middle
+integral. Thus the middle contribution is now the normalized curve integral of Poincaré's literal
+principal source integrand, rather than only an identified quadratic model.
 Lean also constructs a canonical global contour in Poincaré's `x^(1/3)` plane:
 it starts at the literal unit circle, its radius stays strictly between the two explicit pole
 radii before D, and its endpoint passes through their common collision. The normalized three-arc

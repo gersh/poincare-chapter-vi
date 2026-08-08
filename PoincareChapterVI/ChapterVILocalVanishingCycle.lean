@@ -266,6 +266,47 @@ def ChapterVIDPrincipalLocalSourceModel.sourcePath
     push_cast
     ring
 
+set_option backward.isDefEq.respectTransparency.types false in
+/-- The derivative of the literal source path is the affine-segment velocity times the inverse
+Morse Jacobian.  The proof explicitly crosses Mathlib's equivalent real and complex scalar
+presentations of `ℂ`. -/
+theorem ChapterVIDPrincipalLocalSourceModel.hasDerivAt_sourcePathRaw
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    {k t : ℝ} (hk : k ∈ Set.Icc 0 model.δ)
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    HasDerivAt (chapterVIDPrincipalLocalSourcePathRaw model.L k)
+      ((2 * model.L : ℂ) *
+        chapterVIDMorseJacobian
+          (chapterVIDCriticalMorseParameterMap
+            deriv_chapterVIDCriticalValue_ne_zero
+            ((k : ℂ), chapterVIDPrincipalLocalMorseLine model.L t))) t := by
+  let v : ℝ := 2 * model.L * t - model.L
+  have hv : v ∈ Set.uIcc (-model.L) model.L := by
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    constructor <;> dsimp [v] <;>
+      nlinarith [model.L_pos, ht.1, ht.2]
+  have hfiber := model.sourceFiber_hasDerivAt k hk v hv
+  have hsource := hfiber.const_add
+    (chapterVIDCriticalCenter
+      (chapterVIDCriticalParameterInverseAtD (k : ℂ)))
+  have hreal : HasDerivAt (fun s : ℝ ↦ 2 * model.L * s - model.L)
+      (2 * model.L) t := by
+    simpa only [id_eq, mul_one] using
+      ((hasDerivAt_id t).const_mul (2 * model.L)).sub_const model.L
+  have hline := Complex.ofRealCLM.hasFDerivAt.comp_hasDerivAt t hreal
+  have hcomp := hsource.comp t hline
+  change HasDerivAt
+    (fun s : ℝ ↦ chapterVIDCriticalCenter
+      (chapterVIDCriticalParameterInverseAtD (k : ℂ)) +
+      chapterVIDMorseFiberInverse
+        (chapterVIDCriticalParameterInverseAtD (k : ℂ),
+          ((2 * model.L * s - model.L : ℝ) : ℂ))) _ t
+  convert hcomp using 1 <;> try rfl
+  dsimp [v, chapterVIDPrincipalLocalMorseLine]
+  simp only [Complex.ofReal_mul, Complex.ofReal_sub, Complex.ofReal_ofNat]
+  ring
+
 /-- On the certified local rectangle, the canonical source root is literally the principal root
 of Poincaré's exact normal form `k+v²`. -/
 theorem ChapterVIDPrincipalLocalSourceModel.principalCollisionRoot_eq
@@ -455,6 +496,53 @@ theorem ChapterVIDPrincipalLocalSourceModel.principalSource_pullback_oneForm
     chapterVIDPrincipalCriticalMorse_pullback_oneForm massProduct b d
       ((k : ℂ), (v : ℂ)) direction (model.radicand_eq k hk v hv)
 
+set_option backward.isDefEq.respectTransparency.types false in
+/-- The normal-form curve integral is literally the curve integral of Poincaré's principal
+source one-form along the inverse-Morse middle path. -/
+theorem ChapterVIDPrincipalLocalSourceModel.principalSource_curveIntegral_eq_normal
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    {k : ℝ} (hk : k ∈ Set.Icc 0 model.δ) :
+    (∫ᶜ t in model.sourcePath k hk,
+      chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalPhiIntegrand massProduct b d
+          chapterVIDPrincipalCollisionRoot
+          (chapterVIDCriticalParameterInverseAtD (k : ℂ))) t) =
+      ∫ᶜ v in Path.segment (-model.L : ℂ) (model.L : ℂ),
+        chapterVIComplexScalarOneForm
+          (chapterVIDPrincipalNormalIntegrand massProduct b d k) v := by
+  rw [curveIntegral_def, curveIntegral_segment]
+  apply intervalIntegral.integral_congr
+  intro t ht
+  rw [curveIntegralFun_def]
+  rw [Set.uIcc_of_le zero_le_one] at ht
+  let raw : ℝ → ℂ := chapterVIDPrincipalLocalSourcePathRaw model.L k
+  have heq : Set.EqOn (model.sourcePath k hk).extend raw (Set.Icc 0 1) := by
+    intro s hs
+    rw [Path.extend_apply (model.sourcePath k hk) hs]
+    rfl
+  rw [derivWithin_congr heq (heq ht), heq ht]
+  have hderiv := model.hasDerivAt_sourcePathRaw hk ht
+  change HasDerivAt raw _ t at hderiv
+  rw [hderiv.hasDerivWithinAt.derivWithin
+    (uniqueDiffOn_Icc_zero_one t ht)]
+  let v : ℝ := 2 * model.L * t - model.L
+  have hv : v ∈ Set.uIcc (-model.L) model.L := by
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    constructor <;> dsimp [v] <;>
+      nlinarith [model.L_pos, ht.1, ht.2]
+  have hpull := model.principalSource_pullback_oneForm hk hv (2 * model.L : ℂ)
+  convert hpull using 1 <;>
+    simp [raw, v, chapterVIDPrincipalLocalSourcePathRaw,
+      chapterVIDPrincipalLocalMorseLine, chapterVIDPrincipalLocalSourceFiber_eq,
+      chapterVIDRealCriticalMorseSourcePoint,
+      chapterVIDCriticalMorseSourcePointAtD,
+      chapterVIDCriticalMorseSourcePoint,
+      chapterVIDCriticalMorseParameterMap,
+      chapterVIDCriticalParameterInverseAtD,
+      chapterVIDMorseSourcePoint,
+      AffineMap.lineMap_apply] <;> ring
+
 /-- The interval integral evaluated below is literally the complex curve integral of the
 normal-form one-form along the straight middle path from `-L` to `L`. -/
 theorem chapterVIDPrincipalNormal_curveIntegral_segment_eq
@@ -498,6 +586,23 @@ theorem chapterVIDPrincipalNormal_curveIntegral_segment_eq
       · ring_nf
     _ = chapterVIDPrincipalLocalVanishingCycleIntegral massProduct b d L k := by
       rfl
+
+/-- For positive `k` in the local rectangle, the logarithmic middle integral is exactly the
+curve integral of Poincaré's literal source integrand on the constructed source path. -/
+theorem ChapterVIDPrincipalLocalSourceModel.principalSource_curveIntegral_eq
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    {k : ℝ} (hkpos : 0 < k) (hkδ : k ≤ model.δ) :
+    (∫ᶜ t in model.sourcePath k ⟨hkpos.le, hkδ⟩,
+      chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalPhiIntegrand massProduct b d
+          chapterVIDPrincipalCollisionRoot
+          (chapterVIDCriticalParameterInverseAtD (k : ℂ))) t) =
+      chapterVIDPrincipalLocalVanishingCycleIntegral
+        massProduct b d model.L k := by
+  rw [model.principalSource_curveIntegral_eq_normal ⟨hkpos.le, hkδ⟩]
+  exact chapterVIDPrincipalNormal_curveIntegral_segment_eq
+    massProduct b d hkpos
 
 /-- Poincare's local logarithmic calculation for the literal principal source term at D.  There
 is a fixed symmetric middle cycle on which the coefficient of `-log k` is exactly the complete

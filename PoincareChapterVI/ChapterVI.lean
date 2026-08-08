@@ -242,7 +242,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   §94 monomial numerator, and proves its Morse-chart leading amplitude is nonzero.
   `ChapterVILocalVanishingCycle.lean` extracts a compact real rectangle on which the literal
   source radicand is exactly `k+v²` and proves the actual symmetric middle integral divided by
-  `-log k` tends to that nonzero amplitude. `ChapterVIThreeArcAsymptotic.lean` proves that the full
+  `-log k` tends to that nonzero amplitude. It now constructs the inverse-Morse middle path in
+  the literal source coordinate, proves its derivative and the exact curve-integral pullback, and
+  identifies that logarithmic integral with Poincaré's principal source one-form on this path.
+  `ChapterVIThreeArcAsymptotic.lean` proves that the full
   contour inherits this coefficient once the source-sheet three-arc realization is constructed
   and its two regular arcs are `o(-log k)`. `ChapterVIDGlobalMorseBridge.lean` proves that the
   explicit global `u=x^(1/3)` coordinate is locally analytically equivalent at D to the same

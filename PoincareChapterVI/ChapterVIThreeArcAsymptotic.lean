@@ -48,6 +48,22 @@ theorem chapterVIDPrincipalLocalPhiContribution_eq_curveIntegral
   rw [chapterVIDPrincipalLocalPhiContribution,
     chapterVIDPrincipalNormal_curveIntegral_segment_eq massProduct b d hk]
 
+/-- The normalized local contribution is the literal principal source curve integral on the
+inverse-Morse path constructed by the compact local source model. -/
+theorem ChapterVIDPrincipalLocalSourceModel.principalLocalPhiContribution_eq_sourceCurveIntegral
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    {k : ℝ} (hkpos : 0 < k) (hkδ : k ≤ model.δ) :
+    chapterVIDPrincipalLocalPhiContribution massProduct b d model.L k =
+      (2 * Real.pi * Complex.I : ℂ)⁻¹ *
+        (∫ᶜ t in model.sourcePath k ⟨hkpos.le, hkδ⟩,
+          chapterVIComplexScalarOneForm
+            (chapterVIDPrincipalPhiIntegrand massProduct b d
+              chapterVIDPrincipalCollisionRoot
+              (chapterVIDCriticalParameterInverseAtD (k : ℂ))) t) := by
+  rw [chapterVIDPrincipalLocalPhiContribution,
+    model.principalSource_curveIntegral_eq hkpos hkδ]
+
 /-- The same identity expressed through the generic §99 three-arc API. -/
 theorem chapterVIDPrincipalLocalPhiContribution_eq_localArcContribution
     (massProduct : ℂ) (b d : ℤ) {L k : ℝ} (hk : 0 < k) :
