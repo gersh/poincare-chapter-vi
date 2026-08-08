@@ -10,10 +10,10 @@ import PoincareChapterVI.ChapterVIDRadialClusteredCompiledGrid
 /-!
 # Explicit input bounds for the D connector certificates
 
-The inverse Morse endpoint is noncomputable, but the global root model was deliberately shrunk
-so that every such endpoint lies in a fixed ball about the collision lift. Combining that
-analytic ball with the already checked collision-radius interval gives one concrete dyadic
-rectangle containing every local endpoint on either connector.
+The inverse Morse endpoint is noncomputable, but the global root model is deliberately shrunk
+so that every such endpoint lies within one precision-20 raw unit of the collision lift.
+Combining that analytic ball with the already checked collision-radius interval gives one
+concrete narrow dyadic rectangle containing every local endpoint on either connector.
 
 This does not give a full connector grid by itself. It removes the need to evaluate the inverse
 Morse map merely to obtain a first certified box. The final theorem below records the structural
@@ -47,10 +47,10 @@ def terminalOuterRectangle (side : ChapterVIDOuterArcSide) : Rectangle :=
   | .initial => ⟨zero, radius⟩
   | .final => ⟨zero, radius.neg⟩
 
-/-- Uniform dyadic enclosure of both noncomputable local inverse-Morse endpoints. -/
+/-- Uniform one-raw-unit enclosure of both noncomputable local inverse-Morse endpoints. -/
 def localEndpointRectangle : Rectangle where
-  real := ⟨-471080, -157023⟩
-  imag := ⟨-157027, 157027⟩
+  real := ⟨-314054, -314046⟩
+  imag := ⟨-1, 1⟩
 
 /-- The coarse symmetric enclosure contains the collision point itself. This explains why it is
 useful as an input bound but cannot, on its own, prove radicand separation all the way to a local
@@ -79,7 +79,33 @@ theorem localEndpointRectangle_contains
     (side : ChapterVIDOuterArcSide) (k : ℝ)
     (hk : k ∈ Set.Icc 0 model.δ) :
     localEndpointRectangle.Contains (model.localConnectorEndpoint side k) := by
-  have hbounds := model.localConnectorEndpoint_component_bounds side k hk
+  have hclose : ‖model.localConnectorEndpoint side k - chapterVIDCollisionLift‖ <
+      1 / (2 : ℝ) ^ 20 := by
+    cases side with
+    | initial =>
+        simpa [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+          Complex.dist_eq] using
+          model.root_close_dyadic k hk (-model.L) Set.left_mem_uIcc
+    | final =>
+        simpa [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+          Complex.dist_eq] using
+          model.root_close_dyadic k hk model.L Set.right_mem_uIcc
+  have hreAbs : |(model.localConnectorEndpoint side k - chapterVIDCollisionLift).re| <
+      1 / (2 : ℝ) ^ 20 :=
+    (Complex.abs_re_le_norm _).trans_lt hclose
+  have himAbs : |(model.localConnectorEndpoint side k - chapterVIDCollisionLift).im| <
+      1 / (2 : ℝ) ^ 20 :=
+    (Complex.abs_im_le_norm _).trans_lt hclose
+  rw [abs_lt] at hreAbs himAbs
+  have hcollision := chapterVIDCollisionLift_eq_neg_norm
+  have hcollisionRe : chapterVIDCollisionLift.re = -‖chapterVIDCollisionLift‖ := by
+    rw [hcollision]
+    simp
+  have hcollisionIm : chapterVIDCollisionLift.im = 0 := by
+    rw [hcollision]
+    simp
+  simp only [Complex.sub_re, Complex.sub_im, hcollisionRe, hcollisionIm,
+    sub_neg_eq_add, sub_zero] at hreAbs himAbs
   have hradius := ChapterVIDRadialClusteredCompiledGrid.collisionRadius_contains
   change (314047 : ℝ) / (2 : ℝ) ^ 20 ≤ ‖chapterVIDCollisionLift‖ ∧
     ‖chapterVIDCollisionLift‖ ≤ (314053 : ℝ) / (2 : ℝ) ^ 20 at hradius
@@ -90,19 +116,19 @@ theorem localEndpointRectangle_contains
     ChapterVISignedDyadicInterval.scale]
   constructor
   · constructor
-    · change ((-471080 : ℤ) : ℝ) / (2 : ℝ) ^ 20 ≤
+    · change ((-314054 : ℤ) : ℝ) / (2 : ℝ) ^ 20 ≤
         (model.localConnectorEndpoint side k).re
-      linarith [hbounds.1, hradius.2]
+      linarith [hreAbs.1, hradius.2]
     · change (model.localConnectorEndpoint side k).re ≤
-        ((-157023 : ℤ) : ℝ) / (2 : ℝ) ^ 20
-      linarith [hbounds.2.1, hradius.1]
+        ((-314046 : ℤ) : ℝ) / (2 : ℝ) ^ 20
+      linarith [hreAbs.2, hradius.1]
   · constructor
-    · change ((-157027 : ℤ) : ℝ) / (2 : ℝ) ^ 20 ≤
+    · change ((-1 : ℤ) : ℝ) / (2 : ℝ) ^ 20 ≤
         (model.localConnectorEndpoint side k).im
-      linarith [hbounds.2.2.1, hradius.2]
+      linarith [himAbs.1]
     · change (model.localConnectorEndpoint side k).im ≤
-        ((157027 : ℤ) : ℝ) / (2 : ℝ) ^ 20
-      linarith [hbounds.2.2.2, hradius.2]
+        ((1 : ℤ) : ℝ) / (2 : ℝ) ^ 20
+      linarith [himAbs.2]
 
 /-- Shrinking the connector model into the terminal radial cell makes one fixed compiled box
 contain its parameter root over the whole connector family. -/

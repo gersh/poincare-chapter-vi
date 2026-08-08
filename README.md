@@ -457,19 +457,30 @@ The strongest newly completed component is the finite algebra in §103:
   mesh to a one-dimensional affine mesh. The local connector model is shrunk so that every
   parameter root and outer endpoint lies in the final already-certified radial cell; Lean proves
   the fixed terminal boxes contain those values. `ChapterVIDConnectorInputBounds.lean` likewise
-  proves one explicit dyadic rectangle contains both noncomputable inverse-Morse endpoints.
+  shrinks the analytic model further and proves a precision-20 rectangle only eight raw real
+  units by two raw imaginary units contains both noncomputable inverse-Morse endpoints.
   Crucially, it also proves that this symmetric rectangle contains the collision lift itself.
   Since the critical radicand vanishes there, no amount of affine-cell subdivision can turn that
-  same coarse endpoint box into a sound endpoint-adjacent nonvanishing certificate. The remaining
-  analytic bridge is therefore narrower than general interval evaluation of the inverse map: it
-  must provide a directional or normalized Morse-coordinate enclosure that preserves the exact
-  relation between the endpoint displacement and the critical parameter. The large rational
-  arithmetic trace can then be generated and checked through LeanCompCert.
+  same endpoint box into a sound endpoint-adjacent nonvanishing certificate.
 
-  `lake exe chapter-vi-connector-cert reference-coarse 128` runs the reference proposal/checking
-  path on the proved coarse boxes. Its expected nonzero result (currently 235 rejected cells,
-  5 unseparated cells, and zero failed integer claims) is a regression witness for this precise
-  missing analytic bridge, not a completed certificate.
+  `ChapterVIDConnectorEndpointCollar.lean` now removes that impossible region from the finite
+  artifact. The exact Morse identity makes the boundary radicand `k + L²`, uniformly bounded
+  away from zero by `L²`; Heine--Cantor on the compact connector square produces a uniform
+  positive-width analytic collar. `BulkData`, `TerminalCoarseBulkData`, and `BulkRunVerdict` then
+  ask LeanCompCert to cover only the collar's complement, and the kernel reconstructs one
+  continuous nonzero witness from the analytic and compiled pieces. The end-to-end hybrid theorem
+  feeds two such bulk runs into the existing five-piece logarithmic limit.
+
+  Lean also proves that the analytic collar contains a power-of-two subcollar, so a finite dyadic
+  split always exists. The remaining artifact-generation problem is to compute its exponent (or
+  prove a quantitative lower bound for the collar width) rather than merely selecting that
+  exponent classically. It no longer requires evaluating the inverse Morse map. The large
+  rational arithmetic trace is already isolated behind LeanCompCert.
+
+  `lake exe chapter-vi-connector-cert reference-coarse 1024` runs the reference proposal/checking
+  path on the proved narrow boxes. Its expected nonzero result currently has zero rejected cells,
+  261 endpoint-adjacent unseparated cells, and zero failed integer claims across both connectors.
+  This is a regression witness for the cutoff-matching obligation, not a completed certificate.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

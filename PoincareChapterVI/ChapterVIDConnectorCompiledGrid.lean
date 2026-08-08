@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import PoincareChapterVI.ChapterVIDConnectorPlacement
 import PoincareChapterVI.ChapterVIDConnectorInputBounds
+import PoincareChapterVI.ChapterVIDConnectorEndpointCollar
 import PoincareChapterVI.ChapterVILeanCompCertNonzeroGrid
 import PoincareChapterVI.ChapterVILeanCompCertCartesianRadicandTrace
 
@@ -283,6 +284,38 @@ def Cell.operations
     ChapterVILeanCompCertNonzeroGrid.separationOperation
       cell.trace.factorMinus cell.minusSeparation]
 
+/-- Kernel-side semantic reconstruction for one checked connector cell.  The surrounding grid
+only has to supply soundness of the operations and membership of the point in this cell. -/
+theorem Cell.radicand_ne_zero_of_allSound
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    (cell : Cell model side precision)
+    (hcoordinate : ∀ operation ∈ cell.coordinateOperations, operation.Sound)
+    (hall : ∀ operation ∈ cell.trace.operations, operation.Sound)
+    (hplusSound : (ChapterVILeanCompCertNonzeroGrid.separationOperation
+      cell.trace.factorPlus cell.plusSeparation).Sound)
+    (hminusSound : (ChapterVILeanCompCertNonzeroGrid.separationOperation
+      cell.trace.factorMinus cell.minusSeparation).Sound)
+    (point : I × I) (hregion : point ∈ cell.region) :
+    model.rectangleRadicand side point ≠ 0 := by
+  let ζ := model.connectorParameterRoot point.1
+  let u := model.rectanglePoint side point
+  have hζ : cell.zeta.Contains ζ := cell.zeta_contains point hregion
+  have hu : cell.coordinate.Contains u :=
+    cell.coordinate_contains_of_allSound hcoordinate point hregion
+  have hζne : ζ ≠ 0 := model.connectorParameterRoot_ne_zero point.1
+  have hune : u ≠ 0 := model.rectanglePoint_ne_zero side point
+  have hanomalies := cell.trace.anomalies_contain_of_allSound hall hζ hu
+    cell.exponentialCoefficient_contains hζne hune
+  have hfactors := cell.trace.factors_contain_sparse_of_allSound hall hu
+    cell.inverse10001_contains hanomalies.1 hanomalies.2
+  have hplusNe := cell.plusSeparation.ne_zero_of_lower_pos hfactors.1 hplusSound
+  have hminusNe := cell.minusSeparation.ne_zero_of_lower_pos hfactors.2 hminusSound
+  change chapterVIDRootCoordinateRadicand ζ u ≠ 0
+  rw [chapterVIDRootCoordinateRadicand_eq_polarCertificateFormula hζne hune]
+  exact mul_ne_zero hplusNe hminusNe
+
 /-- A finite Cartesian grid for one connector. -/
 structure Data
     {massProduct : ℂ} {b d : ℤ}
@@ -342,8 +375,73 @@ def Data.operations
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDPrincipalConnectorModel massProduct b d}
     {side : ChapterVIDOuterArcSide} {precision cells : ℕ}
-    (data : Data model side precision cells) : List (DyadicOperation precision) :=
+  (data : Data model side precision cells) : List (DyadicOperation precision) :=
   (List.finRange cells).flatMap fun index ↦ (data.cell index).operations
+
+/-- A compiled grid for the bulk of one connector.  Cells only cover the complement of the
+analytic endpoint collar, so the impossible collision-containing endpoint boxes never enter the
+compiled run. -/
+structure BulkData
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side)
+    (precision cells : ℕ) where
+  cell : Fin cells → Cell model side precision
+  covers : ∀ point : I × I,
+    collar.width ≤ model.connectorLocalBoundaryDistance side point →
+      ∃ index, point ∈ (cell index).region
+  admissible : Admissible (batchClaims
+    ((List.finRange cells).flatMap fun index ↦ (cell index).operations))
+
+def BulkData.operations
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (data : BulkData model side collar precision cells) :
+    List (DyadicOperation precision) :=
+  (List.finRange cells).flatMap fun index ↦ (data.cell index).operations
+
+/-- One-dimensional certificate-generator interface for the bulk outside an analytic endpoint
+collar.  Parameter-root and outer-endpoint enclosures remain the proved terminal-cell boxes. -/
+structure TerminalCoarseBulkData
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side)
+    (cells : ℕ) where
+  cell : Fin cells → TerminalCoarseEndpointCell model side
+  covers : ∀ point : I × I,
+    collar.width ≤ model.connectorLocalBoundaryDistance side point →
+      ∃ index, point ∈ (cell index).region
+  admissible : Admissible (batchClaims
+    ((List.finRange cells).flatMap fun index ↦ (cell index).toCell.operations))
+
+/-- Power-of-two specialization consumed by a certificate generator after an endpoint-collar
+exponent has been selected. -/
+abbrev DyadicTerminalCoarseBulkData
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (collar : ChapterVIDPrincipalConnectorModel.DyadicConnectorEndpointCollar model side)
+    (cells : ℕ) :=
+  TerminalCoarseBulkData model side collar.toEndpointCollar cells
+
+def TerminalCoarseBulkData.toBulkData
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {cells : ℕ}
+    (data : TerminalCoarseBulkData model side collar cells) :
+    BulkData model side collar 20 cells := by
+  cases side <;>
+    exact {
+      cell := fun index ↦ (data.cell index).toCell
+      covers := data.covers
+      admissible := data.admissible }
 
 /-- The sole external observation for one connector: its combined arithmetic and two-factor
 separation batch returned zero failures. -/
@@ -353,6 +451,17 @@ structure RunVerdict
     {side : ChapterVIDOuterArcSide}
     {precision cells : ℕ}
     (name : String) (data : Data model side precision cells) : Prop where
+  returnsZero : (batchComputation name data.operations).Returns ((0 : Nat) : Int)
+
+/-- The sole external observation for a hybrid connector: the arithmetic batch for its compiled
+bulk returned zero failures.  Endpoint nonvanishing is supplied by `collar`. -/
+structure BulkRunVerdict
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (name : String) (data : BulkData model side collar precision cells) : Prop where
   returnsZero : (batchComputation name data.operations).Returns ((0 : Nat) : Int)
 
 theorem cell_operation_mem
@@ -410,6 +519,71 @@ theorem minus_separation_operation_mem
   apply cell_operation_mem data index
   simp [Cell.operations]
 
+theorem bulk_cell_operation_mem
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (data : BulkData model side collar precision cells) (index : Fin cells)
+    (operation : DyadicOperation precision)
+    (hoperation : operation ∈ (data.cell index).operations) :
+    operation ∈ data.operations := by
+  rw [BulkData.operations, List.mem_flatMap]
+  exact ⟨index, by simp, hoperation⟩
+
+theorem bulk_trace_operation_mem
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (data : BulkData model side collar precision cells) (index : Fin cells)
+    (operation : DyadicOperation precision)
+    (hoperation : operation ∈ (data.cell index).trace.operations) :
+    operation ∈ data.operations :=
+  bulk_cell_operation_mem data index operation
+    (by simp [Cell.operations, hoperation])
+
+theorem bulk_coordinate_operation_mem
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (data : BulkData model side collar precision cells) (index : Fin cells)
+    (operation : DyadicOperation precision)
+    (hoperation : operation ∈ (data.cell index).coordinateOperations) :
+    operation ∈ data.operations :=
+  bulk_cell_operation_mem data index operation
+    (by simp [Cell.operations, hoperation])
+
+theorem bulk_plus_separation_operation_mem
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (data : BulkData model side collar precision cells) (index : Fin cells) :
+    ChapterVILeanCompCertNonzeroGrid.separationOperation
+        (data.cell index).trace.factorPlus (data.cell index).plusSeparation ∈
+      data.operations := by
+  apply bulk_cell_operation_mem data index
+  simp [Cell.operations]
+
+theorem bulk_minus_separation_operation_mem
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    (data : BulkData model side collar precision cells) (index : Fin cells) :
+    ChapterVILeanCompCertNonzeroGrid.separationOperation
+        (data.cell index).trace.factorMinus (data.cell index).minusSeparation ∈
+      data.operations := by
+  apply bulk_cell_operation_mem data index
+  simp [Cell.operations]
+
 /-- The combined compiled run reconstructs exact nonvanishing of the literal connector
 radicand throughout the continuum rectangle. -/
 theorem radicand_ne_zero
@@ -430,18 +604,6 @@ theorem radicand_ne_zero
     intro operation hoperation
     exact allSound_of_returns_zero name data.operations data.admissible run.returnsZero
       operation (trace_operation_mem data index operation hoperation)
-  let ζ := model.connectorParameterRoot point.1
-  let u := model.rectanglePoint side point
-  let y := chapterVIDRootSecondAnomaly ζ u
-  have hζ : cell.zeta.Contains ζ := cell.zeta_contains point hregion
-  have hu : cell.coordinate.Contains u :=
-    cell.coordinate_contains_of_allSound hcoordinate point hregion
-  have hζne : ζ ≠ 0 := model.connectorParameterRoot_ne_zero point.1
-  have hune : u ≠ 0 := model.rectanglePoint_ne_zero side point
-  have hanomalies := cell.trace.anomalies_contain_of_allSound hall hζ hu
-    cell.exponentialCoefficient_contains hζne hune
-  have hfactors := cell.trace.factors_contain_sparse_of_allSound hall hu
-    cell.inverse10001_contains hanomalies.1 hanomalies.2
   have hplusSound := allSound_of_returns_zero name data.operations data.admissible
     run.returnsZero
     (ChapterVILeanCompCertNonzeroGrid.separationOperation
@@ -452,11 +614,46 @@ theorem radicand_ne_zero
     (ChapterVILeanCompCertNonzeroGrid.separationOperation
       cell.trace.factorMinus cell.minusSeparation)
     (minus_separation_operation_mem data index)
-  have hplusNe := cell.plusSeparation.ne_zero_of_lower_pos hfactors.1 hplusSound
-  have hminusNe := cell.minusSeparation.ne_zero_of_lower_pos hfactors.2 hminusSound
-  change chapterVIDRootCoordinateRadicand ζ u ≠ 0
-  rw [chapterVIDRootCoordinateRadicand_eq_polarCertificateFormula hζne hune]
-  exact mul_ne_zero hplusNe hminusNe
+  exact cell.radicand_ne_zero_of_allSound hcoordinate hall hplusSound hminusSound
+    point hregion
+
+/-- Exact nonvanishing reconstructed by splitting the connector into the analytic Morse collar
+and its LeanCompCert-checked Cartesian bulk. -/
+theorem bulkRun_radicand_ne_zero
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    {name : String} {data : BulkData model side collar precision cells}
+    (run : BulkRunVerdict name data) (point : I × I) :
+    model.rectangleRadicand side point ≠ 0 := by
+  by_cases hcollar :
+      model.connectorLocalBoundaryDistance side point < collar.width
+  · exact collar.radicand_ne_zero point hcollar
+  · obtain ⟨index, hregion⟩ := data.covers point (le_of_not_gt hcollar)
+    let cell := data.cell index
+    have hcoordinate : ∀ operation ∈ cell.coordinateOperations,
+        operation.Sound := by
+      intro operation hoperation
+      exact allSound_of_returns_zero name data.operations data.admissible run.returnsZero
+        operation (bulk_coordinate_operation_mem data index operation hoperation)
+    have hall : ∀ operation ∈ cell.trace.operations, operation.Sound := by
+      intro operation hoperation
+      exact allSound_of_returns_zero name data.operations data.admissible run.returnsZero
+        operation (bulk_trace_operation_mem data index operation hoperation)
+    have hplusSound := allSound_of_returns_zero name data.operations data.admissible
+      run.returnsZero
+      (ChapterVILeanCompCertNonzeroGrid.separationOperation
+        cell.trace.factorPlus cell.plusSeparation)
+      (bulk_plus_separation_operation_mem data index)
+    have hminusSound := allSound_of_returns_zero name data.operations data.admissible
+      run.returnsZero
+      (ChapterVILeanCompCertNonzeroGrid.separationOperation
+        cell.trace.factorMinus cell.minusSeparation)
+      (bulk_minus_separation_operation_mem data index)
+    exact cell.radicand_ne_zero_of_allSound hcoordinate hall hplusSound hminusSound
+      point hregion
 
 /-- Reconstruct the semantic connector certificate from one successful Cartesian grid. -/
 theorem RunVerdict.toConnectorCertificate
@@ -472,6 +669,22 @@ theorem RunVerdict.toConnectorCertificate
       (model.rectanglePoint_ne_zero side)
     ne_zero := radicand_ne_zero run }
 
+/-- Reconstruct the same downstream connector certificate from an analytic endpoint collar and
+a successful compiled run on its complement. -/
+theorem BulkRunVerdict.toConnectorCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    {collar : ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model side}
+    {precision cells : ℕ}
+    {name : String} {data : BulkData model side collar precision cells}
+    (run : BulkRunVerdict name data) :
+    ChapterVIDConnectorCompiledCertificate model side where
+  radicand := {
+    continuous := model.continuous_rectangleRadicand_of_coordinate_ne_zero side
+      (model.rectanglePoint_ne_zero side)
+    ne_zero := bulkRun_radicand_ne_zero run }
+
 /-- End-to-end compiled-grid route. Successful Cartesian radicand batches for both connectors
 produce the canonical five-term formal sum with Poincare's exact logarithmic leading coefficient.
 Seam compatibility is a separate geometric obligation. -/
@@ -485,6 +698,32 @@ theorem exists_fivePieceContribution_tendsto_of_compiledGrids
     {finalData : Data model .final finalPrecision finalCells}
     (initialRun : RunVerdict initialName initialData)
     (finalRun : RunVerdict finalName finalData) :
+    ∃ pair : ChapterVIDPrincipalConnectorModel.CertifiedConnectorPair outerRun model,
+      Filter.Tendsto
+        (fun k : ℝ ↦ (-Real.log k)⁻¹ • pair.fivePieceContribution k)
+        (nhdsWithin 0 (Set.Ioi 0))
+        (nhds ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+          chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
+  ChapterVIDPrincipalConnectorModel.exists_fivePieceContribution_tendsto_of_compiledCertificates
+    outerRun model initialRun.toConnectorCertificate finalRun.toConnectorCertificate
+
+/-- End-to-end hybrid route: exact Morse collars remove the endpoint singularity from the
+finite artifact, while LeanCompCert checks the remaining one-dimensional connector bulks. -/
+theorem exists_fivePieceContribution_tendsto_of_compiledBulks
+    (outerRun : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    {initialCollar :
+      ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model .initial}
+    {finalCollar :
+      ChapterVIDPrincipalConnectorModel.ConnectorEndpointCollar model .final}
+    {initialPrecision initialCells finalPrecision finalCells : ℕ}
+    {initialName finalName : String}
+    {initialData :
+      BulkData model .initial initialCollar initialPrecision initialCells}
+    {finalData : BulkData model .final finalCollar finalPrecision finalCells}
+    (initialRun : BulkRunVerdict initialName initialData)
+    (finalRun : BulkRunVerdict finalName finalData) :
     ∃ pair : ChapterVIDPrincipalConnectorModel.CertifiedConnectorPair outerRun model,
       Filter.Tendsto
         (fun k : ℝ ↦ (-Real.log k)⁻¹ • pair.fivePieceContribution k)

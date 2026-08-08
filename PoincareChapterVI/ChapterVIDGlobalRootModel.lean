@@ -52,6 +52,9 @@ structure ChapterVIDPrincipalGlobalRootModel
   root_close : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
     dist (chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ)))
       chapterVIDCollisionLift < ‖chapterVIDCollisionLift‖ / 2
+  root_close_dyadic : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
+    dist (chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ)))
+      chapterVIDCollisionLift < 1 / (2 : ℝ) ^ 20
   parameterRoot_pow : ∀ k ∈ Set.Icc 0 δ,
     chapterVIDCriticalParameterRootAtD (k : ℂ) ^ 3 =
       chapterVIDCriticalParameterInverseAtD (k : ℂ)
@@ -101,6 +104,16 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
       rw [← chapterVIDCriticalMorseRootPoint_base]
       exact analyticAt_chapterVIDCriticalMorseRootPoint.continuousAt
     exact htendsto.eventually (Metric.ball_mem_nhds _ hradius)
+  have hcloseDyadic :
+      {point : ℂ × ℂ |
+        dist (chapterVIDCriticalMorseRootPoint point) chapterVIDCollisionLift <
+          1 / (2 : ℝ) ^ 20} ∈ 𝓝 ((0 : ℂ), (0 : ℂ)) := by
+    have hradius : 0 < 1 / (2 : ℝ) ^ 20 := by positivity
+    have htendsto : Tendsto chapterVIDCriticalMorseRootPoint
+        (𝓝 ((0 : ℂ), (0 : ℂ))) (𝓝 chapterVIDCollisionLift) := by
+      rw [← chapterVIDCriticalMorseRootPoint_base]
+      exact analyticAt_chapterVIDCriticalMorseRootPoint.continuousAt
+    exact htendsto.eventually (Metric.ball_mem_nhds _ hradius)
   have hfst : Tendsto (fun point : ℂ × ℂ ↦ point.1)
       (𝓝 ((0 : ℂ), (0 : ℂ))) (𝓝 0) := continuousAt_fst
   have hparameter :
@@ -135,12 +148,15 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
         chapterVIDCriticalParameterRootAtD point.1 ^ 3 =
           chapterVIDCriticalParameterInverseAtD point.1 ∧
         dist (chapterVIDCriticalMorseRootPoint point) chapterVIDCollisionLift <
-          ‖chapterVIDCollisionLift‖ / 2} ∈
+          ‖chapterVIDCollisionLift‖ / 2 ∧
+        dist (chapterVIDCriticalMorseRootPoint point) chapterVIDCollisionLift <
+          1 / (2 : ℝ) ^ 20} ∈
         𝓝 ((0 : ℂ), (0 : ℂ)) := by
     filter_upwards [hanalytic, hparameterInverseAnalytic',
-      hparameterRootAnalytic', hsource, hradicand, hne, hparameter, hclose]
-      with point ha hzi hzeta hs hrad hn hp hc
-    exact ⟨ha, hzi, hzeta, hs, hrad, hn, hp, hc⟩
+      hparameterRootAnalytic', hsource, hradicand, hne, hparameter, hclose,
+      hcloseDyadic]
+      with point ha hzi hzeta hs hrad hn hp hc hcd
+    exact ⟨ha, hzi, hzeta, hs, hrad, hn, hp, hc, hcd⟩
   obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp hall
   let r : ℝ := min (min model.δ model.L) (ε / 2)
   have hr : 0 < r := by
@@ -204,6 +220,7 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
     root_radicand_eq := ?_
     root_ne_zero := ?_
     root_close := ?_
+    root_close_dyadic := ?_
     parameterRoot_pow := ?_ }⟩
   · intro k hk v hv
     exact (hball (hrealPoint k hk v hv)).1
@@ -223,7 +240,9 @@ theorem exists_chapterVIDPrincipalGlobalRootModel
   · intro k hk v hv
     exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.1
   · intro k hk v hv
-    exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.2.2
+    exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.2.2.1
+  · intro k hk v hv
+    exact (hball (hrealPoint k hk v hv)).2.2.2.2.2.2.2.2
   · intro k hk
     have hv : (0 : ℝ) ∈ Set.uIcc (-r) r := by
       rw [Set.uIcc_of_le (by linarith [hr])]
