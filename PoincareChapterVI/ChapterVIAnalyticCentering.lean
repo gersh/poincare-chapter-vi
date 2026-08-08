@@ -375,4 +375,86 @@ theorem eventually_chapterVIDCenteredFiberInverseSquareRoot_sq_mul :
     hroot.filter_mono nhdsWithin_le_nhds] with u hu hfactor huRoot
   exact chapterVIDCenteredFiberInverseSquareRoot_sq_mul hu hfactor huRoot
 
+/-! ## Simple-pole decomposition on the singular fiber -/
+
+/-- The analytic amplitude multiplying `1/u` in the singular-fiber inverse branch. -/
+noncomputable def chapterVIDCenteredFiberAmplitude (u : ℂ) : ℂ :=
+  (chapterVIDCenteredFiberUnitRootGerm.root u)⁻¹
+
+/-- The chosen unit root is analytic at the pinch. -/
+theorem analyticAt_chapterVIDCenteredFiberUnitRoot :
+    AnalyticAt ℂ chapterVIDCenteredFiberUnitRootGerm.root 0 := by
+  apply DifferentiableOn.analyticAt
+    chapterVIDCenteredFiberUnitRootGerm.differentiableOn_root
+  exact chapterVIDCenteredFiberUnitRootGerm.isOpen_domain.mem_nhds
+    chapterVIDCenteredFiberUnitRootGerm.base_mem
+
+/-- The pole amplitude is analytic and nonzero at the pinch. -/
+theorem analyticAt_chapterVIDCenteredFiberAmplitude :
+    AnalyticAt ℂ chapterVIDCenteredFiberAmplitude 0 := by
+  exact analyticAt_chapterVIDCenteredFiberUnitRoot.inv
+    (chapterVIDCenteredFiberUnitRootGerm.root_ne_zero 0
+      chapterVIDCenteredFiberUnitRootGerm.base_mem)
+
+@[simp]
+theorem chapterVIDCenteredFiberAmplitude_zero_ne :
+    chapterVIDCenteredFiberAmplitude 0 ≠ 0 := by
+  exact inv_ne_zero
+    (chapterVIDCenteredFiberUnitRootGerm.root_ne_zero 0
+      chapterVIDCenteredFiberUnitRootGerm.base_mem)
+
+/-- The removable divided difference of the pole amplitude. -/
+noncomputable def chapterVIDCenteredFiberRegular (u : ℂ) : ℂ :=
+  dslope chapterVIDCenteredFiberAmplitude 0 u
+
+/-- Removing the constant term from the amplitude leaves an analytic regular factor. -/
+theorem analyticAt_chapterVIDCenteredFiberRegular :
+    AnalyticAt ℂ chapterVIDCenteredFiberRegular 0 := by
+  rcases analyticAt_chapterVIDCenteredFiberAmplitude with ⟨series, hseries⟩
+  exact ⟨series.fslope, hseries.has_fpower_series_dslope_fslope⟩
+
+/-- Exact first-order decomposition of the analytic amplitude. -/
+theorem chapterVIDCenteredFiberAmplitude_eq (u : ℂ) :
+    chapterVIDCenteredFiberAmplitude u =
+      chapterVIDCenteredFiberAmplitude 0 + u * chapterVIDCenteredFiberRegular u := by
+  have hslope := sub_smul_dslope chapterVIDCenteredFiberAmplitude 0 u
+  have hslope' : u * chapterVIDCenteredFiberRegular u =
+      chapterVIDCenteredFiberAmplitude u - chapterVIDCenteredFiberAmplitude 0 := by
+    simpa [chapterVIDCenteredFiberRegular, sub_zero, smul_eq_mul] using hslope
+  calc
+    chapterVIDCenteredFiberAmplitude u =
+        (chapterVIDCenteredFiberAmplitude u - chapterVIDCenteredFiberAmplitude 0) +
+          chapterVIDCenteredFiberAmplitude 0 := by ring
+    _ = u * chapterVIDCenteredFiberRegular u +
+          chapterVIDCenteredFiberAmplitude 0 := by rw [← hslope']
+    _ = chapterVIDCenteredFiberAmplitude 0 +
+          u * chapterVIDCenteredFiberRegular u := by ring
+
+/-- The actual inverse-square-root branch is a nonzero simple pole plus a regular analytic
+function.  This is the local function-level precursor of Poincaré's logarithmic contour term. -/
+theorem chapterVIDCenteredFiberInverseSquareRoot_eq_pole_add_regular
+    {u : ℂ} (hu : u ≠ 0) :
+    chapterVIDCenteredFiberInverseSquareRoot u =
+      chapterVIDCenteredFiberAmplitude 0 / u + chapterVIDCenteredFiberRegular u := by
+  calc
+    chapterVIDCenteredFiberInverseSquareRoot u =
+        u⁻¹ * chapterVIDCenteredFiberAmplitude u := by
+      simp [chapterVIDCenteredFiberInverseSquareRoot,
+        chapterVIDCenteredFiberSquareRoot, chapterVIDCenteredFiberAmplitude, mul_inv_rev,
+        mul_comm]
+    _ = u⁻¹ * (chapterVIDCenteredFiberAmplitude 0 +
+          u * chapterVIDCenteredFiberRegular u) := by
+      rw [chapterVIDCenteredFiberAmplitude_eq]
+    _ = chapterVIDCenteredFiberAmplitude 0 / u +
+          chapterVIDCenteredFiberRegular u := by
+      field_simp [hu]
+
+/-- The simple-pole decomposition holds throughout a punctured neighborhood of the pinch. -/
+theorem eventually_chapterVIDCenteredFiberInverseSquareRoot_eq_pole_add_regular :
+    ∀ᶠ u in nhdsWithin (0 : ℂ) ({0}ᶜ : Set ℂ),
+      chapterVIDCenteredFiberInverseSquareRoot u =
+        chapterVIDCenteredFiberAmplitude 0 / u + chapterVIDCenteredFiberRegular u := by
+  filter_upwards [self_mem_nhdsWithin] with u hu
+  exact chapterVIDCenteredFiberInverseSquareRoot_eq_pole_add_regular hu
+
 end PoincareChapterVI

@@ -104,7 +104,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   with its first fiber derivative along the parameter axis while retaining a nonzero second
   fiber derivative at D. On the singular fiber it performs the convergent square division and
   obtains an analytic unit nonzero at the pinch, then constructs a holomorphic punctured inverse-
-  square-root branch proved correct for the actual centered radicand.
+  square-root branch proved correct for the actual centered radicand. That actual branch is
+  further decomposed as a nonzero constant divided by the centered fiber coordinate plus a
+  function analytic at the pinch, the local simple-pole statement underlying Poincaré's
+  logarithmic contour term.
   `hasSum_chapterVILogSingularityCoefficient` verifies the
   logarithmic Taylor expansion used in §100, and
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a

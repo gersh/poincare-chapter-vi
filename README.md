@@ -180,7 +180,10 @@ The strongest newly completed component is the finite algebra in §103:
   that every sufficiently nearby centered fiber has exact order two and its own convergent
   nonvanishing unit; only the jointly analytic choice is missing. For the singular fiber itself,
   a locally chosen holomorphic square root of the unit now yields an inverse-square-root branch
-  holomorphic off the pinch and certified against the actual radicand.
+  holomorphic off the pinch and certified against the actual radicand. Lean further decomposes
+  this actual branch as `A(0)/u + R(u)`, where `A(0) ≠ 0` and `R` is analytic at the pinch.
+  This is the function-level simple-pole input that produces Poincaré's logarithm after the
+  remaining contour integration and parameter-dependent preparation steps.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
