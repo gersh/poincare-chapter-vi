@@ -25,6 +25,13 @@ completion therefore needs to retain this second-order scale-normalized data or 
 constructive quantitative Morse witness; a receipt alone cannot supply the missing analytic
 relation.
 
+That second-order finite campaign is now present. `f''(u)Δ²` has the certified negative
+imaginary orientation on all 21 omitted initial cells and positive imaginary orientation on all
+9 omitted final cells. Ten three-cell LeanCompCert artifacts pass with zero failed claims, and
+Lean identifies each enclosed value with the derivative of the actual path derivative. What
+remains is the analytic join to a first-derivative anchor at the selected inverse-Morse endpoint;
+the compiled curvature cannot determine that noncomputable endpoint relation by itself.
+
 This note separates three questions that are easy to conflate:
 
 1. What is proved in Chapter VI of volume I of *Les méthodes nouvelles de la mécanique

@@ -540,6 +540,17 @@ The strongest newly completed component is the finite algebra in §103:
   artifact must still retain that second-order/Morse-scale data instead of discarding it in an
   absolute endpoint box.
 
+  `ChapterVILeanCompCertCartesianFactorSecondDerivativeTrace.lean` now retains that scale as the
+  affine curvature `f''(u)Δ²`. The exact 30 omitted cells pass: the initial-side curvature has
+  negative imaginary part on cells `1003` through `1023`, and the final-side curvature has
+  positive imaginary part on cells `0` through `8`. Ten independently admissible three-cell
+  artifacts (321 operations and 2,817 integer claims per shard) have zero failed claims.
+  `ReferenceCompiledRunVerdict.modelLineDerivativeImag_hasDerivAt_and_oriented` reconstructs the
+  actual model line and proves both the `HasDerivAt` statement and the side-oriented curvature.
+  The remaining join is analytic rather than finite: the curvature must be integrated from a
+  first-path-derivative anchor at the noncomputable inverse-Morse endpoint before these rows can
+  be assembled into the punctured seam cover.
+
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
   A hash-bound LeanCompCert receipt plus the explicit `RunAdmission` premise then reconstructs
@@ -561,8 +572,12 @@ The strongest newly completed component is the finite algebra in §103:
   `check-factor-native [OPTIONS]`; the check commands also accept LeanCompCert's `--attest`
   options. The derivative campaign adds `reference-factor-derivative-shards`,
   `stats-factor-derivative-shard SIDE SHARD`, `emit-factor-derivative-shard SIDE SHARD OUTPUT.c`,
-  and `check-factor-derivative-shard SIDE SHARD [OPTIONS]`. The 66-artifact bulk evaluator and
-  41-artifact derivative evaluator both report zero failed claims. The old bulk theorem's collar
+  and `check-factor-derivative-shard SIDE SHARD [OPTIONS]`. The curvature campaign likewise adds
+  `reference-factor-second-derivative-shards`, `stats-factor-second-derivative-shard SIDE SHARD`,
+  `emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c`, and
+  `check-factor-second-derivative-shard SIDE SHARD [OPTIONS]`. The 66-artifact bulk evaluator and
+  41-artifact derivative evaluator and 10-artifact second-derivative evaluator all report zero
+  failed claims. The old bulk theorem's collar
   inequality `261 / 1024 ≤ collar.width` remains visible only on that old fixed-cutoff route;
   the punctured interface does not assume it.
 - The two regular quarters now use the exact rational unit-circle parametrization

@@ -1,5 +1,6 @@
 import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference
+import PoincareChapterVI.ChapterVIDConnectorFactorSecondDerivativeReference
 import LeanCompCert.NativeCheck
 
 /-!
@@ -183,6 +184,46 @@ def nativeCert (side : ChapterVIDOuterArcSide) (shard : Fin (shardCount side)) :
 
 end Derivative
 
+namespace SecondDerivative
+
+open ChapterVIDConnectorFactorSecondDerivativeReference
+
+def parseShard (side : ChapterVIDOuterArcSide) (value : String) :
+    Option (Fin (shardCount side)) := do
+  let index ← value.toNat?
+  if h : index < shardCount side then some ⟨index, h⟩ else none
+
+def withShard (sideText shardText : String)
+    (action : (side : ChapterVIDOuterArcSide) → Fin (shardCount side) → IO UInt32) : IO UInt32 := do
+  match parseSide sideText with
+  | none =>
+      IO.eprintln "error: SIDE must be initial|final"
+      pure 1
+  | some side =>
+      match parseShard side shardText with
+      | some shard => action side shard
+      | none =>
+          IO.eprintln s!"error: second-derivative SHARD must be below {shardCount side}"
+          pure 1
+
+def artifact (side : ChapterVIDOuterArcSide) (shard : Fin (shardCount side)) :=
+  ChapterVILeanCompCertAttestation.batchArtifact (shardArtifactName side shard)
+    (shardOperations side shard)
+
+def emittedC (side : ChapterVIDOuterArcSide) (shard : Fin (shardCount side)) :
+    Except (Array String) String :=
+  match (artifact side shard).source? with
+  | some source => .ok source
+  | none => .error #[s!"LeanCompCert could not emit curvature shard {sideName side}/{shard.val}"]
+
+def nativeCert (side : ChapterVIDOuterArcSide) (shard : Fin (shardCount side)) :
+    LeanCompCert.NativeCheck.Cert :=
+  { name := shardArtifactName side shard
+    emitted := emittedC side shard
+    certifiedValue := some 0 }
+
+end SecondDerivative
+
 def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle) : IO UInt32 := do
   if cells = 0 then
     IO.eprintln "error: CELLS must be positive"
@@ -362,6 +403,10 @@ def cliMain (args : List String) : IO UInt32 := do
       Derivative.withShard sideText shardText fun side shard ↦
         LeanCompCert.NativeCheck.run [Derivative.nativeCert side shard]
           (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+  | "check-factor-second-derivative-shard" :: sideText :: shardText :: rest =>
+      SecondDerivative.withShard sideText shardText fun side shard ↦
+        LeanCompCert.NativeCheck.run [SecondDerivative.nativeCert side shard]
+          (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
   | ["stats-factor-shard", sideText, shardText] =>
       withFactorShard sideText shardText fun side shard ↦ do
         let shardOperations := referenceShardOperations side shard
@@ -411,6 +456,24 @@ def cliMain (args : List String) : IO UInt32 := do
             IO.FS.writeFile file source
             IO.println s!"wrote {file}"
             pure 0
+  | ["stats-factor-second-derivative-shard", sideText, shardText] =>
+      SecondDerivative.withShard sideText shardText fun side shard ↦ do
+        let shardOperations :=
+          ChapterVIDConnectorFactorSecondDerivativeReference.shardOperations side shard
+        IO.println s!"cells: {ChapterVIDConnectorFactorSecondDerivativeReference.cellsPerShard}"
+        IO.println s!"operations: {shardOperations.length}"
+        IO.println s!"integer claims: {(batchClaims shardOperations).length}"
+        pure 0
+  | ["emit-factor-second-derivative-shard", sideText, shardText, file] =>
+      SecondDerivative.withShard sideText shardText fun side shard ↦ do
+        match SecondDerivative.emittedC side shard with
+        | .error errors =>
+            for error in errors do IO.eprintln error
+            pure 1
+        | .ok source =>
+            IO.FS.writeFile file source
+            IO.println s!"wrote {file}"
+            pure 0
   | ["reference-factor-shards"] =>
       let mut checked := 0
       let mut failures := 0
@@ -433,6 +496,18 @@ def cliMain (args : List String) : IO UInt32 := do
             (ChapterVIDConnectorFactorDerivativeReference.shardOperations side shard))
           checked := checked + 1
       IO.println s!"checked derivative shards: {checked}"
+      IO.println s!"failed integer claims: {failures}"
+      pure (if failures = 0 then 0 else 1)
+  | ["reference-factor-second-derivative-shards"] =>
+      let mut checked := 0
+      let mut failures := 0
+      for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+        for shard in List.finRange
+            (ChapterVIDConnectorFactorSecondDerivativeReference.shardCount side) do
+          failures := failures + failureCount (batchClaims
+            (ChapterVIDConnectorFactorSecondDerivativeReference.shardOperations side shard))
+          checked := checked + 1
+      IO.println s!"checked second-derivative shards: {checked}"
       IO.println s!"failed integer claims: {failures}"
       pure (if failures = 0 then 0 else 1)
   | ["reference-coarse", cellsText] =>
@@ -463,7 +538,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain
