@@ -110,9 +110,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   and proves its exact logarithmic asymptotic.
   `tendsto_chapterVI_weightedQuadraticPinch_div_neg_log` further proves that a continuous
   Lipschitz amplitude changes the leading logarithmic coefficient by exactly its value at the
-  pinch; its varying part has a uniformly bounded integral. Identifying the actual convergent
-  analytic germ with the formal series, transporting the complex contour and square-root branch,
-  and proving these statements uniformly in the external parameters remain open. The predicates
+  pinch; its varying part has a uniformly bounded integral. The vector-valued parameter-dependent
+  theorem `tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul` applies in particular to
+  complex amplitudes, permits the center value to vary continuously with the pinch parameter, and
+  uses one uniform Lipschitz bound. Identifying the actual convergent analytic germ with the formal
+  series and transporting the complex contour and square-root branch remain open. The predicates
   below state the corresponding restricted-problem inputs.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform

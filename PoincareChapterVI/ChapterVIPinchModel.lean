@@ -43,6 +43,20 @@ def chapterVIQuadraticPinchAmplitudeRemainder
     (amplitude : ℝ → ℝ) (k t : ℝ) : ℝ :=
   (amplitude t - amplitude 0) * chapterVIQuadraticPinchIntegrand k t
 
+/-- The prepared pinch with an amplitude taking values in a complete real normed space.  Taking
+`E = ℂ` gives the complex-valued amplitude in Poincaré's contour integral.  The first argument of
+`amplitude` is the external singular parameter and the second is the local contour coordinate. -/
+def chapterVIParametricQuadraticPinchIntegrand
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (amplitude : ℝ → ℝ → E) (k t : ℝ) : E :=
+  chapterVIQuadraticPinchIntegrand k t • amplitude k t
+
+/-- The part left after extracting the parameter-dependent center value `amplitude k 0`. -/
+def chapterVIParametricQuadraticPinchRemainder
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (amplitude : ℝ → ℝ → E) (k t : ℝ) : E :=
+  chapterVIQuadraticPinchIntegrand k t • (amplitude k t - amplitude k 0)
+
 /-- The elementary primitive behind the logarithmic local model. -/
 theorem hasDerivAt_chapterVIQuadraticPinchPrimitive
     {k : ℝ} (hk : 0 < k) (t : ℝ) :
@@ -86,6 +100,87 @@ theorem continuous_chapterVIQuadraticPinchAmplitudeRemainder
     Continuous (chapterVIQuadraticPinchAmplitudeRemainder amplitude k) := by
   exact (hamplitude.sub continuous_const).mul
     (continuous_chapterVIQuadraticPinchIntegrand hk)
+
+/-- Continuity of the vector-valued prepared integrand for each positive parameter. -/
+theorem continuous_chapterVIParametricQuadraticPinchIntegrand
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {amplitude : ℝ → ℝ → E} {k : ℝ}
+    (hamplitude : Continuous (amplitude k)) (hk : 0 < k) :
+    Continuous (chapterVIParametricQuadraticPinchIntegrand amplitude k) := by
+  exact (continuous_chapterVIQuadraticPinchIntegrand hk).smul hamplitude
+
+/-- Continuity of the vector-valued varying-amplitude remainder. -/
+theorem continuous_chapterVIParametricQuadraticPinchRemainder
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {amplitude : ℝ → ℝ → E} {k : ℝ}
+    (hamplitude : Continuous (amplitude k)) (hk : 0 < k) :
+    Continuous (chapterVIParametricQuadraticPinchRemainder amplitude k) := by
+  exact (continuous_chapterVIQuadraticPinchIntegrand hk).smul
+    (hamplitude.sub continuous_const)
+
+/-- Exact extraction of the center value from a vector-valued, parameter-dependent prepared
+pinch. -/
+theorem integral_chapterVIParametricQuadraticPinchIntegrand_eq
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {k : ℝ}
+    (hamplitude : Continuous (amplitude k)) (hk : 0 < k) (a b : ℝ) :
+    (∫ t in a..b, chapterVIParametricQuadraticPinchIntegrand amplitude k t) =
+      (∫ t in a..b, chapterVIQuadraticPinchIntegrand k t) • amplitude k 0 +
+        ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+  have hconstant : Continuous
+      (fun t ↦ chapterVIQuadraticPinchIntegrand k t • amplitude k 0) :=
+    (continuous_chapterVIQuadraticPinchIntegrand hk).smul continuous_const
+  have hremainder :=
+    continuous_chapterVIParametricQuadraticPinchRemainder hamplitude hk
+  calc
+    (∫ t in a..b, chapterVIParametricQuadraticPinchIntegrand amplitude k t) =
+        ∫ t in a..b,
+          chapterVIQuadraticPinchIntegrand k t • amplitude k 0 +
+            chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+      apply intervalIntegral.integral_congr
+      intro t _
+      simp only [chapterVIParametricQuadraticPinchIntegrand,
+        chapterVIParametricQuadraticPinchRemainder, smul_sub]
+      abel
+    _ = (∫ t in a..b, chapterVIQuadraticPinchIntegrand k t • amplitude k 0) +
+        ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+      rw [intervalIntegral.integral_add
+        (hconstant.intervalIntegrable a b) (hremainder.intervalIntegrable a b)]
+    _ = (∫ t in a..b, chapterVIQuadraticPinchIntegrand k t) • amplitude k 0 +
+        ∫ t in a..b, chapterVIParametricQuadraticPinchRemainder amplitude k t := by
+      rw [intervalIntegral.integral_smul_const]
+
+/-- A uniform Lipschitz estimate in the contour coordinate makes the vector-valued remainder
+uniformly bounded as the pinch parameter tends to zero. -/
+theorem norm_integral_chapterVIParametricQuadraticPinchRemainder_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {C k L : ℝ}
+    (hC : 0 ≤ C) (hk : 0 < k) (hL : 0 ≤ L)
+    (hLipschitz : ∀ t, ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
+    ‖∫ t in -L..L, chapterVIParametricQuadraticPinchRemainder amplitude k t‖ ≤
+      2 * C * L := by
+  have hbound : ∀ t ∈ Ι (-L) L,
+      ‖chapterVIParametricQuadraticPinchRemainder amplitude k t‖ ≤ C := by
+    intro t _
+    have hpositive : 0 < t ^ 2 + k := by nlinarith [sq_nonneg t]
+    have hsqrt : 0 < Real.sqrt (t ^ 2 + k) := Real.sqrt_pos.2 hpositive
+    have ht_le : |t| ≤ Real.sqrt (t ^ 2 + k) := by
+      rw [← Real.sqrt_sq_eq_abs]
+      exact Real.sqrt_le_sqrt (by linarith)
+    simp only [chapterVIParametricQuadraticPinchRemainder,
+      chapterVIQuadraticPinchIntegrand, norm_smul, Real.norm_eq_abs, abs_inv,
+      abs_of_nonneg (Real.sqrt_nonneg _)]
+    rw [mul_comm]
+    rw [inv_eq_one_div, mul_div]
+    simp only [mul_one]
+    apply (div_le_div_of_nonneg_right (hLipschitz t) hsqrt.le).trans
+    rw [div_le_iff₀ hsqrt]
+    nlinarith
+  have hintegral := intervalIntegral.norm_integral_le_of_norm_le_const hbound
+  calc
+    ‖∫ t in -L..L, chapterVIParametricQuadraticPinchRemainder amplitude k t‖ ≤
+        C * |L - -L| := hintegral
+    _ = 2 * C * L := by rw [abs_of_nonneg (by linarith)]; ring
 
 /-- Exact extraction of the amplitude's value at the pinch.  This is the elementary real-model
 counterpart of extracting Poincaré's nonzero analytic unit from the prepared local integral. -/
@@ -302,5 +397,70 @@ theorem tendsto_chapterVI_weightedQuadraticPinch_div_neg_log
     (amplitude 0 * (∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) +
       remainder k) / (-Real.log k)
   ring
+
+/-- Source-facing vector-valued local limit.  The amplitude may depend on the external pinch
+parameter, its center value need only converge, and its variation in the contour coordinate is
+controlled by one uniform Lipschitz constant.  The theorem applies in particular to `E = ℂ`.
+
+Thus, on the fixed real symmetric local cycle, the coefficient of `-log k` is the limiting value
+of the analytic unit at the pinch.  No finite-dimensional approximation of the amplitude is used.
+-/
+theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {center : E} {C L : ℝ}
+    (hamplitude : ∀ k, 0 < k → Continuous (amplitude k))
+    (hcenter : Tendsto (fun k ↦ amplitude k 0) (𝓝[>] 0) (𝓝 center))
+    (hC : 0 ≤ C) (hL : 0 < L)
+    (hLipschitz : ∀ k, 0 < k → ∀ t,
+      ‖amplitude k t - amplitude k 0‖ ≤ C * |t|) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        (∫ t in -L..L, chapterVIParametricQuadraticPinchIntegrand amplitude k t))
+      (𝓝[>] 0) (𝓝 center) := by
+  let remainder : ℝ → E := fun k ↦
+    ∫ t in -L..L, chapterVIParametricQuadraticPinchRemainder amplitude k t
+  have hdenominator : Tendsto (fun k : ℝ ↦ -Real.log k) (𝓝[>] 0) atTop := by
+    apply tendsto_neg_atTop_iff.mpr
+    exact Real.tendsto_log_nhdsGT_zero
+  have hremainderBound : ∀ᶠ k in 𝓝[>] (0 : ℝ), ‖remainder k‖ ≤ 2 * C * L := by
+    filter_upwards [self_mem_nhdsWithin] with k hk
+    exact norm_integral_chapterVIParametricQuadraticPinchRemainder_le
+      hC hk hL.le (hLipschitz k hk)
+  have hremainderBounded :
+      IsBoundedUnder (· ≤ ·) (𝓝[>] (0 : ℝ)) (norm ∘ remainder) := by
+    apply isBoundedUnder_of_eventually_le (a := 2 * C * L)
+    simpa [Function.comp_def] using hremainderBound
+  have hinverse :
+      Tendsto (fun k : ℝ ↦ (-Real.log k)⁻¹) (𝓝[>] 0) (𝓝 0) :=
+    hdenominator.inv_tendsto_atTop
+  have hremainderRatio :
+      Tendsto (fun k ↦ (-Real.log k)⁻¹ • remainder k) (𝓝[>] 0) (𝓝 0) :=
+    hinverse.zero_smul_isBoundedUnder_le hremainderBounded
+  have hbaseRatio := tendsto_chapterVI_quadraticPinch_div_neg_log hL
+  have hmain : Tendsto
+      (fun k ↦
+        ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) / (-Real.log k)) •
+          amplitude k 0)
+      (𝓝[>] 0) (𝓝 center) := by
+    simpa using hbaseRatio.smul hcenter
+  have hcombined : Tendsto
+      (fun k ↦
+        ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) / (-Real.log k)) •
+            amplitude k 0 +
+          (-Real.log k)⁻¹ • remainder k)
+      (𝓝[>] 0) (𝓝 center) := by
+    simpa using hmain.add hremainderRatio
+  apply hcombined.congr'
+  filter_upwards [self_mem_nhdsWithin] with k hk
+  rw [integral_chapterVIParametricQuadraticPinchIntegrand_eq
+    (hamplitude k hk) hk]
+  change ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) / (-Real.log k)) •
+        amplitude k 0 + (-Real.log k)⁻¹ • remainder k =
+    (-Real.log k)⁻¹ •
+      ((∫ t in -L..L, chapterVIQuadraticPinchIntegrand k t) • amplitude k 0 +
+        remainder k)
+  rw [smul_add, smul_smul]
+  congr 1
+  rw [div_eq_mul_inv, mul_comm]
 
 end PoincareChapterVI
