@@ -182,8 +182,12 @@ The strongest newly completed component is the finite algebra in §103:
   a locally chosen holomorphic square root of the unit now yields an inverse-square-root branch
   holomorphic off the pinch and certified against the actual radicand. Lean further decomposes
   this actual branch as `A(0)/u + R(u)`, where `A(0) ≠ 0` and `R` is analytic at the pinch.
-  This is the function-level simple-pole input that produces Poincaré's logarithm after the
-  remaining contour integration and parameter-dependent preparation steps.
+  On a small disk in the principal slit plane, Lean constructs a primitive of this actual branch
+  of the form `A(0) log u + Q(u)`, with `Q′ = R`; thus the nonzero logarithmic singularity is now
+  obtained at function level on the singular fiber. The canonical joint-unit candidate is also
+  defined explicitly as the quotient by `u²`, filled in on the axis by `∂²ᵤψ/2`. Its exact
+  factorization is proved everywhere and its analyticity is proved off the axis. The remaining
+  local preparation step is exactly the removable analyticity of that candidate on the axis.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

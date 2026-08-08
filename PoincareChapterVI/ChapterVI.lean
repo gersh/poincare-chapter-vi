@@ -107,7 +107,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   square-root branch proved correct for the actual centered radicand. That actual branch is
   further decomposed as a nonzero constant divided by the centered fiber coordinate plus a
   function analytic at the pinch, the local simple-pole statement underlying Poincaré's
-  logarithmic contour term.
+  logarithmic contour term. On the principal slit plane, the actual branch is then integrated to
+  a nonzero constant times `log u` plus a holomorphic regular primitive. A canonical two-variable
+  unit candidate is the literal quotient by `u²`, filled in on the centered axis by half the
+  second fiber derivative. Its exact factorization holds everywhere and it is analytic off the
+  axis; removable analyticity on the axis is the remaining joint-division theorem.
   `hasSum_chapterVILogSingularityCoefficient` verifies the
   logarithmic Taylor expansion used in §100, and
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a

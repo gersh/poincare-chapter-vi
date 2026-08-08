@@ -1,6 +1,8 @@
 import PoincareChapterVI.ChapterVIAnalyticCriticalCenter
 import PoincareChapterVI.ChapterVIComplexBranch
 import Mathlib.Analysis.Calculus.Deriv.Shift
+import Mathlib.Analysis.Complex.HasPrimitives
+import Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv
 
 /-!
 # Centering the exact Chapter VI radicand
@@ -197,6 +199,63 @@ theorem analyticOrderAt_chapterVIDCenteredRadicand_eq_two :
     ⟨chapterVIDCenteredRadicand_axis_eq_zero chapterVIDZBase,
       deriv_chapterVIDCenteredRadicand_eq_zero,
       deriv_deriv_chapterVIDCenteredRadicand_ne_zero⟩
+
+/-! ## The canonical joint square quotient -/
+
+/-- The canonical candidate for the jointly analytic unit after square division.  Away from the
+centered parameter axis it is the literal quotient by `u²`; on the axis it is filled in by the
+Taylor value `∂²ᵤ ψ / 2`.  The exact factorization below is algebraic.  Proving that this
+piecewise function is analytic at `(z_D,0)` is precisely the remaining removable-division lemma. -/
+noncomputable def chapterVIDCenteredJointUnit (point : ℂ × ℂ) : ℂ :=
+  if point.2 = 0 then
+    (2 : ℂ)⁻¹ * chapterVISecondFiberDerivative chapterVIDCenteredRadicand point
+  else
+    chapterVIDCenteredRadicand point / point.2 ^ 2
+
+@[simp]
+theorem chapterVIDCenteredJointUnit_axis (z : ℂ) :
+    chapterVIDCenteredJointUnit (z, 0) =
+      (2 : ℂ)⁻¹ *
+        chapterVISecondFiberDerivative chapterVIDCenteredRadicand (z, 0) := by
+  simp [chapterVIDCenteredJointUnit]
+
+/-- The canonical joint quotient is nonzero at Poincaré's certified double point. -/
+theorem chapterVIDCenteredJointUnit_base_ne_zero :
+    chapterVIDCenteredJointUnit (chapterVIDZBase, 0) ≠ 0 := by
+  rw [chapterVIDCenteredJointUnit_axis]
+  exact mul_ne_zero (inv_ne_zero (by norm_num))
+    (by
+      rw [chapterVISecondFiberDerivative_eq_deriv_deriv
+        analyticAt_chapterVIDCenteredRadicand]
+      exact deriv_deriv_chapterVIDCenteredRadicand_ne_zero)
+
+/-- Square division by the canonical candidate is an exact identity at every point, including on
+the centered axis.  No finite jet or convergence assertion is used here. -/
+theorem chapterVIDCenteredRadicand_eq_sq_mul_jointUnit (point : ℂ × ℂ) :
+    chapterVIDCenteredRadicand point = point.2 ^ 2 * chapterVIDCenteredJointUnit point := by
+  by_cases hu : point.2 = 0
+  · have hpoint : point = (point.1, 0) := by
+      ext <;> simp [hu]
+    rw [hpoint]
+    simp [chapterVIDCenteredJointUnit]
+  · simp only [chapterVIDCenteredJointUnit, hu, if_false]
+    field_simp
+
+/-- Off the centered axis, the canonical quotient is analytic wherever the centered radicand is
+analytic.  Thus its only analytic issue is the deliberately filled-in axis. -/
+theorem analyticAt_chapterVIDCenteredJointUnit_of_fiber_ne
+    {point : ℂ × ℂ}
+    (hcentered : AnalyticAt ℂ chapterVIDCenteredRadicand point)
+    (hu : point.2 ≠ 0) :
+    AnalyticAt ℂ chapterVIDCenteredJointUnit point := by
+  have hquotient : AnalyticAt ℂ
+      (fun q : ℂ × ℂ ↦ chapterVIDCenteredRadicand q / q.2 ^ 2) point :=
+    hcentered.div (analyticAt_snd.pow 2) (pow_ne_zero 2 hu)
+  have heq : chapterVIDCenteredJointUnit =ᶠ[nhds point]
+      fun q : ℂ × ℂ ↦ chapterVIDCenteredRadicand q / q.2 ^ 2 := by
+    filter_upwards [continuousAt_snd.eventually_ne hu] with q hq
+    simp [chapterVIDCenteredJointUnit, hq]
+  exact hquotient.congr heq.symm
 
 /-! ## Convergent square division on the singular fiber -/
 
@@ -456,5 +515,46 @@ theorem eventually_chapterVIDCenteredFiberInverseSquareRoot_eq_pole_add_regular 
         chapterVIDCenteredFiberAmplitude 0 / u + chapterVIDCenteredFiberRegular u := by
   filter_upwards [self_mem_nhdsWithin] with u hu
   exact chapterVIDCenteredFiberInverseSquareRoot_eq_pole_add_regular hu
+
+/-! ## Poincaré's logarithmic primitive on the singular fiber -/
+
+/-- The actual singular-fiber inverse branch has a local primitive consisting of a nonzero
+multiple of the principal complex logarithm plus a holomorphic regular term.  This turns the
+simple-pole decomposition into the function-level logarithm used in Chapter VI; it is stated on
+the principal slit plane only to fix a concrete logarithm branch. -/
+theorem exists_chapterVIDCenteredFiberLogPrimitive :
+    ∃ radius : ℝ, 0 < radius ∧
+      ∃ regularPrimitive : ℂ → ℂ,
+        regularPrimitive 0 = 0 ∧
+        (∀ u ∈ Metric.ball (0 : ℂ) radius,
+          HasDerivAt regularPrimitive (chapterVIDCenteredFiberRegular u) u) ∧
+        ∀ u ∈ Metric.ball (0 : ℂ) radius ∩ Complex.slitPlane,
+          HasDerivAt
+            (fun v ↦ chapterVIDCenteredFiberAmplitude 0 * Complex.log v +
+              regularPrimitive v)
+            (chapterVIDCenteredFiberInverseSquareRoot u) u := by
+  obtain ⟨radius, hradius, hregular⟩ :=
+    analyticAt_chapterVIDCenteredFiberRegular.exists_ball_analyticOnNhd
+  obtain ⟨regularPrimitive, hprimitive⟩ :=
+    hregular.differentiableOn.isExactOn_ball
+  obtain ⟨normalizedPrimitive, hnormalizedZero, hnormalized⟩ :=
+    (show Complex.IsExactOn chapterVIDCenteredFiberRegular
+        (Metric.ball (0 : ℂ) radius) from
+      ⟨regularPrimitive, hprimitive⟩).with_val_at 0 0
+  refine ⟨radius, hradius, normalizedPrimitive, hnormalizedZero, hnormalized, ?_⟩
+  intro u hu
+  have hu_ne : u ≠ 0 := by
+    intro hu_zero
+    subst u
+    exact Complex.zero_notMem_slitPlane hu.2
+  have hlog : HasDerivAt
+      (fun v : ℂ ↦ chapterVIDCenteredFiberAmplitude 0 * Complex.log v)
+      (chapterVIDCenteredFiberAmplitude 0 * u⁻¹) u :=
+    (Complex.hasDerivAt_log hu.2).const_mul
+      (chapterVIDCenteredFiberAmplitude 0)
+  have hsum := hlog.add (hnormalized u hu.1)
+  apply hsum.congr_deriv
+  rw [chapterVIDCenteredFiberInverseSquareRoot_eq_pole_add_regular hu_ne]
+  simp only [div_eq_mul_inv]
 
 end PoincareChapterVI

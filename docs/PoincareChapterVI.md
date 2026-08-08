@@ -132,8 +132,12 @@ The source-facing files added after the standalone-project commit are deliberate
   holomorphic square root, producing a holomorphic inverse-square-root branch off the pinch that
   is proved algebraically correct for the actual centered source radicand. This actual branch is
   then decomposed exactly as `A(0)/u + R(u)`, with `A(0) ≠ 0` and `R` analytic at the pinch.
-  Thus the singular fiber now supplies the simple-pole term whose contour primitive is
-  logarithmic; joint parameter dependence and placement of the source cycle remain open.
+  On a small disk intersected with the principal slit plane, a local primitive is constructed
+  explicitly as `A(0) log u + Q(u)`, where `Q′ = R`. Thus the singular fiber now supplies the
+  actual nonzero logarithmic term, not only its formal pole. The canonical joint unit is defined
+  as `ψ(z,u)/u²` off the centered axis and `∂²ᵤψ(z,0)/2` on it; Lean proves the exact
+  factorization everywhere, nonvanishing at D, and analyticity off the axis. Removable
+  analyticity on the axis and placement of the source cycle remain open.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series
