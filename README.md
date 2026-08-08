@@ -439,8 +439,13 @@ The strongest newly completed component is the finite algebra in §103:
   feeds successful runs directly to the five-piece logarithmic theorem. Shrinking the local
   analytic model keeps its endpoints in the negative half-plane, so Lean proves the affine root
   coordinate nonzero without a grid. Connector and radicand continuity are likewise derived from
-  the analytic formulas. The compiled input now contains only the radicand cover, interval
-  containment, admissibility, and zero-failure observations. The
+  the analytic formulas. `ChapterVILeanCompCertCartesianRadicandTrace.lean` expands each proposed
+  output rectangle into checked reciprocal, cubic, linearized-exponential, Laurent, product, and
+  signed-separation operations. Static integer L1 budgets prove the needed complex-norm
+  enclosures, while checked scalar products propagate the exponential remainder bounds. Thus a
+  connector cell has no monolithic radicand-containment field and no separately trusted norm or
+  remainder fields: its semantic inputs are just dyadic enclosures of the parameter root and
+  affine root coordinate, together with the two exact rational constants. The
   outstanding certificate-generation issue is now explicit: because the local Morse inverse is
   noncomputable, its dyadic cell enclosures must be justified by an interval-Newton or comparable
   analytic bound in Lean; compiled code is not allowed to evaluate that inverse opaquely.

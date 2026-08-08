@@ -31,6 +31,82 @@ def Contains {precision : ℕ}
     (rectangle : ChapterVISignedDyadicComplexRectangle precision) (value : ℂ) : Prop :=
   rectangle.real.Contains value.re ∧ rectangle.imag.Contains value.im
 
+/-- A rational `L¹` enclosure turns component rectangles into a dyadic interval containing the
+Euclidean complex norm. The budgets are signed integers at the common fixed-point scale, so all
+fields are exact kernel-checkable comparisons. -/
+structure L1NormBound {precision : ℕ}
+    (rectangle : ChapterVISignedDyadicComplexRectangle precision)
+    (output : ChapterVISignedDyadicInterval precision) where
+  realBudget : ℤ
+  imagBudget : ℤ
+  realBudget_nonneg : 0 ≤ realBudget
+  imagBudget_nonneg : 0 ≤ imagBudget
+  real_lower : -realBudget ≤ rectangle.real.lower
+  real_upper : rectangle.real.upper ≤ realBudget
+  imag_lower : -imagBudget ≤ rectangle.imag.lower
+  imag_upper : rectangle.imag.upper ≤ imagBudget
+  output_lower_nonpos : output.lower ≤ 0
+  budget_le_output : realBudget + imagBudget ≤ output.upper
+
+theorem L1NormBound.contains_norm {precision : ℕ}
+    {rectangle : ChapterVISignedDyadicComplexRectangle precision}
+    {output : ChapterVISignedDyadicInterval precision}
+    (bound : L1NormBound rectangle output)
+    {z : ℂ} (hz : rectangle.Contains z) : output.Contains ‖z‖ := by
+  have hscale : 0 < ChapterVISignedDyadicInterval.scale precision :=
+    ChapterVISignedDyadicInterval.scale_pos precision
+  have hreLower : -((bound.realBudget : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision) ≤ z.re := by
+    apply le_trans _ hz.1.1
+    change -((bound.realBudget : ℝ) /
+        ChapterVISignedDyadicInterval.scale precision) ≤
+      (rectangle.real.lower : ℝ) / ChapterVISignedDyadicInterval.scale precision
+    rw [← neg_div]
+    exact (div_le_div_iff_of_pos_right hscale).mpr (by exact_mod_cast bound.real_lower)
+  have hreUpper : z.re ≤ (bound.realBudget : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision := by
+    apply hz.1.2.trans
+    exact (div_le_div_iff_of_pos_right hscale).mpr (by exact_mod_cast bound.real_upper)
+  have himLower : -((bound.imagBudget : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision) ≤ z.im := by
+    apply le_trans _ hz.2.1
+    change -((bound.imagBudget : ℝ) /
+        ChapterVISignedDyadicInterval.scale precision) ≤
+      (rectangle.imag.lower : ℝ) / ChapterVISignedDyadicInterval.scale precision
+    rw [← neg_div]
+    exact (div_le_div_iff_of_pos_right hscale).mpr (by exact_mod_cast bound.imag_lower)
+  have himUpper : z.im ≤ (bound.imagBudget : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision := by
+    apply hz.2.2.trans
+    exact (div_le_div_iff_of_pos_right hscale).mpr (by exact_mod_cast bound.imag_upper)
+  have hreAbs : |z.re| ≤ (bound.realBudget : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision :=
+    abs_le.mpr ⟨hreLower, hreUpper⟩
+  have himAbs : |z.im| ≤ (bound.imagBudget : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision :=
+    abs_le.mpr ⟨himLower, himUpper⟩
+  have hnorm : ‖z‖ ≤ |z.re| + |z.im| := by
+    calc
+      ‖z‖ = ‖(z.re : ℂ) + (z.im : ℂ) * Complex.I‖ := by
+        congr 1
+        apply Complex.ext <;> simp
+      _ ≤ ‖(z.re : ℂ)‖ + ‖(z.im : ℂ) * Complex.I‖ := norm_add_le _ _
+      _ = |z.re| + |z.im| := by simp [Real.norm_eq_abs]
+  constructor
+  · exact (by
+      have : (output.lower : ℝ) ≤ 0 := by exact_mod_cast bound.output_lower_nonpos
+      exact (div_nonpos_of_nonpos_of_nonneg this hscale.le).trans (norm_nonneg z))
+  · calc
+      ‖z‖ ≤ |z.re| + |z.im| := hnorm
+      _ ≤ (bound.realBudget : ℝ) /
+            ChapterVISignedDyadicInterval.scale precision +
+          (bound.imagBudget : ℝ) /
+            ChapterVISignedDyadicInterval.scale precision := add_le_add hreAbs himAbs
+      _ = ((bound.realBudget + bound.imagBudget : ℤ) : ℝ) /
+            ChapterVISignedDyadicInterval.scale precision := by push_cast; ring
+      _ ≤ (output.upper : ℝ) / ChapterVISignedDyadicInterval.scale precision :=
+        (div_le_div_iff_of_pos_right hscale).mpr (by exact_mod_cast bound.budget_le_output)
+
 noncomputable def toComplexRectangle {precision : ℕ}
     (rectangle : ChapterVISignedDyadicComplexRectangle precision) :
     ChapterVIComplexRectangle :=
