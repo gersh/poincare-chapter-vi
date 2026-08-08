@@ -157,9 +157,11 @@ The strongest newly completed component is the finite algebra in §103:
   `Φ(z)=(2πi)⁻¹∮F(z,t)dt`. For a finite Fourier table, Lean proves that the contour keeps exactly
   the affine frequency ray `(m₁,m₂)=(an+b,cn+d)` and, after an explicit choice `root^c=z`, that
   the result is the displayed Laurent polynomial `∑ Aₘ₁ₘ₂ zⁿ`. A second definition records the
-  continued contour as an actual `Path`; the normalized integral is proved invariant under a
-  checked relative `C²` homotopy inside a holomorphic branch domain. The remaining source task is
-  to construct that path deformation for the physical collision cycle, not to re-prove abstract
+  continued contour as an actual `Path`. Lean constructs the positively oriented unit-circle
+  path, proves its curve integral equals the circle integral in the literal definition of `Φ`,
+  and proves the normalized integral invariant under a checked relative `C²` homotopy inside a
+  holomorphic branch domain. The remaining source task is to lift and deform that explicit path
+  through the physical collision branch sheet, not to re-prove parametrization or abstract
   contour invariance.
 - the formal-to-analytic identity boundary is explicit. If the actual radicand and its prepared
   expression are proved to realize the same convergent multivariable power series, Lean proves

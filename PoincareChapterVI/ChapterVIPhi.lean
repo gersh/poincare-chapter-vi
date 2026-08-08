@@ -37,6 +37,77 @@ def chapterVIPhi (integrand : ℂ → ℂ → ℂ) (z : ℂ) : ℂ :=
   (2 * Real.pi * Complex.I : ℂ)⁻¹ *
     ∮ t in C(0, 1), integrand z t
 
+/-- The standard angular parametrization of the positively oriented unit circle, before casting
+its definitionally unequal endpoint expressions to `1`. -/
+def chapterVIUnitCirclePathRaw :
+    Path (circleMap 0 1 0) (circleMap 0 1 (2 * Real.pi)) :=
+  (Path.segment (0 : ℝ) (2 * Real.pi)).map (continuous_circleMap 0 1)
+
+@[simp]
+theorem chapterVIUnitCirclePathRaw_apply (s : unitInterval) :
+    chapterVIUnitCirclePathRaw s =
+      circleMap 0 1 (AffineMap.lineMap 0 (2 * Real.pi) (s : ℝ)) :=
+  rfl
+
+/-- Poincaré's positively oriented unit-circle contour as a closed `Path`. -/
+def chapterVIUnitCirclePath : Path (1 : ℂ) 1 :=
+  chapterVIUnitCirclePathRaw.cast (by simp [circleMap]) (by simp [circleMap])
+
+/-- The curve integral of `f(t) dt` along the explicit path is Mathlib's positively oriented
+circle integral.  This theorem fixes the orientation and parametrization convention used when
+the §94 contour is subsequently deformed. -/
+theorem chapterVIUnitCirclePathRaw_curveIntegral_eq_circleIntegral (f : ℂ → ℂ) :
+    (∫ᶜ t in chapterVIUnitCirclePathRaw,
+      chapterVIComplexScalarOneForm f t) =
+      ∮ t in C(0, 1), f t := by
+  rw [curveIntegral_def]
+  unfold circleIntegral
+  let angular : ℝ → ℂ := fun s ↦
+    circleMap 0 1 (AffineMap.lineMap 0 (2 * Real.pi) s)
+  have heq : Set.EqOn chapterVIUnitCirclePathRaw.extend angular (Set.Icc 0 1) := by
+    intro s hs
+    rw [Path.extend_apply chapterVIUnitCirclePathRaw hs]
+    rfl
+  calc
+    (∫ s in 0..1,
+        curveIntegralFun (chapterVIComplexScalarOneForm f)
+          chapterVIUnitCirclePathRaw s) =
+      ∫ s in 0..1, (2 * Real.pi : ℝ) •
+        (deriv (circleMap 0 1)
+          (AffineMap.lineMap 0 (2 * Real.pi) s) *
+            f (circleMap 0 1 (AffineMap.lineMap 0 (2 * Real.pi) s))) := by
+      apply intervalIntegral.integral_congr
+      intro s hs
+      rw [Set.uIcc_of_le zero_le_one] at hs
+      rw [curveIntegralFun_def, derivWithin_congr heq (heq hs)]
+      rw [heq hs]
+      have hderiv :=
+        (hasDerivAt_circleMap 0 1 (AffineMap.lineMap 0 (2 * Real.pi) s)).scomp s
+          (AffineMap.hasDerivAt_lineMap (𝕜 := ℝ)
+            (a := (0 : ℝ)) (b := 2 * Real.pi) (x := s))
+      change HasDerivAt angular _ s at hderiv
+      rw [hderiv.hasDerivWithinAt.derivWithin (uniqueDiffOn_Icc_zero_one s hs)]
+      simp [angular, chapterVIComplexScalarOneForm_apply]
+      ring
+    _ = ∫ θ in 0..2 * Real.pi,
+        deriv (circleMap 0 1) θ * f (circleMap 0 1 θ) := by
+      rw [intervalIntegral.integral_smul]
+      simpa [AffineMap.lineMap_apply] using
+        (intervalIntegral.smul_integral_comp_mul_right
+          (fun θ ↦ deriv (circleMap 0 1) θ * f (circleMap 0 1 θ))
+          (2 * Real.pi) (a := (0 : ℝ)) (b := 1))
+    _ = ∫ θ in 0..2 * Real.pi,
+        deriv (circleMap 0 1) θ • f (circleMap 0 1 θ) := by
+      simp only [smul_eq_mul]
+
+theorem chapterVIUnitCirclePath_curveIntegral_eq_circleIntegral (f : ℂ → ℂ) :
+    (∫ᶜ t in chapterVIUnitCirclePath,
+      chapterVIComplexScalarOneForm f t) =
+      ∮ t in C(0, 1), f t := by
+  unfold chapterVIUnitCirclePath
+  rw [curveIntegral_cast]
+  exact chapterVIUnitCirclePathRaw_curveIntegral_eq_circleIntegral f
+
 /-- The path-integral form of Poincaré's normalized contour construction.  Unlike
 `chapterVIPhi`, this definition records the actual continued contour.  It is therefore the
 form used in §§95--100, after the unit circle has been deformed on the chosen branch sheet. -/
@@ -44,6 +115,14 @@ def chapterVIPhiAlongPath
     {a b : ℂ} (integrand : ℂ → ℂ → ℂ) (z : ℂ) (path : Path a b) : ℂ :=
   (2 * Real.pi * Complex.I : ℂ)⁻¹ *
     ∫ᶜ t in path, chapterVIComplexScalarOneForm (integrand z) t
+
+/-- The path representation starts at exactly the literal §94 unit-circle definition of `Φ`. -/
+theorem chapterVIPhiAlongPath_unitCircle
+    (integrand : ℂ → ℂ → ℂ) (z : ℂ) :
+    chapterVIPhiAlongPath integrand z chapterVIUnitCirclePath =
+      chapterVIPhi integrand z := by
+  unfold chapterVIPhiAlongPath chapterVIPhi
+  rw [chapterVIUnitCirclePath_curveIntegral_eq_circleIntegral]
 
 /-- A checked smooth deformation inside the holomorphic branch domain preserves Poincaré's
 normalized contour function.  This is the precise formal replacement for the contour-moving
@@ -58,6 +137,18 @@ theorem chapterVIPhiAlongPath_eq_of_smoothContourDeformation
       chapterVIPhiAlongPath integrand z final := by
   unfold chapterVIPhiAlongPath
   rw [deformation.curveIntegral_eq]
+
+/-- A checked deformation beginning at the actual positively oriented unit circle transports
+Poincaré's literal §94 `Φ` to the continued contour integral. -/
+theorem chapterVIPhi_eq_alongPath_of_unitCircleDeformation
+    {integrand : ℂ → ℂ → ℂ} {z : ℂ}
+    {final : Path (1 : ℂ) 1} {domain : Set ℂ}
+    (deformation : ChapterVISmoothContourDeformation
+      (chapterVIComplexScalarOneForm (integrand z))
+      chapterVIUnitCirclePath final domain) :
+    chapterVIPhi integrand z = chapterVIPhiAlongPath integrand z final := by
+  rw [← chapterVIPhiAlongPath_unitCircle]
+  exact chapterVIPhiAlongPath_eq_of_smoothContourDeformation deformation
 
 /-- Convenient unbundled version: holomorphicity of the scalar integrand and a checked `C²`
 homotopy are enough to transport `Φ` between two contours. -/
