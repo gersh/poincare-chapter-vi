@@ -24,6 +24,7 @@ longer hides inside a monolithic radicand-containment premise.
 namespace PoincareChapterVI
 
 open ChapterVILeanCompCertBatch
+open ChapterVILeanCompCertIntervalBridge
 
 namespace ChapterVILeanCompCertCartesianRadicandTrace
 
@@ -58,7 +59,6 @@ structure Trace {precision : ℕ}
   zetaInvNormBound : zetaInv.output.L1NormBound zetaInvNorm
   coordinateInvNormBound : coordinateInv.output.L1NormBound coordinateInvNorm
   argumentNormBound : argument.output.L1NormBound argumentNorm
-  argumentNorm_upper_le_one : argumentNorm.upper ≤ (2 : ℤ) ^ precision
   argumentNormSq : Interval precision
   yScale : Interval precision
   yError : Interval precision
@@ -82,7 +82,8 @@ def Trace.operations {precision : ℕ}
     trace.argument.operations ++ trace.coordinateLinear.operations ++
     trace.yApprox.operations ++ trace.coordinateInvLinear.operations ++
     trace.yInvApprox.operations ++
-    [ .mul trace.argumentNorm trace.argumentNorm trace.argumentNormSq
+    [ .rawClaim (productClaim trace.argumentNorm.upper 1 (2 ^ precision : ℤ) 1)
+    , .mul trace.argumentNorm trace.argumentNorm trace.argumentNormSq
     , .mul trace.zetaNorm trace.coordinateNorm trace.yScale
     , .mul trace.yScale trace.argumentNormSq trace.yError
     , .mul trace.zetaInvNorm trace.coordinateInvNorm trace.yInvScale
@@ -248,8 +249,14 @@ theorem Trace.argument_norm_le_one_of_allSound {precision : ℕ}
   change (trace.argumentNorm.upper : ℝ) /
       ChapterVISignedDyadicInterval.scale precision ≤ 1
   rw [div_le_iff₀ (ChapterVISignedDyadicInterval.scale_pos precision)]
+  have hoperation :
+      (DyadicOperation.rawClaim
+        (productClaim trace.argumentNorm.upper 1 (2 ^ precision : ℤ) 1)).Sound :=
+    hall _ (by simp [Trace.operations])
+  have hinteger : trace.argumentNorm.upper ≤ (2 ^ precision : ℤ) := by
+    simpa [DyadicOperation.Sound] using hoperation
   have hcast : (trace.argumentNorm.upper : ℝ) ≤ (2 : ℝ) ^ precision := by
-    exact_mod_cast trace.argumentNorm_upper_le_one
+    exact_mod_cast hinteger
   simpa [ChapterVISignedDyadicInterval.scale] using hcast
 
 /-- Scalar analytic error bounds widen the compiled first-order approximations to rectangles

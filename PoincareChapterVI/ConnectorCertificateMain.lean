@@ -1,4 +1,5 @@
-import PoincareChapterVI.ChapterVIDConnectorSeamCompiledGrid
+import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
+import LeanCompCert.NativeCheck
 
 /-!
 # Reference runner for the Chapter VI connector certificates
@@ -14,6 +15,7 @@ tighter box around the collision lift and is only a feasibility diagnostic.
 open PoincareChapterVI
 open PoincareChapterVI.ChapterVILeanCompCertBatch
 open PoincareChapterVI.ChapterVIDConnectorCompiledGrid
+open PoincareChapterVI.ChapterVIDConnectorFactorBulkReference
 open LeanCompCert.Ports.SignedProductClaims
 
 namespace PoincareChapterVI.ConnectorCertificateMain
@@ -87,6 +89,58 @@ structure Stats where
 def sideName : ChapterVIDOuterArcSide → String
   | .initial => "initial"
   | .final => "final"
+
+def parseSide : String → Option ChapterVIDOuterArcSide
+  | "initial" => some .initial
+  | "final" => some .final
+  | _ => none
+
+def parseShard (value : String) : Option (Fin shardCount) := do
+  let index ← value.toNat?
+  if h : index < shardCount then some ⟨index, h⟩ else none
+
+def withFactorShard (sideText shardText : String)
+    (action : ChapterVIDOuterArcSide → Fin shardCount → IO UInt32) : IO UInt32 := do
+  match parseSide sideText, parseShard shardText with
+  | some side, some shard => action side shard
+  | _, _ =>
+      IO.eprintln "error: SIDE must be initial|final and SHARD must be 0..31"
+      pure 1
+
+def factorShardArtifact (side : ChapterVIDOuterArcSide) (shard : Fin shardCount) :=
+  ChapterVILeanCompCertAttestation.batchArtifact (shardArtifactName side shard)
+    (referenceShardOperations side shard)
+
+def factorShardEmittedC (side : ChapterVIDOuterArcSide) (shard : Fin shardCount) :
+    Except (Array String) String :=
+  match (factorShardArtifact side shard).source? with
+  | some source => .ok source
+  | none => .error #[s!"LeanCompCert could not emit connector shard {sideName side}/{shard.val}"]
+
+def factorShardNativeCert (side : ChapterVIDOuterArcSide) (shard : Fin shardCount) :
+    LeanCompCert.NativeCheck.Cert :=
+  { name := shardArtifactName side shard
+    emitted := factorShardEmittedC side shard
+    certifiedValue := some 0 }
+
+def factorAnchorArtifact (side : ChapterVIDOuterArcSide) :=
+  ChapterVILeanCompCertAttestation.batchArtifact (anchorArtifactName side)
+    (referenceAnchorOperations side)
+
+def factorAnchorEmittedC (side : ChapterVIDOuterArcSide) : Except (Array String) String :=
+  match (factorAnchorArtifact side).source? with
+  | some source => .ok source
+  | none => .error #[s!"LeanCompCert could not emit connector anchor {sideName side}"]
+
+def factorAnchorNativeCert (side : ChapterVIDOuterArcSide) : LeanCompCert.NativeCheck.Cert :=
+  { name := anchorArtifactName side
+    emitted := factorAnchorEmittedC side
+    certifiedValue := some 0 }
+
+def factorShardNativeCerts (_ : Unit) : List LeanCompCert.NativeCheck.Cert :=
+  ([.initial, .final] : List ChapterVIDOuterArcSide).flatMap fun side ↦
+    factorAnchorNativeCert side ::
+      (List.finRange shardCount).map fun shard ↦ factorShardNativeCert side shard
 
 def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle) : IO UInt32 := do
   if cells = 0 then
@@ -248,6 +302,64 @@ def runFactorBulkReference (cells collarCells : Nat) : IO UInt32 := do
 
 def cliMain (args : List String) : IO UInt32 := do
   match args with
+  | "check-factor-native" :: rest =>
+      LeanCompCert.NativeCheck.run (factorShardNativeCerts ())
+        (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+  | "check-factor-shard" :: sideText :: shardText :: rest =>
+      withFactorShard sideText shardText fun side shard ↦
+        LeanCompCert.NativeCheck.run [factorShardNativeCert side shard]
+          (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+  | "check-factor-anchor" :: sideText :: rest =>
+      match parseSide sideText with
+      | some side =>
+          LeanCompCert.NativeCheck.run [factorAnchorNativeCert side]
+            (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+      | none =>
+          IO.eprintln "error: SIDE must be initial|final"
+          pure 1
+  | ["stats-factor-shard", sideText, shardText] =>
+      withFactorShard sideText shardText fun side shard ↦ do
+        let shardOperations := referenceShardOperations side shard
+        IO.println s!"cells: {cellsPerShard}"
+        IO.println s!"operations: {shardOperations.length}"
+        IO.println s!"integer claims: {(batchClaims shardOperations).length}"
+        pure 0
+  | ["emit-factor-shard", sideText, shardText, file] =>
+      withFactorShard sideText shardText fun side shard ↦ do
+        match factorShardEmittedC side shard with
+        | .error errors =>
+            for error in errors do IO.eprintln error
+            pure 1
+        | .ok source =>
+            IO.FS.writeFile file source
+            IO.println s!"wrote {file}"
+            pure 0
+  | ["emit-factor-anchor", sideText, file] =>
+      match parseSide sideText with
+      | some side =>
+          match factorAnchorEmittedC side with
+          | .error errors =>
+              for error in errors do IO.eprintln error
+              pure 1
+          | .ok source =>
+              IO.FS.writeFile file source
+              IO.println s!"wrote {file}"
+              pure 0
+      | none =>
+          IO.eprintln "error: SIDE must be initial|final"
+          pure 1
+  | ["reference-factor-shards"] =>
+      let mut checked := 0
+      let mut failures := 0
+      for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+        failures := failures + failureCount (batchClaims (referenceAnchorOperations side))
+        checked := checked + 1
+        for shard in List.finRange shardCount do
+          failures := failures + failureCount (batchClaims (referenceShardOperations side shard))
+          checked := checked + 1
+      IO.println s!"checked shards: {checked}"
+      IO.println s!"failed integer claims: {failures}"
+      pure (if failures = 0 then 0 else 1)
   | ["reference-coarse", cellsText] =>
       match cellsText.toNat? with
       | some cells =>
@@ -276,7 +388,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | stats-factor-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

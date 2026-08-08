@@ -6,9 +6,13 @@ formalized and not intended for a Lean Pool pull request in its present form.
 Large connector batches now have a concrete LeanCompCert receipt interface in
 `ChapterVILeanCompCertAttestation.lean`: Lean derives the emitted C artifact from the same batch
 used by the semantic theorem, and a bound receipt yields the required zero verdict through the
-explicit `RunAdmission` trust boundary. This resolves compiled-result ingestion, but not the
-mathematical endpoint issue: the passing `261/1024` reference cutoff still lacks a proof that it
-lies inside the noncomputably obtained factor collar.
+explicit `RunAdmission` trust boundary. The passing `1024 / 261` reference campaign is now literal
+Lean data and is split into 64 independently compiled 32-cell bulk artifacts plus two exact
+endpoint-anchor artifacts. Generated kernel proofs check each shard's 64-bit admissibility,
+receipts reconstruct every interval certificate,
+and the results assemble into the factor-bulk continuation interface without a monolithic kernel
+evaluation. This resolves compiled-result ingestion, but not the mathematical endpoint issue: the
+cutoff `261/1024` still lacks a proof that it lies inside the noncomputably obtained factor collar.
 
 This note separates three questions that are easy to conflate:
 

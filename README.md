@@ -451,10 +451,11 @@ The strongest newly completed component is the finite algebra in §103:
   connector cell has no monolithic radicand-containment field and no separately trusted norm or
   remainder fields: its semantic inputs are just dyadic enclosures of the parameter root and
   affine root coordinate, together with the two exact rational constants.
-  `ChapterVILeanCompCertProposals.cartesianRadicandTrace?` now constructs the full reciprocal,
-  norm-budget, error, Laurent, and collision-factor traces from those two rectangles; it rejects a cell if
-  the automatically derived exponential-argument box is too wide for the proved remainder
-  estimate. The affine interpolation itself is now expanded into checked operations by
+  `ChapterVILeanCompCertProposals.cartesianRadicandTrace` now constructs the full reciprocal,
+  norm-budget, error, Laurent, and collision-factor traces from those two rectangles as pure data.
+  The automatically derived exponential-argument bound is itself an encoded claim, so a bad cell
+  fails the compiled batch instead of preventing artifact construction. The compatibility wrapper
+  `cartesianRadicandTrace?` is therefore total. The affine interpolation itself is expanded into checked operations by
   `LineMapTrace`, and the two collision factors are separated independently instead of first
   multiplying their interval rectangles.
 
@@ -512,6 +513,21 @@ The strongest newly completed component is the finite algebra in §103:
   `FactorBulkRunVerdict`. The checker is bidirectional in Lean as well: under the proved word-size
   admissibility bound, a zero result is equivalent to soundness of every encoded operation. This
   closes the compiled-run plumbing, but it does not manufacture the missing collar bound.
+
+  The concrete `1024 / 261` layout is now Lean data in
+  `ChapterVIDConnectorFactorBulkReference.lean`. The full campaign is divided into 32 adjacent
+  32-cell bulk artifacts per connector side, plus one exact endpoint-anchor artifact per side.
+  Generated kernel proofs establish 64-bit admissibility for each shard, and
+  `ChapterVIDConnectorFactorBulkCompiled.lean` reconstructs every operation's
+  semantic certificate from the shard containing it. A family of hash-bound receipts constructs
+  `ReferenceCompiledRunVerdict`, which in turn supplies the existing factor-bulk continuation
+  theorem without emitting a second monolithic artifact. The executable commands are
+  `reference-factor-shards`, `stats-factor-shard SIDE SHARD`,
+  `emit-factor-shard SIDE SHARD OUTPUT.c`, `emit-factor-anchor SIDE OUTPUT.c`,
+  `check-factor-shard SIDE SHARD [OPTIONS]`, `check-factor-anchor SIDE [OPTIONS]`, and
+  `check-factor-native [OPTIONS]`; the check commands also accept LeanCompCert's `--attest`
+  options. The 66-artifact reference evaluator reports zero failed claims. The collar inequality
+  `261 / 1024 ≤ collar.width` remains the separate analytic hypothesis.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

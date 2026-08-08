@@ -200,12 +200,12 @@ def radicandTrace {precision : ℕ} (zeta radius : Interval precision)
     yApprox, uInvLinear, yInvApprox, argumentNorm, argumentNormSq, yScale, yError,
     yInvScale, yInvError, laurentPlus, laurentMinus, product⟩
 
-/-- Propose the complete Cartesian connector trace. A rectangle is rejected exactly when its
-automatically derived exponential-argument norm budget is too wide for the proved first-order
-remainder theorem. All other bad proposals survive as failed claims in the compiled batch. -/
-def cartesianRadicandTrace? {precision : ℕ} (zeta coordinate : Rectangle precision)
+/-- Propose the complete Cartesian connector trace as pure data. The exponential-argument
+budget is an ordinary raw claim in `Trace.operations`; an over-wide rectangle therefore produces
+a nonzero compiled verdict instead of preventing construction of the trace. -/
+def cartesianRadicandTrace {precision : ℕ} (zeta coordinate : Rectangle precision)
     (exponentialCoefficient inverse10001 : Interval precision) :
-    Option (ChapterVILeanCompCertCartesianRadicandTrace.Trace zeta coordinate) :=
+    ChapterVILeanCompCertCartesianRadicandTrace.Trace zeta coordinate :=
   let zetaInv := invTrace zeta
   let coordinateInv := invTrace coordinate
   let coordinateCube := cubeTrace coordinate
@@ -222,56 +222,60 @@ def cartesianRadicandTrace? {precision : ℕ} (zeta coordinate : Rectangle preci
   let zetaInvNorm := l1NormInterval zetaInv.output
   let coordinateInvNorm := l1NormInterval coordinateInv.output
   let argumentNorm := l1NormInterval argument.output
-  if hargument : argumentNorm.upper ≤ scaleInt precision then
-    let argumentNormSq := mul precision argumentNorm argumentNorm
-    let yScale := mul precision zetaNorm coordinateNorm
-    let yError := mul precision yScale argumentNormSq
-    let yInvScale := mul precision zetaInvNorm coordinateInvNorm
-    let yInvError := mul precision yInvScale argumentNormSq
-    let plusInput :=
-      ((coordinateCube.output.nsmul 10000).add coordinateInvCube.output).add
-        (ChapterVISignedDyadicComplexRectangle.pointInt precision (-200))
-    let minusInput :=
-      (coordinateCube.output.add (coordinateInvCube.output.nsmul 10000)).add
-        (ChapterVISignedDyadicComplexRectangle.pointInt precision (-200))
-    let laurentPlus := realMulTrace inverse10001 plusInput
-    let laurentMinus := realMulTrace inverse10001 minusInput
-    let y := yApprox.output.widenUpper yError
-    let yInv := yInvApprox.output.widenUpper yInvError
-    let product := mulTrace (laurentPlus.output.sub (y.nsmul 2))
-      (laurentMinus.output.sub (yInv.nsmul 2))
-    some {
-      exponentialCoefficient := exponentialCoefficient
-      inverse10001 := inverse10001
-      zetaInv := zetaInv
-      coordinateInv := coordinateInv
-      coordinateCube := coordinateCube
-      coordinateInvCube := coordinateInvCube
-      argument := argument
-      coordinateLinear := coordinateLinear
-      yApprox := yApprox
-      coordinateInvLinear := coordinateInvLinear
-      yInvApprox := yInvApprox
-      zetaNorm := zetaNorm
-      coordinateNorm := coordinateNorm
-      zetaInvNorm := zetaInvNorm
-      coordinateInvNorm := coordinateInvNorm
-      argumentNorm := argumentNorm
-      zetaNormBound := l1NormBound zeta
-      coordinateNormBound := l1NormBound coordinate
-      zetaInvNormBound := l1NormBound zetaInv.output
-      coordinateInvNormBound := l1NormBound coordinateInv.output
-      argumentNormBound := l1NormBound argument.output
-      argumentNorm_upper_le_one := by simpa [scaleInt] using hargument
-      argumentNormSq := argumentNormSq
-      yScale := yScale
-      yError := yError
-      yInvScale := yInvScale
-      yInvError := yInvError
-      laurentPlus := laurentPlus
-      laurentMinus := laurentMinus
-      product := product }
-  else none
+  let argumentNormSq := mul precision argumentNorm argumentNorm
+  let yScale := mul precision zetaNorm coordinateNorm
+  let yError := mul precision yScale argumentNormSq
+  let yInvScale := mul precision zetaInvNorm coordinateInvNorm
+  let yInvError := mul precision yInvScale argumentNormSq
+  let plusInput :=
+    ((coordinateCube.output.nsmul 10000).add coordinateInvCube.output).add
+      (ChapterVISignedDyadicComplexRectangle.pointInt precision (-200))
+  let minusInput :=
+    (coordinateCube.output.add (coordinateInvCube.output.nsmul 10000)).add
+      (ChapterVISignedDyadicComplexRectangle.pointInt precision (-200))
+  let laurentPlus := realMulTrace inverse10001 plusInput
+  let laurentMinus := realMulTrace inverse10001 minusInput
+  let y := yApprox.output.widenUpper yError
+  let yInv := yInvApprox.output.widenUpper yInvError
+  let product := mulTrace (laurentPlus.output.sub (y.nsmul 2))
+    (laurentMinus.output.sub (yInv.nsmul 2))
+  {
+    exponentialCoefficient := exponentialCoefficient
+    inverse10001 := inverse10001
+    zetaInv := zetaInv
+    coordinateInv := coordinateInv
+    coordinateCube := coordinateCube
+    coordinateInvCube := coordinateInvCube
+    argument := argument
+    coordinateLinear := coordinateLinear
+    yApprox := yApprox
+    coordinateInvLinear := coordinateInvLinear
+    yInvApprox := yInvApprox
+    zetaNorm := zetaNorm
+    coordinateNorm := coordinateNorm
+    zetaInvNorm := zetaInvNorm
+    coordinateInvNorm := coordinateInvNorm
+    argumentNorm := argumentNorm
+    zetaNormBound := l1NormBound zeta
+    coordinateNormBound := l1NormBound coordinate
+    zetaInvNormBound := l1NormBound zetaInv.output
+    coordinateInvNormBound := l1NormBound coordinateInv.output
+    argumentNormBound := l1NormBound argument.output
+    argumentNormSq := argumentNormSq
+    yScale := yScale
+    yError := yError
+    yInvScale := yInvScale
+    yInvError := yInvError
+    laurentPlus := laurentPlus
+    laurentMinus := laurentMinus
+    product := product }
+
+/-- Compatibility wrapper for existing callers. Trace construction is total; all rejection
+conditions now appear in the compiled claim batch. -/
+def cartesianRadicandTrace? {precision : ℕ} (zeta coordinate : Rectangle precision)
+    (exponentialCoefficient inverse10001 : Interval precision) :
+    Option (ChapterVILeanCompCertCartesianRadicandTrace.Trace zeta coordinate) :=
+  some (cartesianRadicandTrace zeta coordinate exponentialCoefficient inverse10001)
 
 end ChapterVILeanCompCertProposals
 

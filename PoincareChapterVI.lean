@@ -36,6 +36,7 @@ import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.DeformationBridge
 import PoincareChapterVI.Section103.ImplicitDeformation
 import PoincareChapterVI.ChapterVIDConnectorSeamCompiledGrid
+import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument
