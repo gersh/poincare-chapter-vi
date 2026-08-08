@@ -310,6 +310,14 @@ The strongest newly completed component is the finite algebra in §103:
   logarithm or fractional power numerically. Compiled signed-integer multiplication traces bound
   the cubes or sixth powers of dyadic endpoints, and a kernel proof turns those inequalities into
   root intervals.
+- `ChapterVIDCriticalParameterInterval.lean` propagates the compiled isolation of the algebraic D
+  root through the endpoint source modulus. The sole real exponential is enclosed using the
+  rigorous inequalities `1+E <= exp(E) <= 1/(1-E)` on its certified rational range.
+- `ChapterVIDRadialTrace.lean` and `ChapterVIDRadialCompiledGrid.lean` complete the radial input
+  dimension: 17 cells at 20-bit precision and 233 primitive operations are flattened into one
+  zero-returning compiled verdict. Every radial parameter now has certified enclosures for the
+  exact source cubic root and the explicit contour radius. The generated table is reproducible
+  with `research/generate_chapter_vi_radial_grid.py`; the generator is not part of the trust base.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

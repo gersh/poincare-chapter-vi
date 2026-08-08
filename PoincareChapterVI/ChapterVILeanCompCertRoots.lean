@@ -121,6 +121,13 @@ def CubicRootTrace.operations {precision : ℕ}
     (trace : CubicRootTrace input output) : List (DyadicOperation precision) :=
   trace.lowerPower.operations ++ trace.upperPower.operations
 
+/-- The three direct integer comparisons accompanying a cubic-root multiplication trace. -/
+def CubicRootTrace.Valid {precision : ℕ}
+    {input output : ChapterVISignedDyadicInterval precision}
+    (trace : CubicRootTrace input output) : Prop :=
+  0 ≤ output.upper ∧ trace.lowerPower.cube.upper ≤ input.lower ∧
+    input.upper ≤ trace.upperPower.cube.lower
+
 theorem CubicRootTrace.output_contains_of_allSound {precision : ℕ}
     {input output : ChapterVISignedDyadicInterval precision}
     (trace : CubicRootTrace input output)
@@ -154,6 +161,15 @@ theorem CubicRootTrace.output_contains_of_allSound {precision : ℕ}
       (ChapterVISignedDyadicInterval.scale_pos precision)).2 (by exact_mod_cast hupper)).trans
       hupperPow.1
 
+theorem CubicRootTrace.output_contains_of_valid {precision : ℕ}
+    {input output : ChapterVISignedDyadicInterval precision}
+    (trace : CubicRootTrace input output) (hvalid : trace.Valid)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {value : ℝ} (hvalueNonneg : 0 ≤ value) (hvalue : input.Contains value) :
+    output.Contains (value ^ ((3 : ℝ)⁻¹)) :=
+  trace.output_contains_of_allSound hall hvalueNonneg hvalue
+    hvalid.1 hvalid.2.1 hvalid.2.2
+
 /-- Endpoint power traces certifying a sixth-root enclosure. -/
 structure SixthRootTrace {precision : ℕ}
     (input output : ChapterVISignedDyadicInterval precision) where
@@ -164,6 +180,13 @@ def SixthRootTrace.operations {precision : ℕ}
     {input output : ChapterVISignedDyadicInterval precision}
     (trace : SixthRootTrace input output) : List (DyadicOperation precision) :=
   trace.lowerPower.operations ++ trace.upperPower.operations
+
+/-- The three direct integer comparisons accompanying a sixth-root multiplication trace. -/
+def SixthRootTrace.Valid {precision : ℕ}
+    {input output : ChapterVISignedDyadicInterval precision}
+    (trace : SixthRootTrace input output) : Prop :=
+  0 ≤ output.upper ∧ trace.lowerPower.sixth.upper ≤ input.lower ∧
+    input.upper ≤ trace.upperPower.sixth.lower
 
 theorem SixthRootTrace.output_contains_of_allSound {precision : ℕ}
     {input output : ChapterVISignedDyadicInterval precision}
@@ -197,5 +220,14 @@ theorem SixthRootTrace.output_contains_of_allSound {precision : ℕ}
   · exact ((div_le_div_iff_of_pos_right
       (ChapterVISignedDyadicInterval.scale_pos precision)).2 (by exact_mod_cast hupper)).trans
       hupperPow.1
+
+theorem SixthRootTrace.output_contains_of_valid {precision : ℕ}
+    {input output : ChapterVISignedDyadicInterval precision}
+    (trace : SixthRootTrace input output) (hvalid : trace.Valid)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {value : ℝ} (hvalueNonneg : 0 ≤ value) (hvalue : input.Contains value) :
+    output.Contains (value ^ ((6 : ℝ)⁻¹)) :=
+  trace.output_contains_of_allSound hall hvalueNonneg hvalue
+    hvalid.1 hvalid.2.1 hvalid.2.2
 
 end PoincareChapterVI.ChapterVILeanCompCertRoots
