@@ -139,7 +139,10 @@ The strongest newly completed component is the finite algebra in §103:
   prepared-factor module also constructs a compatible holomorphic complex square-root product and
   inverse whenever the quadratic and unit factors remain in a common slit-plane chart. It works
   on a joint parameter-contour domain such as `ℂ × ℂ`; continuity automatically constructs an open
-  common chart from slit-plane values along the whole cycle family. The still-open transport is
+  common chart from slit-plane values along the whole cycle family. The unit itself need not start
+  in the principal chart: every holomorphic unit nonzero at the pinch gets a locally chosen square-
+  root germ, with the negative-ray case handled by a sign rotation and compensating factor of `I`.
+  This arbitrary unit germ combines with the quadratic branch and convex contour transport. The still-open transport is
   verifying those values for Poincaré's actual moving cycle and carrying that cycle to the
   controlled symmetric model. The non-affine transport theorem itself is now formalized: a
   relative `C²` path homotopy inside the branch chart preserves the prepared inverse-square-root

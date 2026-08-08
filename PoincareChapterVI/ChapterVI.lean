@@ -121,14 +121,18 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   holomorphic square-root product and its inverse on any domain where the prepared quadratic and
   unit factors lie in the complex slit plane. This construction is joint in the parameter and
   contour coordinate, and continuity automatically promotes slit-plane values on an entire cycle
-  family to an open common branch chart containing it. Identifying the actual convergent analytic
+  family to an open common branch chart containing it. More generally, every holomorphic unit
+  nonzero at the base point now receives an automatically chosen local square-root germ, including
+  the sign-rotated case when its value lies on the principal branch cut; this germ combines with
+  the quadratic branch and the contour-transport theorem. Identifying the actual convergent analytic
   germ with the formal series and proving the source cycle's factor values lie in one such chart
   remain open. `ChapterVIContourTransport.lean` proves genuine non-affine contour invariance for
   a relative `C²` path homotopy in that chart: for a holomorphic scalar integrand Lean constructs
   the closed one-form and discharges Stokes' theorem automatically. On a convex branch subdomain,
   the canonical pointwise affine path homotopy is constructed and proved to remain inside the
   domain; `C²` extensions of the two paths automatically give the required `C²` homotopy. A direct
-  theorem applies this to the prepared inverse square root. What remains is to place Poincaré's
+  theorem applies this to the prepared inverse square root, including the arbitrary unit-root
+  germ. What remains is to place Poincaré's
   actual admissible collision cycle and local model in such a deformation domain and verify their
   path regularity. The predicates below state the corresponding restricted-problem inputs.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital

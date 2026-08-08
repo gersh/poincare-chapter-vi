@@ -321,4 +321,32 @@ theorem chapterVI_preparedInverseSquareRoot_curveIntegral_eq_of_convex
     hconvex hinitial hfinal hinitialC2 hfinalC2
     (chart.differentiableOn_inverseSquareRoot hquadratic hunit) hclosure
 
+/-- Convex-domain contour transport using the automatically constructed square-root germ of an
+arbitrary nonvanishing analytic unit. -/
+theorem chapterVI_preparedUnitGerm_curveIntegral_eq_of_convex
+    {a b : ℂ} {quadratic unit : ℂ → ℂ} {base : ℂ}
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base)
+    (hquadratic : Differentiable ℂ quadratic)
+    {initial final : Path a b}
+    (hconvex : Convex ℝ (quadratic ⁻¹' Complex.slitPlane ∩ unitGerm.domain))
+    (hinitial : ∀ t,
+      initial t ∈ quadratic ⁻¹' Complex.slitPlane ∩ unitGerm.domain)
+    (hfinal : ∀ t,
+      final t ∈ quadratic ⁻¹' Complex.slitPlane ∩ unitGerm.domain)
+    (hinitialC2 : ContDiff ℝ 2 initial.extend)
+    (hfinalC2 : ContDiff ℝ 2 final.extend)
+    (hclosure : ContinuousOn
+      (chapterVIPreparedInverseSquareRootFromUnitGerm quadratic unitGerm)
+      (closure (quadratic ⁻¹' Complex.slitPlane ∩ unitGerm.domain))) :
+    (∫ᶜ z in initial,
+      chapterVIComplexScalarOneForm
+        (chapterVIPreparedInverseSquareRootFromUnitGerm quadratic unitGerm) z) =
+    ∫ᶜ z in final,
+      chapterVIComplexScalarOneForm
+        (chapterVIPreparedInverseSquareRootFromUnitGerm quadratic unitGerm) z := by
+  exact chapterVI_curveIntegral_eq_of_holomorphic_convex
+    hconvex hinitial hfinal hinitialC2 hfinalC2
+    (differentiableOn_chapterVIPreparedInverseSquareRootFromUnitGerm
+      unitGerm hquadratic) hclosure
+
 end PoincareChapterVI

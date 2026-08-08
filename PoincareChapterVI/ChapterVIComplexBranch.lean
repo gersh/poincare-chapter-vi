@@ -172,4 +172,140 @@ theorem ChapterVIPreparedBranchChart.inverseSquareRoot_sq_mul
   chapterVIPreparedInverseSquareRoot_sq_mul
     (chart.quadratic_mapsTo hx) (chart.unit_mapsTo hx)
 
+/-- A local holomorphic square-root germ of a nonvanishing analytic unit.  The root is not forced
+to be the principal square root: when the value at the base point lies on the excluded negative
+ray, the construction rotates by `-1` and compensates with a factor of `I`. -/
+structure ChapterVIHolomorphicSquareRootGerm
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    (unit : X → ℂ) (base : X) where
+  domain : Set X
+  isOpen_domain : IsOpen domain
+  base_mem : base ∈ domain
+  root : X → ℂ
+  differentiableOn_root : DifferentiableOn ℂ root domain
+  root_sq : ∀ x ∈ domain, root x ^ 2 = unit x
+  root_ne_zero : ∀ x ∈ domain, root x ≠ 0
+
+/-- Every nonzero value of a globally holomorphic function admits a local holomorphic square-root
+germ. -/
+noncomputable def ChapterVIHolomorphicSquareRootGerm.of_differentiable
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {unit : X → ℂ} {base : X}
+    (hunit : Differentiable ℂ unit) (hbase : unit base ≠ 0) :
+    ChapterVIHolomorphicSquareRootGerm unit base := by
+  classical
+  by_cases hprincipal : unit base ∈ Complex.slitPlane
+  · exact
+      { domain := unit ⁻¹' Complex.slitPlane
+        isOpen_domain := Complex.isOpen_slitPlane.preimage hunit.continuous
+        base_mem := hprincipal
+        root := fun x ↦ Complex.sqrt (unit x)
+        differentiableOn_root :=
+          Complex.differentiableOn_sqrt.fun_comp hunit.differentiableOn
+            (fun _ hx ↦ hx)
+        root_sq := fun _ hx ↦ Complex.sq_sqrt_of_mem_slitPlane hx
+        root_ne_zero := fun _ hx ↦ Complex.sqrt_ne_zero_of_mem_slitPlane hx }
+  · have hrotated : -unit base ∈ Complex.slitPlane :=
+      (Complex.mem_slitPlane_or_neg_mem_slitPlane hbase).resolve_left hprincipal
+    exact
+      { domain := (fun x ↦ -unit x) ⁻¹' Complex.slitPlane
+        isOpen_domain := Complex.isOpen_slitPlane.preimage hunit.continuous.neg
+        base_mem := hrotated
+        root := fun x ↦ Complex.I * Complex.sqrt (-unit x)
+        differentiableOn_root := by
+          exact (Complex.differentiableOn_sqrt.fun_comp
+            hunit.neg.differentiableOn (fun _ hx ↦ hx)).const_mul Complex.I
+        root_sq := by
+          intro x hx
+          rw [mul_pow, Complex.I_sq,
+            Complex.sq_sqrt_of_mem_slitPlane hx]
+          ring
+        root_ne_zero := by
+          intro x hx
+          exact mul_ne_zero Complex.I_ne_zero
+            (Complex.sqrt_ne_zero_of_mem_slitPlane hx) }
+
+/-- Combine the principal branch of the quadratic factor with an arbitrary local holomorphic
+square-root germ of the analytic unit. -/
+def chapterVIPreparedSquareRootFromUnitGerm
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {unit : X → ℂ} {base : X}
+    (quadratic : X → ℂ)
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base) (x : X) : ℂ :=
+  Complex.sqrt (quadratic x) * unitGerm.root x
+
+/-- The corresponding prepared inverse square-root branch. -/
+def chapterVIPreparedInverseSquareRootFromUnitGerm
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {unit : X → ℂ} {base : X}
+    (quadratic : X → ℂ)
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base) (x : X) : ℂ :=
+  (chapterVIPreparedSquareRootFromUnitGerm quadratic unitGerm x)⁻¹
+
+/-- Correctness of the prepared branch with an arbitrary analytic-unit square-root germ. -/
+theorem chapterVIPreparedSquareRootFromUnitGerm_sq
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {quadratic unit : X → ℂ} {base x : X}
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base)
+    (hquadratic : quadratic x ∈ Complex.slitPlane)
+    (hunit : x ∈ unitGerm.domain) :
+    chapterVIPreparedSquareRootFromUnitGerm quadratic unitGerm x ^ 2 =
+      quadratic x * unit x := by
+  rw [chapterVIPreparedSquareRootFromUnitGerm, mul_pow,
+    Complex.sq_sqrt_of_mem_slitPlane hquadratic,
+    unitGerm.root_sq x hunit]
+
+/-- The combined branch is nonzero on its natural domain. -/
+theorem chapterVIPreparedSquareRootFromUnitGerm_ne_zero
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {quadratic unit : X → ℂ} {base x : X}
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base)
+    (hquadratic : quadratic x ∈ Complex.slitPlane)
+    (hunit : x ∈ unitGerm.domain) :
+    chapterVIPreparedSquareRootFromUnitGerm quadratic unitGerm x ≠ 0 :=
+  mul_ne_zero (Complex.sqrt_ne_zero_of_mem_slitPlane hquadratic)
+    (unitGerm.root_ne_zero x hunit)
+
+/-- Holomorphicity of the prepared branch on the intersection of the quadratic chart and the
+automatically constructed unit-root germ. -/
+theorem differentiableOn_chapterVIPreparedSquareRootFromUnitGerm
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {quadratic unit : X → ℂ} {base : X}
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base)
+    (hquadratic : Differentiable ℂ quadratic) :
+    DifferentiableOn ℂ
+      (chapterVIPreparedSquareRootFromUnitGerm quadratic unitGerm)
+      (quadratic ⁻¹' Complex.slitPlane ∩ unitGerm.domain) := by
+  exact (Complex.differentiableOn_sqrt.fun_comp hquadratic.differentiableOn
+    (fun _ hx ↦ hx.1)).mul
+      (unitGerm.differentiableOn_root.mono inter_subset_right)
+
+/-- Holomorphicity of the inverse prepared branch with an arbitrary nonvanishing analytic unit. -/
+theorem differentiableOn_chapterVIPreparedInverseSquareRootFromUnitGerm
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {quadratic unit : X → ℂ} {base : X}
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base)
+    (hquadratic : Differentiable ℂ quadratic) :
+    DifferentiableOn ℂ
+      (chapterVIPreparedInverseSquareRootFromUnitGerm quadratic unitGerm)
+      (quadratic ⁻¹' Complex.slitPlane ∩ unitGerm.domain) := by
+  apply (differentiableOn_chapterVIPreparedSquareRootFromUnitGerm
+    unitGerm hquadratic).inv
+  intro x hx
+  exact chapterVIPreparedSquareRootFromUnitGerm_ne_zero unitGerm hx.1 hx.2
+
+/-- Algebraic correctness of the inverse branch constructed from the arbitrary unit germ. -/
+theorem chapterVIPreparedInverseSquareRootFromUnitGerm_sq_mul
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {quadratic unit : X → ℂ} {base x : X}
+    (unitGerm : ChapterVIHolomorphicSquareRootGerm unit base)
+    (hquadratic : quadratic x ∈ Complex.slitPlane)
+    (hunit : x ∈ unitGerm.domain) :
+    chapterVIPreparedInverseSquareRootFromUnitGerm quadratic unitGerm x ^ 2 *
+        (quadratic x * unit x) = 1 := by
+  rw [← chapterVIPreparedSquareRootFromUnitGerm_sq unitGerm hquadratic hunit]
+  have hne := chapterVIPreparedSquareRootFromUnitGerm_ne_zero
+    unitGerm hquadratic hunit
+  simp [chapterVIPreparedInverseSquareRootFromUnitGerm, hne]
+
 end PoincareChapterVI
