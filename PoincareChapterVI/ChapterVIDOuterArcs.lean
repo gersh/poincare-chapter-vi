@@ -227,6 +227,27 @@ noncomputable def chapterVIDOuterArcRadicand
   chapterVIDRootCoordinateRadicand
     (chapterVIDCommonParameterRootPath st.1) (chapterVIDOuterArcPoint side st)
 
+/-- The sparse expression evaluated by the compiled certificate.  It is deliberately stated
+only with arithmetic, inversion, and one complex exponential; the theorem below identifies it
+with Poincaré's literal transformed source radicand. -/
+noncomputable def chapterVIDOuterArcCertificateFormula
+    (side : ChapterVIDOuterArcSide) (st : I × I) : ℂ :=
+  let ζ := chapterVIDCommonParameterRootPath st.1
+  let u := chapterVIDOuterArcPoint side st
+  let y := ζ * u * Complex.exp ((100 / 30003 : ℂ) * ((u ^ 3)⁻¹ - u ^ 3))
+  (((100 * u ^ 3 - 1) ^ 2) / (10001 * u ^ 3) - 2 * y) *
+    (((u ^ 3 - 100) ^ 2) / (10001 * u ^ 3) - 2 / y)
+
+theorem chapterVIDOuterArcRadicand_eq_certificateFormula
+    (side : ChapterVIDOuterArcSide) (st : I × I) :
+    chapterVIDOuterArcRadicand side st =
+      chapterVIDOuterArcCertificateFormula side st := by
+  unfold chapterVIDOuterArcRadicand chapterVIDOuterArcCertificateFormula
+  rw [chapterVIDRootCoordinateRadicand_eq_certificateFormula
+    (chapterVIDCommonParameterRootPath_ne_zero st.1)
+    (chapterVIDOuterArcPoint_ne_zero side st)]
+  simp [chapterVIDRootSecondAnomaly, chapterVIDRootToOriginalContour, mul_assoc]
+
 theorem continuous_chapterVIDOuterArcRadicand
     (side : ChapterVIDOuterArcSide) :
     Continuous (chapterVIDOuterArcRadicand side) := by

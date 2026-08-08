@@ -150,7 +150,9 @@ The source-facing files added after the standalone-project commit are deliberate
   rational parametrization `((1-t²)+2ti)/(1+t²)` removes trigonometric constants from the compiled
   grid; norm one, endpoints, and the relevant quadrants are proved algebraically. The companion
   Python scan is exploratory only; the formal milestone is the future LeanCompCert-checked
-  positive-real-part certificate, not the sampled minimum.
+  positive-real-part certificate, not the sampled minimum. An exact source-identity theorem also
+  rewrites the literal radicand to the sparse checker formula with squared binomials, circular
+  coordinates `y,y⁻¹`, rational complex arithmetic, and one complex exponential.
 - `ChapterVILeanCompCertRealBridge.lean`: closes one concrete encoding gap in that certificate.
   It turns LeanCompCert's natural-number power inequalities into genuine `Real.rpow` bounds, so a
   compiled fixed-point result can be used by the analytic contour proof without treating the

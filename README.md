@@ -313,6 +313,10 @@ The strongest newly completed component is the finite algebra in §103:
 - The exploratory scan suggests that the real part is separated from zero on both rectangles,
   but that floating-point observation is not a theorem. The formal interface records the exact
   compiled obligation: positive sample bounds plus the continuum cover and Lipschitz estimate.
+- Before compilation, Lean proves an exact sparse normal form for the literal radicand. Its two
+  first-body Laurent coordinates are squared binomials, and the circular second-body coordinates
+  are `y` and `y⁻¹`; the resulting checker expression needs only rational complex arithmetic and
+  one complex exponential.
 - `ChapterVILeanCompCertRealBridge.lean` proves the encoding theorem needed by the compiled route:
   LeanCompCert's all-integer fixed-point `rpow` bracket implies the corresponding outward-rounded
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested

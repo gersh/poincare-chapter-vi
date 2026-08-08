@@ -122,6 +122,27 @@ theorem chapterVIDRootCoordinateRadicand_eq_factors (ζ u : ℂ) :
           0 1 2 (u ^ 3) (chapterVIDRootSecondAnomaly ζ u) := by
   rfl
 
+/-- Sparse normal form used by the compiled outer-arc certificate.  The first body's two
+Laurent coordinates reduce to squared binomials, while the circular second body's coordinates
+reduce to `y` and `y⁻¹`.  This keeps the checker tied to the literal source radicand without
+making it re-evaluate the expanded source definitions. -/
+theorem chapterVIDRootCoordinateRadicand_eq_certificateFormula
+    {ζ u : ℂ} (hζ : ζ ≠ 0) (hu : u ≠ 0) :
+    chapterVIDRootCoordinateRadicand ζ u =
+      (((100 * u ^ 3 - 1) ^ 2) / (10001 * u ^ 3) -
+          2 * chapterVIDRootSecondAnomaly ζ u) *
+        (((u ^ 3 - 100) ^ 2) / (10001 * u ^ 3) -
+          2 / chapterVIDRootSecondAnomaly ζ u) := by
+  have hy : chapterVIDRootSecondAnomaly ζ u ≠ 0 :=
+    mul_ne_zero hζ (chapterVIDRootToOriginalContour_ne_zero hu)
+  unfold chapterVIDRootCoordinateRadicand chapterVIPlanarSourceRadicand
+    chapterVIPlanarCollisionFactorPlus chapterVIPlanarCollisionFactorMinus
+    chapterVIPlanarKeplerLaurentPlus chapterVIPlanarKeplerLaurentMinus
+    chapterVIPlanarDistanceFactorPlus chapterVIPlanarDistanceFactorMinus
+    chapterVIDEccentricity chapterVIDComplement
+  field_simp [hu, hy]
+  ring
+
 /-- The positive real cubic root, used for Poincaré's radial `ζ=z^(1/3)` segment. -/
 noncomputable def chapterVIPositiveRealCubicValue (x : ℝ) : ℝ :=
   max x 0 ^ ((3 : ℝ)⁻¹)
