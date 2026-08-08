@@ -251,11 +251,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   nonvanishing on a compact parameter rectangle and supplies a finite-cover/Lipschitz interface
   for discharging that fact with a large LeanCompCert sample certificate. The concrete compiled
   polar bounds now construct both outer sheets, and `ChapterVIDOuterArcRegularity.lean` pulls the
-  literal principal numerator through Poincare's `u` coordinate, defines the expected transformed
-  contour velocity, and proves that the resulting normalized sum has a finite limit at D. The
-  formal chain-rule identification with the original curve integral, matching the two outer-sheet
-  signs to the middle Morse sheet, and identifying the resulting three-piece cycle with the
-  continued source contour remain.
+  literal principal numerator through Poincare's `u` coordinate, proves the exact transformed
+  contour velocity by the chain rule, identifies the interval expression with the original curve
+  integral under named branch-agreement hypotheses, and proves that the resulting normalized sum
+  has a finite limit at D. Matching the two outer-sheet signs to the middle Morse sheet and
+  identifying the resulting three-piece cycle with the continued source contour remain.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

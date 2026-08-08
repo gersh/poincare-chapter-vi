@@ -354,13 +354,13 @@ The strongest newly completed component is the finite algebra in §103:
   conditional on that transparent premise and introduce no native-evaluation axiom themselves.
 - `ChapterVIDOuterArcRegularity.lean` uses those compiled sheets to close the analytic regular-arc
   obligation. It pulls the literal principal numerator back through
-  `t(u)=u exp((100/30003)(u^-3-u^3))`, defines the algebraically expected explicit contour
-  velocity, and proves each resulting outer integral—and their normalized sum—is continuous and
-  therefore has a finite limit at D. It also proves pointwise agreement with
+  `t(u)=u exp((100/30003)(u^-3-u^3))`, formally differentiates this map and both rational quarter
+  paths, and proves the resulting interval integral is the actual curve integral whenever the
+  named cubic-root and square-root branches agree. Each outer integral—and their normalized
+  sum—is continuous and therefore has a finite limit at D. The numerator agrees pointwise with
   `chapterVIPrincipalSourceNumerator` whenever the chosen global cubic-root lift agrees with the
-  local source branch. The formal chain-rule identification of this velocity with the original
-  curve differential and sheet/branch compatibility with the middle Morse chart remain; the
-  boundedness assertion for the explicit two outer pieces does not.
+  local source branch. Sheet/branch compatibility with the middle Morse chart remains; the chain
+  rule and boundedness assertion for the two outer pieces do not.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

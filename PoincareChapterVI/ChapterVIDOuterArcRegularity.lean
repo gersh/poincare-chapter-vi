@@ -21,9 +21,10 @@ The exact source contour coordinate is
 
 not `u^3`.  The algebraically expected derivative is included explicitly in the pulled-back
 velocity.  The theorem below proves the finite-limit statement for that explicit transformed
-integrand, conditional only on the compiled run verdict and a choice of square-root sheet.  A
-formal chain-rule identification with the original curve integral, and identification of the
-outer choices with the sheet used by the middle Morse chart, remain separate gluing obligations.
+integrand, conditional only on the compiled run verdict and a choice of square-root sheet.  The
+chain rule and equality with the original curve integral are proved below under explicit branch
+agreement.  Identifying the outer choices with the sheet used by the middle Morse chart remains
+the separate gluing obligation.
 -/
 
 noncomputable section
@@ -128,6 +129,27 @@ def rootToSourceDerivative (u : ℂ) : ℂ :=
   Complex.exp (chapterVIDRootExponentialArgument u) *
     (1 - (100 / 10001 : ℂ) * (u ^ (-3 : ℤ) + u ^ 3))
 
+/-- The displayed formula is the actual complex derivative of Poincare's coordinate change. -/
+theorem hasDerivAt_rootToOriginalContour
+    {u : ℂ} (hu : u ≠ 0) :
+    HasDerivAt chapterVIDRootToOriginalContour (rootToSourceDerivative u) u := by
+  change HasDerivAt
+    (fun w : ℂ ↦ w * Complex.exp
+      ((100 / 30003 : ℂ) * ((w ^ 3)⁻¹ - w ^ 3)))
+    (rootToSourceDerivative u) u
+  have h := (hasDerivAt_id u).mul
+    ((((((hasDerivAt_id u).pow 3).inv (pow_ne_zero 3 hu)).sub
+      ((hasDerivAt_id u).pow 3)).const_mul (100 / 30003 : ℂ)).cexp)
+  have heq : rootToSourceDerivative u =
+      Complex.exp ((100 / 30003 : ℂ) * ((u ^ 3)⁻¹ - u ^ 3)) +
+        u * (Complex.exp ((100 / 30003 : ℂ) * ((u ^ 3)⁻¹ - u ^ 3)) *
+          ((100 / 30003 : ℂ) * (-(3 * u ^ 2) / (u ^ 3) ^ 2 - 3 * u ^ 2))) := by
+    unfold rootToSourceDerivative chapterVIDRootExponentialArgument
+    field_simp [hu]
+    ring
+  rw [heq]
+  simpa +instances [Pi.sub_apply, Pi.pow_apply] using! h
+
 theorem continuous_rootToSourceDerivative_comp
     {X : Type*} [TopologicalSpace X] (u : X → ℂ)
     (hu : Continuous u) (hu0 : ∀ x, u x ≠ 0) :
@@ -157,6 +179,33 @@ def rationalUnitQuarterReal (t : ℝ) : ℂ :=
 theorem rationalUnitQuarter_denominator_ne_zero (t : ℝ) :
     (1 + (t : ℂ) ^ 2) ≠ 0 := by
   exact_mod_cast (ne_of_gt (by positivity : 0 < 1 + t ^ 2))
+
+/-- The rational velocity is exactly the real derivative of the extended quarter path. -/
+theorem hasDerivAt_rationalUnitQuarterReal (t : ℝ) :
+    HasDerivAt rationalUnitQuarterReal (rationalUnitQuarterVelocity t) t := by
+  change HasDerivAt
+    (fun t : ℝ ↦
+      (1 - (t : ℂ) ^ 2) / (1 + (t : ℂ) ^ 2) +
+        (2 * (t : ℂ) / (1 + (t : ℂ) ^ 2)) * Complex.I)
+    (rationalUnitQuarterVelocity t) t
+  have ht := (hasDerivAt_id t).ofReal_comp
+  have hden := (hasDerivAt_const t (1 : ℂ)).add (ht.pow 2)
+  have h := ((hasDerivAt_const t (1 : ℂ)).sub (ht.pow 2)).div hden
+      (rationalUnitQuarter_denominator_ne_zero t) |>.add
+    (((ht.const_mul (2 : ℂ)).div hden
+      (rationalUnitQuarter_denominator_ne_zero t)).mul_const Complex.I)
+  have heq : rationalUnitQuarterVelocity t =
+      (-(2 * (t : ℂ) * (1 + (t : ℂ) ^ 2)) -
+        (1 - (t : ℂ) ^ 2) * (2 * (t : ℂ))) /
+          (1 + (t : ℂ) ^ 2) ^ 2 +
+      (2 * (1 + (t : ℂ) ^ 2) -
+        2 * (t : ℂ) * (2 * (t : ℂ))) /
+          (1 + (t : ℂ) ^ 2) ^ 2 * Complex.I := by
+    unfold rationalUnitQuarterVelocity
+    field_simp [rationalUnitQuarter_denominator_ne_zero t]
+    ring
+  rw [heq]
+  simpa +instances [Pi.add_apply, Pi.sub_apply, Pi.pow_apply] using! h
 
 theorem rationalUnitQuarterReal_eq
     {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) 1) :
@@ -188,6 +237,17 @@ def rationalOuterArcUnitReal
   match side with
   | .initial => rationalUnitQuarterReal t
   | .final => -Complex.I * rationalUnitQuarterReal t
+
+theorem hasDerivAt_rationalOuterArcUnitReal
+    (side : ChapterVIDOuterArcSide) (t : ℝ) :
+    HasDerivAt (rationalOuterArcUnitReal side)
+      (rationalOuterArcUnitVelocity side t) t := by
+  cases side
+  · exact hasDerivAt_rationalUnitQuarterReal t
+  · change HasDerivAt (fun t ↦ -Complex.I * rationalUnitQuarterReal t)
+      (-Complex.I * rationalUnitQuarterVelocity t) t
+    simpa +instances using!
+      (hasDerivAt_rationalUnitQuarterReal t).const_mul (-Complex.I)
 
 theorem rationalOuterArcUnitReal_eq
     (side : ChapterVIDOuterArcSide) {t : ℝ}
@@ -223,12 +283,44 @@ def rootCoordinateReal
   (chapterVIDCertificateContourRadius s : ℂ) *
     rationalOuterArcUnitReal side t
 
+theorem hasDerivAt_rootCoordinateReal
+    (side : ChapterVIDOuterArcSide) (s : I) (t : ℝ) :
+    HasDerivAt (rootCoordinateReal side s)
+      ((chapterVIDCertificateContourRadius s : ℂ) *
+        rationalOuterArcUnitVelocity side t) t := by
+  simpa +instances [rootCoordinateReal] using!
+    (hasDerivAt_rationalOuterArcUnitReal side t).const_mul
+      (chapterVIDCertificateContourRadius s : ℂ)
+
 theorem rootCoordinateReal_eq
     (side : ChapterVIDOuterArcSide) (s : I) {t : ℝ}
     (ht : t ∈ Set.Icc (0 : ℝ) 1) :
     rootCoordinateReal side s t = rootCoordinate side (s, t) := by
   rw [rootCoordinate, chapterVIDOuterArcPoint, clampUnit_of_mem ht,
     rootCoordinateReal, rationalOuterArcUnitReal_eq side ht]
+
+/-- On the interval of integration, `sourceVelocity` is exactly the derivative of the pulled-back
+source contour. -/
+theorem hasDerivAt_sourceContourReal
+    (side : ChapterVIDOuterArcSide) (s : I) {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    HasDerivAt
+      (fun τ ↦ chapterVIDRootToOriginalContour (rootCoordinateReal side s τ))
+      (sourceVelocity side (s, t)) t := by
+  have hu : rootCoordinateReal side s t ≠ 0 := by
+    rw [rootCoordinateReal_eq side s ht]
+    exact rootCoordinate_ne_zero side (s, t)
+  have hchain := (hasDerivAt_rootToOriginalContour hu).comp t
+    (hasDerivAt_rootCoordinateReal side s t)
+  have hvelocity : sourceVelocity side (s, t) =
+      rootToSourceDerivative (rootCoordinateReal side s t) *
+        ((chapterVIDCertificateContourRadius s : ℂ) *
+          rationalOuterArcUnitVelocity side t) := by
+    unfold sourceVelocity
+    rw [rootCoordinateReal_eq side s ht]
+    ring
+  rw [hvelocity]
+  simpa +instances only [Function.comp_apply] using! hchain
 
 theorem continuous_sourceVelocity (side : ChapterVIDOuterArcSide) :
     Continuous (sourceVelocity side) := by
@@ -238,6 +330,29 @@ theorem continuous_sourceVelocity (side : ChapterVIDOuterArcSide) :
     (Complex.ofRealCLM.continuous.comp
       (continuous_chapterVIDCertificateContourRadius.comp continuous_fst))).mul
     ((continuous_rationalOuterArcUnitVelocity side).comp continuous_snd)
+
+/-- The actual path in Poincare's original contour coordinate obtained from one root-coordinate
+outer quarter. -/
+def sourcePath (side : ChapterVIDOuterArcSide) (s : I) :
+    Path (sourceContour side (s, 0)) (sourceContour side (s, 1)) where
+  toFun τ := sourceContour side (s, τ)
+  continuous_toFun := (continuous_sourceContour side).comp
+    (continuous_const.prodMk continuous_subtype_val)
+  source' := rfl
+  target' := rfl
+
+@[simp]
+theorem sourcePath_apply
+    (side : ChapterVIDOuterArcSide) (s τ : I) :
+    sourcePath side s τ = sourceContour side (s, τ) :=
+  rfl
+
+theorem sourcePath_eq_rootCoordinateReal
+    (side : ChapterVIDOuterArcSide) (s : I) {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    sourcePath side s ⟨t, ht⟩ =
+      chapterVIDRootToOriginalContour (rootCoordinateReal side s t) := by
+  rw [sourcePath_apply, sourceContour, rootCoordinateReal_eq side s ht]
 
 /-- Extend a certified square-root sheet from `I x I` to the real integration parameter. -/
 def sheetRoot
@@ -271,6 +386,60 @@ def integral
   ∫ τ in (0 : ℝ)..1,
     sourceNumerator massProduct b d side (s, τ) /
       sheetRoot sheet (s, τ) * sourceVelocity side (s, τ)
+
+/-- Under explicit cubic-root and square-root branch agreement, the interval integral above is
+literally the curve integral of Poincare's principal source integrand along `sourcePath`.  These
+two compatibility hypotheses are exactly what the later global sheet-gluing theorem must
+construct. -/
+theorem integral_eq_curveIntegral
+    (massProduct : ℂ) (b d : ℤ) (side : ChapterVIDOuterArcSide)
+    (sheet : ChapterVIContinuousSquareRootSheet (chapterVIDOuterArcRadicand side))
+    (zRoot : ℂ → ℂ) (sourceRoot : ℂ × ℂ → ℂ) (s : I)
+    (hzRoot : zRoot (chapterVIDCommonParameterRootPath s ^ 3) =
+      chapterVIDCommonParameterRootPath s)
+    (hsourceRoot : ∀ τ : I,
+      sourceRoot (chapterVIDCommonParameterRootPath s ^ 3, sourcePath side s τ) =
+        sheet.root (s, τ)) :
+    integral massProduct b d side sheet s =
+      ∫ᶜ t in sourcePath side s,
+        chapterVIComplexScalarOneForm
+          (fun t ↦ chapterVIPrincipalSourceNumerator
+              massProduct (-1) b 3 d zRoot
+                (chapterVIDCommonParameterRootPath s ^ 3, t) /
+            sourceRoot (chapterVIDCommonParameterRootPath s ^ 3, t)) t := by
+  rw [integral, curveIntegral_def]
+  apply intervalIntegral.integral_congr
+  intro t ht
+  rw [Set.uIcc_of_le zero_le_one] at ht
+  let rawPath : ℝ → ℂ := fun τ ↦
+    chapterVIDRootToOriginalContour (rootCoordinateReal side s τ)
+  have heq : Set.EqOn (sourcePath side s).extend rawPath (Set.Icc 0 1) := by
+    intro τ hτ
+    rw [Path.extend_apply (sourcePath side s) hτ]
+    exact sourcePath_eq_rootCoordinateReal side s hτ
+  rw [curveIntegralFun_def, derivWithin_congr heq (heq ht), heq ht]
+  have hderiv := hasDerivAt_sourceContourReal side s ht
+  change HasDerivAt rawPath (sourceVelocity side (s, t)) t at hderiv
+  rw [hderiv.hasDerivWithinAt.derivWithin
+    (uniqueDiffOn_Icc_zero_one t ht)]
+  rw [chapterVIComplexScalarOneForm_apply]
+  have hraw : rawPath t = sourceContour side (s, t) := by
+    dsimp only [rawPath]
+    rw [rootCoordinateReal_eq side s ht]
+    rfl
+  rw [hraw]
+  have hnumerator : sourceNumerator massProduct b d side (s, t) =
+      chapterVIPrincipalSourceNumerator massProduct (-1) b 3 d zRoot
+        (chapterVIDCommonParameterRootPath s ^ 3, sourceContour side (s, t)) := by
+    simpa [parameterRoot] using sourceNumerator_eq_principalSourceNumerator
+      massProduct b d zRoot side (s, t) (by simpa [parameterRoot] using hzRoot)
+  have hroot : sourceRoot
+      (chapterVIDCommonParameterRootPath s ^ 3, sourceContour side (s, t)) =
+      sheetRoot sheet (s, t) := by
+    simpa [sourcePath_apply, sheetRoot, clampUnit_of_mem ht] using
+      hsourceRoot ⟨t, ht⟩
+  rw [← hnumerator, hroot]
+  ring
 
 /-- The entire outer-quarter integral is continuous up to and including Poincare's collision
 parameter. -/
