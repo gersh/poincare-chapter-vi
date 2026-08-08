@@ -133,8 +133,10 @@ The strongest newly completed component is the finite algebra in §103:
   varying-amplitude integral, and proves that the integral divided by `-log k` converges to that
   value. A stronger parameter-dependent theorem works in any complete real normed space, hence
   for complex amplitudes, and allows the center value to vary while converging at the pinch. The
-  still-open transport is from Poincaré's complex moving cycle and square-root branch to this
-  controlled local model.
+  prepared-factor module also constructs a compatible holomorphic complex square-root product and
+  inverse whenever the quadratic and unit factors remain in a common slit-plane chart. The
+  still-open transport is proving that Poincaré's complex moving cycle lies in such a chart and
+  carrying it to the controlled symmetric model.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
