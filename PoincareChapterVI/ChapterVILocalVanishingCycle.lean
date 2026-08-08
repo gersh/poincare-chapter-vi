@@ -206,6 +206,66 @@ structure ChapterVIDPrincipalLocalSourceModel
           deriv_chapterVIDCriticalValue_ne_zero ((k : ℂ), (v : ℂ))))
       (v : ℂ)
 
+/-- The literal `t` coordinate of the local source contour at fixed critical value `k`. -/
+def chapterVIDPrincipalLocalSourceFiber (k v : ℂ) : ℂ :=
+  chapterVIDCriticalCenter (chapterVIDCriticalParameterInverseAtD k) +
+    chapterVIDMorseFiberInverse
+      (chapterVIDCriticalParameterInverseAtD k, v)
+
+theorem chapterVIDPrincipalLocalSourceFiber_eq (k v : ℂ) :
+    chapterVIDPrincipalLocalSourceFiber k v =
+      (chapterVIDCriticalMorseSourcePointAtD (k, v)).2 := by
+  rfl
+
+/-- The affine real parameter on the symmetric Morse segment `[-L,L]`. -/
+def chapterVIDPrincipalLocalMorseLine (L t : ℝ) : ℂ :=
+  ((2 * L * t - L : ℝ) : ℂ)
+
+/-- The source-coordinate parameterization obtained by applying the inverse Morse fiber to the
+straight normal-form segment. -/
+def chapterVIDPrincipalLocalSourcePathRaw (L k t : ℝ) : ℂ :=
+  chapterVIDPrincipalLocalSourceFiber (k : ℂ)
+    (chapterVIDPrincipalLocalMorseLine L t)
+
+/-- Poincaré's actual local middle path in the literal source `t` coordinate. -/
+def ChapterVIDPrincipalLocalSourceModel.sourcePath
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    (k : ℝ) (hk : k ∈ Set.Icc 0 model.δ) :
+    Path
+      (chapterVIDPrincipalLocalSourceFiber (k : ℂ) (-model.L : ℂ))
+      (chapterVIDPrincipalLocalSourceFiber (k : ℂ) (model.L : ℂ)) where
+  toFun τ := chapterVIDPrincipalLocalSourcePathRaw model.L k τ
+  continuous_toFun := by
+    rw [continuous_iff_continuousAt]
+    intro τ
+    let v : ℝ := 2 * model.L * (τ : ℝ) - model.L
+    have hv : v ∈ Set.uIcc (-model.L) model.L := by
+      rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+      constructor <;> dsimp [v] <;>
+        nlinarith [model.L_pos, τ.property.1, τ.property.2]
+    have hfiber := model.sourceFiber_hasDerivAt k hk v hv
+    have hsource := hfiber.const_add
+      (chapterVIDCriticalCenter
+        (chapterVIDCriticalParameterInverseAtD (k : ℂ)))
+    have hline : ContinuousAt
+        (fun σ : unitInterval ↦ chapterVIDPrincipalLocalMorseLine model.L σ) τ := by
+      unfold chapterVIDPrincipalLocalMorseLine
+      fun_prop
+    exact hsource.continuousAt.comp_of_eq hline rfl
+  source' := by
+    change chapterVIDPrincipalLocalSourceFiber (k : ℂ)
+      (((2 * model.L * 0 - model.L : ℝ) : ℂ)) = _
+    congr 1
+    push_cast
+    ring
+  target' := by
+    change chapterVIDPrincipalLocalSourceFiber (k : ℂ)
+      (((2 * model.L * 1 - model.L : ℝ) : ℂ)) = _
+    congr 1
+    push_cast
+    ring
+
 /-- On the certified local rectangle, the canonical source root is literally the principal root
 of Poincaré's exact normal form `k+v²`. -/
 theorem ChapterVIDPrincipalLocalSourceModel.principalCollisionRoot_eq

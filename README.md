@@ -36,7 +36,9 @@ it is exactly `sqrt(k+v²)` on that rectangle and proves the pointwise pullback 
 Poincaré's source one-form to the evaluated Morse one-form, with no residual branch-sign premise.
 The same compact local model now records that the derivative of the inverse Morse fiber is
 exactly its named Jacobian at every point of the rectangle, supplying the velocity datum needed
-for the path-level curve-integral change of variables.
+for the path-level curve-integral change of variables. Lean now also constructs the literal
+source-coordinate middle `Path` as the inverse-Morse image of the straight `[-L,L]` segment and
+proves its continuity and exact endpoints.
 Lean also constructs a canonical global contour in Poincaré's `x^(1/3)` plane:
 it starts at the literal unit circle, its radius stays strictly between the two explicit pole
 radii before D, and its endpoint passes through their common collision. The normalized three-arc
