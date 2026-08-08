@@ -124,8 +124,11 @@ The source-facing files added after the standalone-project commit are deliberate
   value, and the exact translated radicand after subtracting that value. The complete centered
   germ is represented by a convergent multivariable power series, vanishes identically on the
   parameter axis, has first fiber derivative zero there near D, and has exact fiber order two at
-  D. This reduces the remaining preparation step to analytic division by the square of the
-  centered fiber coordinate.
+  D. It also carries out that convergent square division on the singular fiber, producing an
+  analytic unit nonzero at the pinch. Extending the unit jointly in the parameter is the remaining
+  analytic preparation step. The same exact order-two and convergent one-variable factorization
+  is proved for every sufficiently nearby parameter fiber; what remains is analytic dependence of
+  those units on the parameter.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series

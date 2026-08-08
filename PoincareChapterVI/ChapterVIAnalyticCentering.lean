@@ -197,4 +197,108 @@ theorem analyticOrderAt_chapterVIDCenteredRadicand_eq_two :
       deriv_chapterVIDCenteredRadicand_eq_zero,
       deriv_deriv_chapterVIDCenteredRadicand_ne_zero⟩
 
+/-! ## Convergent square division on the singular fiber -/
+
+/-- On the singular fiber itself, analytic order two supplies an actual convergent unit factor,
+not merely a formal or finite-jet quotient. -/
+theorem exists_chapterVIDCenteredFiberUnit :
+    ∃ unit : ℂ → ℂ,
+      AnalyticAt ℂ unit 0 ∧ unit 0 ≠ 0 ∧
+        ∀ᶠ u in nhds 0,
+          chapterVIDCenteredRadicand (chapterVIDZBase, u) = u ^ 2 * unit u := by
+  have hfiber : AnalyticAt ℂ
+      (fun u ↦ chapterVIDCenteredRadicand (chapterVIDZBase, u)) 0 :=
+    analyticAt_chapterVIDCenteredRadicand.comp (analyticAt_const.prod analyticAt_id)
+  simpa only [sub_zero, smul_eq_mul] using
+    (hfiber.analyticOrderAt_eq_natCast (n := 2)).mp
+      analyticOrderAt_chapterVIDCenteredRadicand_eq_two
+
+/-- A fixed convergent choice of the nonvanishing unit in the singular-fiber square division. -/
+noncomputable def chapterVIDCenteredFiberUnit : ℂ → ℂ :=
+  Classical.choose exists_chapterVIDCenteredFiberUnit
+
+theorem analyticAt_chapterVIDCenteredFiberUnit :
+    AnalyticAt ℂ chapterVIDCenteredFiberUnit 0 :=
+  (Classical.choose_spec exists_chapterVIDCenteredFiberUnit).1
+
+@[simp]
+theorem chapterVIDCenteredFiberUnit_zero_ne :
+    chapterVIDCenteredFiberUnit 0 ≠ 0 :=
+  (Classical.choose_spec exists_chapterVIDCenteredFiberUnit).2.1
+
+/-- The convergent factorization by `u²` holds on an actual neighborhood of the pinch. -/
+theorem eventually_chapterVIDCenteredRadicand_eq_sq_mul_fiberUnit :
+    ∀ᶠ u in nhds 0,
+      chapterVIDCenteredRadicand (chapterVIDZBase, u) =
+        u ^ 2 * chapterVIDCenteredFiberUnit u :=
+  (Classical.choose_spec exists_chapterVIDCenteredFiberUnit).2.2
+
+/-- The singular-fiber unit remains nonzero throughout a neighborhood of the pinch. -/
+theorem eventually_chapterVIDCenteredFiberUnit_ne_zero :
+    ∀ᶠ u in nhds 0, chapterVIDCenteredFiberUnit u ≠ 0 :=
+  analyticAt_chapterVIDCenteredFiberUnit.continuousAt.eventually_ne
+    chapterVIDCenteredFiberUnit_zero_ne
+
+/-! ## Fiberwise preparation near D -/
+
+/-- The complete centered radicand remains analytic at `(z,0)` for every nearby parameter. -/
+theorem eventually_analyticAt_chapterVIDCenteredRadicand_axis :
+    ∀ᶠ z in nhds chapterVIDZBase,
+      AnalyticAt ℂ chapterVIDCenteredRadicand (z, 0) := by
+  have haxis : Tendsto (fun z : ℂ ↦ (z, (0 : ℂ)))
+      (nhds chapterVIDZBase) (nhds (chapterVIDZBase, (0 : ℂ))) :=
+    continuousAt_id.prodMk continuousAt_const
+  exact haxis.eventually analyticAt_chapterVIDCenteredRadicand.eventually_analyticAt
+
+/-- The second fiber derivative stays nonzero along the centered parameter axis near D. -/
+theorem eventually_chapterVISecondFiberDerivative_centered_axis_ne_zero :
+    ∀ᶠ z in nhds chapterVIDZBase,
+      chapterVISecondFiberDerivative chapterVIDCenteredRadicand (z, 0) ≠ 0 := by
+  have hsecondAnalytic :=
+    analyticAt_chapterVISecondFiberDerivative analyticAt_chapterVIDCenteredRadicand
+  have hsecondBase :
+      chapterVISecondFiberDerivative chapterVIDCenteredRadicand
+        (chapterVIDZBase, 0) ≠ 0 := by
+    rw [chapterVISecondFiberDerivative_eq_deriv_deriv
+      analyticAt_chapterVIDCenteredRadicand]
+    exact deriv_deriv_chapterVIDCenteredRadicand_ne_zero
+  have hsecondEventually := hsecondAnalytic.continuousAt.eventually_ne hsecondBase
+  have haxis : Tendsto (fun z : ℂ ↦ (z, (0 : ℂ)))
+      (nhds chapterVIDZBase) (nhds (chapterVIDZBase, (0 : ℂ))) :=
+    continuousAt_id.prodMk continuousAt_const
+  exact haxis.eventually hsecondEventually
+
+/-- Every sufficiently nearby centered fiber has analytic order exactly two at its critical
+point. -/
+theorem eventually_analyticOrderAt_chapterVIDCenteredRadicand_axis_eq_two :
+    ∀ᶠ z in nhds chapterVIDZBase,
+      analyticOrderAt (fun u ↦ chapterVIDCenteredRadicand (z, u)) 0 = 2 := by
+  filter_upwards [eventually_analyticAt_chapterVIDCenteredRadicand_axis,
+    eventually_deriv_chapterVIDCenteredRadicand_axis_eq_zero,
+    eventually_chapterVISecondFiberDerivative_centered_axis_ne_zero]
+      with z hzAnalytic hzFirst hzSecond
+  have hfiber : AnalyticAt ℂ (fun u ↦ chapterVIDCenteredRadicand (z, u)) 0 :=
+    hzAnalytic.curry_right
+  apply (analyticOrderAt_eq_two_iff hfiber).mpr
+  refine ⟨chapterVIDCenteredRadicand_axis_eq_zero z, hzFirst, ?_⟩
+  rw [← chapterVISecondFiberDerivative_eq_deriv_deriv hzAnalytic]
+  exact hzSecond
+
+/-- Consequently every nearby parameter fiber admits a convergent square division by a
+nonvanishing one-variable analytic unit.  The remaining Weierstrass problem is to choose these
+units *jointly analytically* in the parameter. -/
+theorem eventually_exists_chapterVIDCenteredFiberUnit :
+    ∀ᶠ z in nhds chapterVIDZBase,
+      ∃ unit : ℂ → ℂ,
+        AnalyticAt ℂ unit 0 ∧ unit 0 ≠ 0 ∧
+          ∀ᶠ u in nhds 0,
+            chapterVIDCenteredRadicand (z, u) = u ^ 2 * unit u := by
+  filter_upwards [eventually_analyticAt_chapterVIDCenteredRadicand_axis,
+    eventually_analyticOrderAt_chapterVIDCenteredRadicand_axis_eq_two]
+      with z hzAnalytic hzOrder
+  have hfiber : AnalyticAt ℂ (fun u ↦ chapterVIDCenteredRadicand (z, u)) 0 :=
+    hzAnalytic.curry_right
+  simpa only [sub_zero, smul_eq_mul] using
+    (hfiber.analyticOrderAt_eq_natCast (n := 2)).mp hzOrder
+
 end PoincareChapterVI

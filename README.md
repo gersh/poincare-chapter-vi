@@ -173,9 +173,12 @@ The strongest newly completed component is the finite algebra in §103:
 - translating by that center and subtracting its analytic critical value now produces a complete
   convergent two-variable germ that vanishes identically on the parameter axis. Its first fiber
   derivative vanishes on that axis near D, while its second fiber derivative at D is proved
-  nonzero. The remaining local preparation obligation is therefore the explicit analytic
-  square-division theorem, rather than an unspecified correspondence between a finite jet and the
-  source function.
+  nonzero. On the singular fiber, Lean now uses analytic order to divide by the square exactly and
+  obtains a convergent analytic unit that stays nonzero near the pinch. The remaining local
+  preparation obligation is the joint parameter-dependent square division, rather than an
+  unspecified correspondence between a finite jet and the source function. Lean also proves
+  that every sufficiently nearby centered fiber has exact order two and its own convergent
+  nonvanishing unit; only the jointly analytic choice is missing.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

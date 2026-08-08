@@ -52,6 +52,27 @@ theorem eventually_chapterVIFiberDerivative_eq_deriv
   filter_upwards [hpair.eventually hf.eventually_analyticAt] with w hw
   exact chapterVIFiberDerivative_eq_deriv hw
 
+/-- The second derivative in the fiber coordinate, expressed as an iterated Fréchet partial
+derivative. -/
+noncomputable def chapterVISecondFiberDerivative (f : ℂ × ℂ → ℂ) (point : ℂ × ℂ) : ℂ :=
+  chapterVIFiberDerivative (chapterVIFiberDerivative f) point
+
+/-- The second fiber derivative of an analytic germ remains analytic. -/
+theorem analyticAt_chapterVISecondFiberDerivative
+    {f : ℂ × ℂ → ℂ} {point : ℂ × ℂ} (hf : AnalyticAt ℂ f point) :
+    AnalyticAt ℂ (chapterVISecondFiberDerivative f) point :=
+  analyticAt_chapterVIFiberDerivative (analyticAt_chapterVIFiberDerivative hf)
+
+/-- The iterated Fréchet partial derivative agrees with the ordinary second derivative on a
+fixed fiber. -/
+theorem chapterVISecondFiberDerivative_eq_deriv_deriv
+    {f : ℂ × ℂ → ℂ} {z t : ℂ} (hf : AnalyticAt ℂ f (z, t)) :
+    chapterVISecondFiberDerivative f (z, t) =
+      deriv (deriv (fun w ↦ f (z, w))) t := by
+  unfold chapterVISecondFiberDerivative
+  rw [chapterVIFiberDerivative_eq_deriv (analyticAt_chapterVIFiberDerivative hf)]
+  exact (eventually_chapterVIFiberDerivative_eq_deriv hf).deriv_eq
+
 /-- A complex continuous linear endomorphism is invertible as soon as its value at `1` is
 nonzero. -/
 theorem continuousLinearMap_isInvertible_of_apply_one_ne_zero

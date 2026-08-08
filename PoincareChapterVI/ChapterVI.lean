@@ -102,7 +102,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   through D. `ChapterVIAnalyticCentering.lean` then translates to this moving center, subtracts
   the analytic critical value, and proves that the resulting convergent germ vanishes together
   with its first fiber derivative along the parameter axis while retaining a nonzero second
-  fiber derivative at D. `hasSum_chapterVILogSingularityCoefficient` verifies the
+  fiber derivative at D. On the singular fiber it performs the convergent square division and
+  obtains an analytic unit nonzero at the pinch. `hasSum_chapterVILogSingularityCoefficient`
+  verifies the
   logarithmic Taylor expansion used in §100, and
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a
   little-oh remainder to Poincaré's leading Darboux model.
