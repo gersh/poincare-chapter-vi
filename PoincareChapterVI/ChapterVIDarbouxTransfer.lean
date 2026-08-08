@@ -187,6 +187,310 @@ theorem coefficient_eq_finiteLogs_add_analyticRemainder
     hseries
   simpa [logarithmicCoefficient] using hdegree
 
+/-- Coefficient of `z^(n+1)` in
+`(1 - z * singularityInverse) * log (1 - z * singularityInverse)`. -/
+def chapterVIFirstVanishingLogCoefficient (singularityInverse : ℂ) (index : ℕ) : ℂ :=
+  chapterVILogTaylorCoefficient singularityInverse (index + 1) -
+    singularityInverse * chapterVILogTaylorCoefficient singularityInverse index
+
+/-- After Darboux normalization, the first vanishing logarithmic amplitude has the exact
+subleading form `unitBase^(n+1) / n`. -/
+theorem chapterVINormalizedCoefficient_firstVanishingLog
+    (radius : ℝ≥0) (singularityInverse : ℂ) {index : ℕ} (hindex : index ≠ 0) :
+    chapterVINormalizedCoefficient radius
+        (chapterVIFirstVanishingLogCoefficient singularityInverse) index =
+      chapterVIUnitBase radius singularityInverse ^ (index + 1) / index := by
+  unfold chapterVINormalizedCoefficient chapterVIFirstVanishingLogCoefficient
+    chapterVILogTaylorCoefficient chapterVIUnitBase
+  push_cast
+  rw [mul_pow]
+  field_simp
+  ring
+
+/-- A logarithmic term whose amplitude contains one factor vanishing at the singular point is
+`o(1)` after the leading Darboux normalization. -/
+theorem tendsto_chapterVINormalizedCoefficient_firstVanishingLog
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVIFirstVanishingLogCoefficient singularityInverse))
+      atTop (nhds 0) := by
+  have hmodel : Tendsto
+      (fun index : ℕ ↦ chapterVIUnitBase radius singularityInverse ^ (index + 1) / index)
+      atTop (nhds 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    simpa [norm_div, norm_pow, hunit] using
+      (tendsto_const_div_atTop_nhds_zero_nat (1 : ℝ))
+  apply hmodel.congr'
+  filter_upwards [eventually_ne_atTop 0] with index hindex
+  exact (chapterVINormalizedCoefficient_firstVanishingLog
+    radius singularityInverse hindex).symm
+
+/-- Coefficient transform induced, for a zero-constant-term series, by multiplication with
+`1 - z * singularityInverse`.  Only the large-index behavior matters below, so the degree-one
+coefficient is handled separately at index zero. -/
+def chapterVIVanishingFactorTransform (singularityInverse : ℂ)
+    (coefficient : ℕ → ℂ) (index : ℕ) : ℂ :=
+  if index = 0 then coefficient 0
+  else coefficient index - singularityInverse * coefficient (index - 1)
+
+/-- Darboux normalization intertwines multiplication by the vanishing factor with a shifted
+normalized sequence and a scalar tending to the unit base. -/
+theorem chapterVINormalizedCoefficient_vanishingFactorTransform
+    (radius : ℝ≥0) (singularityInverse : ℂ) (coefficient : ℕ → ℂ)
+    {index : ℕ} (hindex : index ≠ 0) :
+    chapterVINormalizedCoefficient radius
+        (chapterVIVanishingFactorTransform singularityInverse coefficient) index =
+      chapterVINormalizedCoefficient radius coefficient index -
+        ((index + 1 : ℕ) : ℂ) / index * chapterVIUnitBase radius singularityInverse *
+          chapterVINormalizedCoefficient radius coefficient (index - 1) := by
+  have hpred : index - 1 + 1 = index := Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr hindex)
+  have hpredCast : ((index - 1 : ℕ) : ℂ) + 1 = (index : ℂ) := by
+    exact_mod_cast hpred
+  unfold chapterVINormalizedCoefficient chapterVIVanishingFactorTransform chapterVIUnitBase
+  simp only [if_neg hindex]
+  rw [hpred, hpredCast, pow_succ]
+  field_simp
+  push_cast
+  ring
+
+/-- Multiplication by one more factor vanishing at a unit-modulus boundary singularity preserves
+normalized decay. -/
+theorem tendsto_chapterVINormalizedCoefficient_vanishingFactorTransform
+    {radius : ℝ≥0} {singularityInverse : ℂ} {coefficient : ℕ → ℂ}
+    (hcoefficient : Tendsto (chapterVINormalizedCoefficient radius coefficient)
+      atTop (nhds 0)) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVIVanishingFactorTransform singularityInverse coefficient))
+      atTop (nhds 0) := by
+  have hprevious := hcoefficient.comp (tendsto_sub_atTop_nat 1)
+  have hratio : Tendsto (fun index : ℕ ↦ ((index + 1 : ℕ) : ℂ) / index)
+      atTop (nhds 1) := by
+    have hinverse : Tendsto (fun index : ℕ ↦ (index : ℂ)⁻¹) atTop (nhds 0) :=
+      tendsto_inv_atTop_nhds_zero_nat
+    have hone : Tendsto (fun _ : ℕ ↦ (1 : ℂ)) atTop (nhds 1) :=
+      tendsto_const_nhds
+    have hbase : Tendsto (fun index : ℕ ↦ 1 + (index : ℂ)⁻¹)
+        atTop (nhds 1) := by simpa using hone.add hinverse
+    apply hbase.congr'
+    filter_upwards [eventually_ne_atTop 0] with index hindex
+    push_cast
+    have hindexComplex : (index : ℂ) ≠ 0 := by exact_mod_cast hindex
+    field_simp
+  have hsubleading : Tendsto
+      (fun index : ℕ ↦ ((index + 1 : ℕ) : ℂ) / index *
+        chapterVIUnitBase radius singularityInverse *
+          chapterVINormalizedCoefficient radius coefficient (index - 1))
+      atTop (nhds 0) := by
+    simpa using (hratio.mul_const (chapterVIUnitBase radius singularityInverse)).mul hprevious
+  have hmain := hcoefficient.sub hsubleading
+  have heq : (fun index ↦ chapterVINormalizedCoefficient radius coefficient index -
+      ((index + 1 : ℕ) : ℂ) / index * chapterVIUnitBase radius singularityInverse *
+        chapterVINormalizedCoefficient radius coefficient (index - 1)) =ᶠ[atTop]
+      chapterVINormalizedCoefficient radius
+        (chapterVIVanishingFactorTransform singularityInverse coefficient) := by
+    filter_upwards [eventually_ne_atTop 0] with index hindex
+    exact (chapterVINormalizedCoefficient_vanishingFactorTransform
+      radius singularityInverse coefficient hindex).symm
+  simpa using hmain.congr' heq
+
+/-- Coefficients of `(1-zλ)^k log(1-zλ)`, indexed by the coefficient of `z^(n+1)`. -/
+def chapterVIHigherVanishingLogCoefficient (singularityInverse : ℂ) (order : ℕ) : ℕ → ℂ :=
+  (chapterVIVanishingFactorTransform singularityInverse)^[order]
+    (fun index ↦ chapterVILogTaylorCoefficient singularityInverse (index + 1))
+
+theorem chapterVIVanishingFactorTransform_log_eq_firstVanishingLog
+    (singularityInverse : ℂ) :
+    chapterVIVanishingFactorTransform singularityInverse
+        (fun index ↦ chapterVILogTaylorCoefficient singularityInverse (index + 1)) =
+      chapterVIFirstVanishingLogCoefficient singularityInverse := by
+  funext index
+  by_cases hindex : index = 0
+  · subst index
+    simp [chapterVIVanishingFactorTransform, chapterVIFirstVanishingLogCoefficient,
+      chapterVILogTaylorCoefficient]
+  · have hpred : index - 1 + 1 = index :=
+      Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr hindex)
+    simp only [chapterVIVanishingFactorTransform, if_neg hindex,
+      chapterVIFirstVanishingLogCoefficient]
+    rw [hpred]
+
+theorem chapterVIHigherVanishingLogCoefficient_succ
+    (singularityInverse : ℂ) (order : ℕ) :
+    chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) =
+      chapterVIVanishingFactorTransform singularityInverse
+        (chapterVIHigherVanishingLogCoefficient singularityInverse order) := by
+  unfold chapterVIHigherVanishingLogCoefficient
+  rw [show order + 1 = order.succ by omega, Function.iterate_succ_apply']
+
+/-- Every positive-order amplitude jet `(1-zλ)^k log(1-zλ)` is subleading after Darboux
+normalization. -/
+theorem tendsto_chapterVINormalizedCoefficient_higherVanishingLog
+    {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1) (order : ℕ) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1)))
+      atTop (nhds 0) := by
+  induction order with
+  | zero =>
+      rw [chapterVIHigherVanishingLogCoefficient_succ]
+      change Tendsto
+        (chapterVINormalizedCoefficient radius
+          (chapterVIVanishingFactorTransform singularityInverse
+            (fun index ↦ chapterVILogTaylorCoefficient singularityInverse (index + 1))))
+        atTop (nhds 0)
+      rw [chapterVIVanishingFactorTransform_log_eq_firstVanishingLog]
+      exact tendsto_chapterVINormalizedCoefficient_firstVanishingLog hunit
+  | succ order inductionHypothesis =>
+      rw [chapterVIHigherVanishingLogCoefficient_succ]
+      exact tendsto_chapterVINormalizedCoefficient_vanishingFactorTransform inductionHypothesis
+
+/-- Darboux normalization commutes with a finite coefficient sum. -/
+theorem chapterVINormalizedCoefficient_finset_sum
+    {ι : Type*} (radius : ℝ≥0) (indices : Finset ι)
+    (coefficient : ι → ℕ → ℂ) (index : ℕ) :
+    chapterVINormalizedCoefficient radius
+        (fun n ↦ ∑ i ∈ indices, coefficient i n) index =
+      ∑ i ∈ indices, chapterVINormalizedCoefficient radius (coefficient i) index := by
+  unfold chapterVINormalizedCoefficient
+  simp only [Finset.mul_sum]
+
+/-- Darboux normalization commutes with a constant coefficient multiplier. -/
+theorem chapterVINormalizedCoefficient_const_mul
+    (radius : ℝ≥0) (constant : ℂ) (coefficient : ℕ → ℂ) (index : ℕ) :
+    chapterVINormalizedCoefficient radius (fun n ↦ constant * coefficient n) index =
+      constant * chapterVINormalizedCoefficient radius coefficient index := by
+  unfold chapterVINormalizedCoefficient
+  ring
+
+/-- The Taylor coefficients contributed by a finite jet in powers of `1-zλ`, multiplying the
+logarithm at the same boundary singularity. -/
+def chapterVILogAmplitudeJetCoefficient {jetOrder : ℕ} (singularityInverse : ℂ)
+    (jet : Fin (jetOrder + 1) → ℂ) (index : ℕ) : ℂ :=
+  ∑ order, jet order *
+    chapterVIHigherVanishingLogCoefficient singularityInverse order index
+
+/-- The positive-order portion of a logarithmic amplitude jet. -/
+def chapterVILogAmplitudeJetRemainderCoefficient {jetOrder : ℕ}
+    (singularityInverse : ℂ) (jet : Fin (jetOrder + 1) → ℂ) (index : ℕ) : ℂ :=
+  ∑ order : Fin jetOrder, jet order.succ *
+    chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) index
+
+/-- Split a finite logarithmic amplitude jet into its value at the singularity and terms carrying
+a positive power of the vanishing factor. -/
+theorem chapterVILogAmplitudeJetCoefficient_eq_leading_add_remainder
+    {jetOrder : ℕ} (singularityInverse : ℂ) (jet : Fin (jetOrder + 1) → ℂ)
+    (index : ℕ) :
+    chapterVILogAmplitudeJetCoefficient singularityInverse jet index =
+      jet 0 * chapterVILogTaylorCoefficient singularityInverse (index + 1) +
+        chapterVILogAmplitudeJetRemainderCoefficient singularityInverse jet index := by
+  unfold chapterVILogAmplitudeJetCoefficient chapterVILogAmplitudeJetRemainderCoefficient
+  rw [Fin.sum_univ_succ]
+  rfl
+
+/-- Every positive-order part of a finite logarithmic amplitude jet disappears after leading
+Darboux normalization. -/
+theorem tendsto_chapterVINormalizedCoefficient_logAmplitudeJetRemainder
+    {jetOrder : ℕ} {radius : ℝ≥0} {singularityInverse : ℂ}
+    (hunit : ‖chapterVIUnitBase radius singularityInverse‖ = 1)
+    (jet : Fin (jetOrder + 1) → ℂ) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVILogAmplitudeJetRemainderCoefficient singularityInverse jet))
+      atTop (nhds 0) := by
+  have hterm (order : Fin jetOrder) : Tendsto
+      (chapterVINormalizedCoefficient radius
+        (fun index ↦ jet order.succ *
+          chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) index))
+      atTop (nhds 0) := by
+    have h := (tendsto_chapterVINormalizedCoefficient_higherVanishingLog hunit order).const_mul
+      (jet order.succ)
+    convert h using 1
+    · funext index
+      exact chapterVINormalizedCoefficient_const_mul radius (jet order.succ)
+        (chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1)) index
+    · simp
+  have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin jetOrder))
+    (fun order _ ↦ hterm order)
+  convert hsum using 1
+  · funext index
+    exact chapterVINormalizedCoefficient_finset_sum radius Finset.univ
+      (fun (order : Fin jetOrder) index ↦ jet order.succ *
+        chapterVIHigherVanishingLogCoefficient singularityInverse (order + 1) index) index
+  · simp
+
+/-- Sum the coefficient contributions of finite logarithmic amplitude jets at several boundary
+singularities. -/
+def chapterVIFiniteLogAmplitudeJetCoefficient {r jetOrder : ℕ}
+    (singularityInverse : Fin r → ℂ) (jet : Fin r → Fin (jetOrder + 1) → ℂ)
+    (index : ℕ) : ℂ :=
+  ∑ j, chapterVILogAmplitudeJetCoefficient (singularityInverse j) (jet j) index
+
+/-- Finite amplitude jets have the same leading spectrum as their constant values at the
+singularities; every positive-order jet coefficient is rigorously subleading. -/
+theorem tendsto_chapterVINormalizedCoefficient_sub_finiteLogAmplitudeJetSpectrum
+    {r jetOrder : ℕ} {radius : ℝ≥0} (hradius : radius ≠ 0)
+    (singularityInverse : Fin r → ℂ) (jet : Fin r → Fin (jetOrder + 1) → ℂ)
+    (hunit : ∀ j, ‖chapterVIUnitBase radius (singularityInverse j)‖ = 1) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+          (chapterVIFiniteLogAmplitudeJetCoefficient singularityInverse jet) -
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularityInverse j))
+          (fun j ↦ chapterVILogSpectrumWeight radius (singularityInverse j) (jet j 0)))
+      atTop (nhds 0) := by
+  let remainder : ℕ → ℂ := fun index ↦
+    ∑ j, chapterVILogAmplitudeJetRemainderCoefficient
+      (singularityInverse j) (jet j) index
+  have hremainderTerm (j : Fin r) : Tendsto
+      (chapterVINormalizedCoefficient radius
+        (chapterVILogAmplitudeJetRemainderCoefficient (singularityInverse j) (jet j)))
+      atTop (nhds 0) :=
+    tendsto_chapterVINormalizedCoefficient_logAmplitudeJetRemainder (hunit j) (jet j)
+  have hremainder : Tendsto (chapterVINormalizedCoefficient radius remainder)
+      atTop (nhds 0) := by
+    have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin r))
+      (fun j _ ↦ hremainderTerm j)
+    convert hsum using 1
+    · funext index
+      exact chapterVINormalizedCoefficient_finset_sum radius Finset.univ
+        (fun j ↦ chapterVILogAmplitudeJetRemainderCoefficient
+          (singularityInverse j) (jet j)) index
+    · simp
+  convert hremainder using 1
+  funext index
+  have hleading :
+      chapterVINormalizedCoefficient radius
+          (fun n ↦ ∑ j, jet j 0 *
+            chapterVILogTaylorCoefficient (singularityInverse j) (n + 1)) index =
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularityInverse j))
+          (fun j ↦ chapterVILogSpectrumWeight radius
+            (singularityInverse j) (jet j 0)) index := by
+    classical
+    simp_rw [chapterVILogTaylorCoefficient_succ]
+    unfold chapterVINormalizedCoefficient chapterVIFiniteExponentialMoment
+      chapterVILogSpectrumWeight chapterVIUnitBase chapterVILogSingularityCoefficient
+    simp only
+    rw [Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro j hj
+    have hradiusComplex : (radius : ℂ) ≠ 0 := by exact_mod_cast hradius
+    rw [mul_pow]
+    field_simp
+    ring
+  unfold chapterVIFiniteLogAmplitudeJetCoefficient
+  simp_rw [chapterVILogAmplitudeJetCoefficient_eq_leading_add_remainder]
+  simp only [Finset.sum_add_distrib]
+  unfold remainder
+  rw [Pi.sub_apply]
+  unfold chapterVINormalizedCoefficient at hleading ⊢
+  rw [mul_add, hleading]
+  ring
+
 /-- A finite sum of logarithmic singularities becomes an exact finite exponential moment after
 Darboux normalization. -/
 theorem chapterVINormalizedCoefficient_sum_logarithmicSingularities

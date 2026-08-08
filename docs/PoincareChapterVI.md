@@ -25,8 +25,8 @@ and formal-series subarguments. The central analytic and geometric steps remain 
   apparent;
 - deriving the local logarithmic expansion from a convergent Weierstrass preparation and a
   parameter-dependent contour;
-- deriving the finite constant-leading-logarithm decomposition (including control of the varying
-  analytic log amplitude) from the contour pinch;
+- deriving the logarithmic decomposition from the contour pinch and extending the finite-jet
+  Darboux estimate to the full varying analytic log amplitude;
 - deriving Poincaré's §102 rank-at-most-two conclusion for the singular-root differential from
   the Chapter V input. The actual moving algebraic equations, their analytic branches at all 24
   certified points, and the ensuing §103 rank contradiction are now formalized.
@@ -48,7 +48,7 @@ transcription of the 1892 text.
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves its logarithmic asymptotic | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, the analytic unit, and the remainder |
-| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` treats one exact log; `ChapterVIDarbouxTransfer.lean` derives Taylor coefficients from equality of analytic germs and proves that a larger-disk analytic remainder disappears after explicit common-radius normalization; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral, reduce each analytic factor `Φ₃(z)` to its nonzero constant leading value with a controlled subleading logarithmic remainder, and prove uniformity in the orbital parameters |
+| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarbouxTransfer.lean` derives Taylor coefficients from equality of analytic germs, proves larger-disk analytic remainders disappear after normalization, and proves every positive-order finite jet `(1-z/z₀)^k log(1-z/z₀)` is subleading; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral and control the infinite analytic-amplitude tail and contour remainder uniformly in the orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), converts a finite logarithmic germ decomposition into the normalized spectrum, prevents root-label permutation, and reaches the compiled §103 contradiction | Derive the two-coordinate coefficient germ, its finite singular enumeration, and its common radius from the Chapter V uniform-integral relation and the actual contour integral |
 | §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
@@ -63,11 +63,14 @@ parameter derivative with the certified rotation source.
 coordinate calculation: the explicit singularity parameter has Poincaré's displayed
 logarithmic differential, its polynomial kernel direction is exactly the direction defining the
 reduced septic, and the certified sextic derivative vanishes in that direction at all 24 points.
-The still-open bridge is now narrower: construct
-`TwoCoordinateFiniteLogarithmicFactorization` from the actual contour integral and Chapter V.
-This means proving the function-level logarithmic germ decomposition, the nonzero leading
-amplitudes, the common boundary radius, the larger-disk remainder (or first reducing the varying
-analytic log amplitudes to that form), and two-coordinate dependence. Analytic-germ uniqueness,
+The still-open bridge is now narrower. The current source-facing interfaces
+`TwoCoordinateFiniteLogarithmicFactorization` and
+`TwoCoordinateFiniteLogAmplitudeJetFactorization` cover constant amplitudes and polynomial
+amplitude jets respectively. Reaching either one from the actual contour requires proving the
+function-level logarithmic germ decomposition, the nonzero leading amplitudes, the common
+boundary radius, and two-coordinate dependence; for a genuinely nonpolynomial `Φ₃`, the transfer
+theorem must first be extended to its full analytic tail. Analytic-germ uniqueness, every finite
+amplitude jet,
 coefficient extraction, common-radius normalization, finite equal-modulus spectrum recovery,
 prevention of local root permutation, and the §103 contradiction are formalized.
 
@@ -88,8 +91,9 @@ The source-facing files added after the standalone-project commit are deliberate
   finite exponential spectrum, uniqueness of normalized unit-circle spectra modulo `o(1)`, and
   local label stability for continuously moving roots.
 - `ChapterVIDarbouxTransfer.lean`: Taylor coefficients of the logarithmic germ, finite weighted
-  log sums, coefficient uniqueness from equality of analytic germs, and normalized decay of a
-  larger-disk analytic remainder.
+  log sums, coefficient uniqueness from equality of analytic germs, normalized decay of a
+  larger-disk analytic remainder, and normalized decay of every positive-order finite
+  logarithmic-amplitude jet.
 - `ChapterVIJacobian.lean`: the exact determinant row reduction in §102 from the six scaled
   singularities to five singularity ratios and the resulting equivalence of determinant
   vanishing, without assuming the missing analytic/rank input.
@@ -98,7 +102,8 @@ The source-facing files added after the standalone-project commit are deliberate
   common stationary direction, both isolated and equal-modulus coefficient-to-root Darboux
   recovery bridges, and the contradiction with the compiled §103 restriction certificate.
 - `ChapterVISection102DarbouxTransfer.lean`: the correctly scaled equal-modulus interface and its
-  construction from a finite constant-leading-logarithm germ decomposition.
+  construction from either a finite constant-leading-logarithm germ decomposition or finite
+  analytic log-amplitude jets.
 - `ChapterVICurveAlgebra.lean`: the five-term cubic-form simplification in §103, the corrected
   derivative identity for `P = ∑ Uᵢ²`, the exact derivative-equation reduction modulo `P`, and
   the degree-seven estimate for the reduced curve.
@@ -243,7 +248,8 @@ Lean proves the exact Taylor coefficients from equality of analytic germs, prove
 coefficients of `H` tend to zero, and separates all equal-modulus bases. The remaining source
 work is to obtain this form from Poincaré's actual `Φ₂(z)+Φ₃(z) log(z-z₀)` expressions. In
 particular, the nonconstant part of each analytic factor `Φ₃` produces subleading logarithmic
-terms rather than a larger-disk analytic function and still needs a Darboux estimate. Multiple
+terms rather than a larger-disk analytic function. Every finite Taylor jet of that factor is now
+handled; what remains is a uniform estimate for its infinite analytic tail. Multiple
 boundary singularities can also cancel on a subsequence, which is why the formal theorem recovers
 the entire finite spectrum rather than asserting eventual nonvanishing of the combined sequence.
 

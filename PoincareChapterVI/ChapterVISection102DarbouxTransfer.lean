@@ -337,4 +337,156 @@ theorem not_twoCoordinateFiniteLogarithmicFactorization
   not_twoCoordinateScaledUnitSpectrumFactorization spectrumSize essentialCoordinates
     (factorization.toScaledUnitSpectrumFactorization spectrumSize essentialCoordinates)
 
+/-- A more faithful finite Darboux jet interface for Poincaré's
+`Φ₂(z) + Φ₃(z) log (z-z₀)`: each analytic logarithmic amplitude is represented by a finite jet in
+powers of its vanishing factor.  Positive-order jet terms are no longer required to be absorbed
+into the larger-disk analytic remainder. -/
+structure TwoCoordinateFiniteLogAmplitudeJetFactorization
+    (spectrumSize jetOrder : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential) where
+  baseEssential : Essential
+  coefficient : FiniteSingularPoint → Essential → ℕ → ℂ
+  normalizationRadius : FiniteSingularPoint → Essential → ℝ≥0
+  normalizationRadius_ne_zero : ∀ point essential,
+    normalizationRadius point essential ≠ 0
+  analyticRadius : FiniteSingularPoint → Orientation → ℂ → ℝ≥0
+  singularityInverse : FiniteSingularPoint → Orientation → ℂ → Fin spectrumSize → ℂ
+  amplitudeJet : FiniteSingularPoint → Orientation → ℂ →
+    Fin spectrumSize → Fin (jetOrder + 1) → ℂ
+  remainderCoefficient : FiniteSingularPoint → Orientation → ℂ → ℕ → ℂ
+  remainder : FiniteSingularPoint → Orientation → ℂ → ℂ → ℂ
+  distinguished : FiniteSingularPoint → Fin spectrumSize
+  distinguished_eq : ∀ point rotation γ,
+    singularityInverse point rotation γ (distinguished point) =
+      (branchSingularityValue rotation point γ)⁻¹
+  coefficient_decomposition : ∀ point rotation γ n,
+    coefficient point (baseEssential + γ • essentialCoordinates rotation) n =
+      PoincareChapterVI.chapterVIFiniteLogAmplitudeJetCoefficient
+        (singularityInverse point rotation γ) (amplitudeJet point rotation γ) n +
+        remainderCoefficient point rotation γ (n + 1)
+  eventually_radius_lt_analyticRadius : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    normalizationRadius point
+      (baseEssential + γ • essentialCoordinates rotation) <
+        analyticRadius point rotation γ
+  eventually_remainder_analytic : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    HasFPowerSeriesOnBall (remainder point rotation γ)
+      (FormalMultilinearSeries.ofScalars ℂ (remainderCoefficient point rotation γ)) 0
+      (analyticRadius point rotation γ)
+  eventually_singularityInverse_injective : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    Function.Injective (singularityInverse point rotation γ)
+  eventually_common_norm : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ i, ‖singularityInverse point rotation γ i‖ =
+      (normalizationRadius point
+        (baseEssential + γ • essentialCoordinates rotation) : ℝ)⁻¹
+  eventually_leadingAmplitude_ne_zero : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ i, amplitudeJet point rotation γ i 0 ≠ 0
+
+/-- Finite analytic amplitude jets plus a larger-disk analytic remainder produce the correctly
+scaled unit spectrum.  The positive-order logarithmic terms are discharged by the finite-jet
+Darboux theorem. -/
+def TwoCoordinateFiniteLogAmplitudeJetFactorization.toScaledUnitSpectrumFactorization
+    (spectrumSize jetOrder : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateFiniteLogAmplitudeJetFactorization
+      spectrumSize jetOrder essentialCoordinates) :
+    TwoCoordinateScaledUnitSpectrumFactorization spectrumSize essentialCoordinates where
+  baseEssential := factorization.baseEssential
+  normalizationRadius := factorization.normalizationRadius
+  normalizationRadius_ne_zero := factorization.normalizationRadius_ne_zero
+  normalizedCoefficient point essential :=
+    PoincareChapterVI.chapterVINormalizedCoefficient
+      (factorization.normalizationRadius point essential)
+      (factorization.coefficient point essential)
+  spectrumBase point rotation γ i :=
+    PoincareChapterVI.chapterVIUnitBase
+      (factorization.normalizationRadius point
+        (factorization.baseEssential + γ • essentialCoordinates rotation))
+      (factorization.singularityInverse point rotation γ i)
+  spectrumWeight point rotation γ i :=
+    PoincareChapterVI.chapterVILogSpectrumWeight
+      (factorization.normalizationRadius point
+        (factorization.baseEssential + γ • essentialCoordinates rotation))
+      (factorization.singularityInverse point rotation γ i)
+      (factorization.amplitudeJet point rotation γ i 0)
+  distinguished := factorization.distinguished
+  distinguished_eq := by
+    intro point rotation γ
+    rw [factorization.distinguished_eq]
+    rfl
+  eventually_base_injective := by
+    intro point rotation
+    filter_upwards [factorization.eventually_singularityInverse_injective point rotation] with
+      γ hinjective
+    intro i j hij
+    apply hinjective
+    apply mul_left_cancel₀
+      (show (factorization.normalizationRadius point
+        (factorization.baseEssential + γ • essentialCoordinates rotation) : ℂ) ≠ 0 by
+          exact_mod_cast factorization.normalizationRadius_ne_zero point
+            (factorization.baseEssential + γ • essentialCoordinates rotation))
+    exact hij
+  eventually_base_unit := by
+    intro point rotation
+    filter_upwards [factorization.eventually_common_norm point rotation] with γ hnorm
+    intro i
+    exact PoincareChapterVI.norm_chapterVIUnitBase_eq_one
+      (factorization.normalizationRadius_ne_zero point
+        (factorization.baseEssential + γ • essentialCoordinates rotation)) (hnorm i)
+  eventually_weight_ne_zero := by
+    intro point rotation
+    filter_upwards [factorization.eventually_common_norm point rotation,
+      factorization.eventually_leadingAmplitude_ne_zero point rotation] with
+        γ hnorm hamplitude
+    intro i
+    unfold PoincareChapterVI.chapterVILogSpectrumWeight
+    apply mul_ne_zero (neg_ne_zero.mpr (hamplitude i))
+    have hbaseNorm := PoincareChapterVI.norm_chapterVIUnitBase_eq_one
+      (factorization.normalizationRadius_ne_zero point
+        (factorization.baseEssential + γ • essentialCoordinates rotation)) (hnorm i)
+    intro hbase
+    rw [hbase, norm_zero] at hbaseNorm
+    exact zero_ne_one hbaseNorm
+  eventually_asymptotic := by
+    intro point rotation
+    filter_upwards [factorization.eventually_radius_lt_analyticRadius point rotation,
+      factorization.eventually_remainder_analytic point rotation,
+      factorization.eventually_common_norm point rotation] with
+        γ hradii hremainder hnorm
+    let radius := factorization.normalizationRadius point
+      (factorization.baseEssential + γ • essentialCoordinates rotation)
+    have hunit : ∀ i, ‖PoincareChapterVI.chapterVIUnitBase radius
+        (factorization.singularityInverse point rotation γ i)‖ = 1 := by
+      intro i
+      exact PoincareChapterVI.norm_chapterVIUnitBase_eq_one
+        (factorization.normalizationRadius_ne_zero point
+          (factorization.baseEssential + γ • essentialCoordinates rotation)) (hnorm i)
+    have hjet :=
+      PoincareChapterVI.tendsto_chapterVINormalizedCoefficient_sub_finiteLogAmplitudeJetSpectrum
+        (factorization.normalizationRadius_ne_zero point
+          (factorization.baseEssential + γ • essentialCoordinates rotation))
+        (factorization.singularityInverse point rotation γ)
+        (factorization.amplitudeJet point rotation γ) hunit
+    have hanalytic := PoincareChapterVI.tendsto_chapterVINormalizedCoefficient_analyticRemainder
+      hradii hremainder
+    have htotal := hjet.add hanalytic
+    convert htotal using 1
+    · funext index
+      have hdecomposition := factorization.coefficient_decomposition point rotation γ index
+      unfold PoincareChapterVI.chapterVINormalizedCoefficient at hdecomposition ⊢
+      simp only [Pi.sub_apply]
+      rw [hdecomposition]
+      ring
+    · simp
+
+/-- No two-coordinate family with the stated finite logarithmic amplitude jets and analytic
+remainder can exist for the concrete 24-branch family. -/
+theorem not_twoCoordinateFiniteLogAmplitudeJetFactorization
+    (spectrumSize jetOrder : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateFiniteLogAmplitudeJetFactorization
+      spectrumSize jetOrder essentialCoordinates) : False :=
+  not_twoCoordinateScaledUnitSpectrumFactorization spectrumSize essentialCoordinates
+    (factorization.toScaledUnitSpectrumFactorization
+      spectrumSize jetOrder essentialCoordinates)
+
 end PoincareChapterVI.ChapterVISection102

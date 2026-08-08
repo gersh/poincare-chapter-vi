@@ -110,6 +110,10 @@ The strongest newly completed component is the finite algebra in §103:
   the exact Taylor-coefficient decomposition. A remainder analytic on a strictly larger disk is
   proved to vanish after `(n+1)R^(n+1)` normalization. The common radius `R` remains explicit,
   and this source-facing data now feeds the finite-spectrum and compiled §103 contradiction.
+- multiplication by any positive power of the vanishing factor `1-z/z₀` is proved to preserve
+  normalized decay. Consequently every finite Taylor jet of Poincaré's analytic logarithmic
+  amplitude contributes the same leading spectrum as its value at `z₀`; all higher jet terms are
+  formally subleading.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
@@ -119,9 +123,10 @@ three-versus-two rank contradiction are now established. What remains in §§102
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
 including the reduction of a varying analytic log amplitude to its constant leading value, and
 to derive the coefficient family and common radius from the Chapter V uniform-integral relation.
-Once a constant-leading-log decomposition with a larger-disk analytic remainder is supplied,
-coefficient extraction, normalization, equal-modulus separation, and the §103 contradiction are
-formalized. The
+Finite amplitude jets are now handled, so the remaining reduction must control the analytic tail
+uniformly and combine it with the contour remainder. Once that source-level estimate and the
+two-coordinate coefficient germ are supplied, coefficient extraction, normalization,
+equal-modulus separation, and the §103 contradiction are formalized. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this
