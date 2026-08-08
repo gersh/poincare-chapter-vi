@@ -18,6 +18,7 @@ import PoincareChapterVI.ChapterVIPinchModel
 import PoincareChapterVI.Section103.Certificate
 import PoincareChapterVI.Section103.Geometry
 import PoincareChapterVI.ChapterVISingularityAlgebra
+import PoincareChapterVI.ChapterVISourceCoordinates
 import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
@@ -77,6 +78,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   second-kind reciprocal theorems verify the inversion symmetries of equations (7)--(10) and of
   the singularity parameter `z`. The printed equation (10) has `x² - 1`; its derivation and the
   claimed reciprocal symmetry instead require `x² + 1`, which the formalization makes explicit.
+  `ChapterVISourceCoordinates.lean` then verifies the exact exponential Kepler substitution,
+  constructs its local analytic inverse away from Poincaré's first-kind critical equation, proves
+  `z = exp(ial) exp(icl')`, and constructs a convergent power series for the literal §99
+  radicand `ψ(z,t)` after `exp(il) = tᶜ`.
 * §97--98 (pp. 295--314): Poincaré decides by contour deformation which candidate singularities
   are admissible. This Riemann-surface and contour-deformation argument is **not yet formalized**.
   Poincaré himself describes the general discussion in §98 as only sketched.
