@@ -96,14 +96,20 @@ The strongest newly completed component is the finite algebra in §103:
   map from the three rotation parameters. If §102 supplies Poincaré's asserted rank-at-most-two
   bound for this map, Lean finds a nonzero stationary direction, derives equation (2), invokes
   the compiled LeanCompCert restriction certificate, and obtains a contradiction.
+- Poincaré's omitted coefficient-recovery step on p. 326 is now a theorem: if `Dₙ` has an
+  isolated Darboux leading term `λⁿ E₁/(n+1)`, then `Dₙ₊₁/Dₙ → λ`. Thus the coefficient sequence
+  uniquely determines the inverse singularity even when its leading coefficient varies. A
+  two-essential-coordinate factorization of the isolated coefficient sequences now implies the
+  canonical root-differential rank bound and contradicts the compiled §103 calculation.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
 concrete moving algebraic branches, physical derivative identification, formal chain rule,
 identification of the reduced curve with the constant-`z` tangent derivative, and the
 three-versus-two rank contradiction are now established. What remains in §§102–103 is the analytic
-derivation of the rank-at-most-two bound for the canonical root differential from the Chapter V
-coefficient dependence and the singularity/asymptotic analysis in §§93–100. The
+construction of those isolated coefficient sequences from Poincaré's actual contour integral,
+including separation of equally dominant singularities, and the derivation of their
+two-coordinate dependence from the Chapter V uniform-integral relation. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this

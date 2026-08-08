@@ -141,4 +141,63 @@ theorem eventually_coefficient_ne_zero_of_chapterVI_darboux_asymptotic
   rw [hequal]
   exact mul_ne_zero hratioIndex hmodelIndex
 
+/-- A Darboux coefficient sequence recovers its inverse singularity as the limit of consecutive
+coefficient ratios.  This is the precise uniqueness mechanism used implicitly in §102 when
+Poincaré passes from dependence of the coefficients `Dₙ` to dependence of their singular points.
+
+The hypothesis describes one isolated leading singularity.  If several singularities of equal
+modulus contribute at leading order, their combined exponential sum must be separated before
+this theorem applies. -/
+theorem tendsto_successiveCoefficientRatio_of_chapterVI_darboux_asymptotic
+    {coefficient : ℕ → ℂ} {singularityInverse leadingCoefficient : ℂ}
+    (hsingularity : singularityInverse ≠ 0)
+    (hleading : leadingCoefficient ≠ 0)
+    (hasymptotic : coefficient ~[atTop]
+      chapterVILeadingDarbouxModel singularityInverse leadingCoefficient) :
+    Tendsto (fun index ↦ coefficient (index + 1) / coefficient index)
+      atTop (𝓝 singularityInverse) := by
+  have hshift := hasymptotic.comp_tendsto (tendsto_add_atTop_nat 1)
+  have hratio := hshift.div hasymptotic
+  have hmodelRatio : Tendsto
+      (fun index ↦
+        chapterVILeadingDarbouxModel singularityInverse leadingCoefficient (index + 1) /
+          chapterVILeadingDarbouxModel singularityInverse leadingCoefficient index)
+      atTop (𝓝 singularityInverse) := by
+    have hnat : Tendsto (fun index : ℕ ↦
+        ((index + 1 : ℕ) : ℂ) / ((index + 1 : ℕ) + 1)) atTop (𝓝 1) := by
+      convert (tendsto_natCast_div_add_atTop (1 : ℂ)).comp
+        (tendsto_add_atTop_nat 1) using 1
+      ext index
+      simp
+    have hscaled : Tendsto (fun index : ℕ ↦ singularityInverse *
+        (((index + 1 : ℕ) : ℂ) / ((index + 1 : ℕ) + 1)))
+        atTop (𝓝 (singularityInverse * 1)) :=
+      tendsto_const_nhds.mul hnat
+    convert hscaled using 1
+    · funext index
+      unfold chapterVILeadingDarbouxModel
+      field_simp [hsingularity, hleading]
+      push_cast
+      ring
+    · simp
+  exact hratio.symm.tendsto_nhds hmodelRatio
+
+/-- The inverse singularity in an isolated Darboux leading term is uniquely determined by the
+coefficient sequence, even though the nonzero leading coefficient is allowed to change. -/
+theorem chapterVI_darbouxSingularityInverse_unique
+    {coefficient : ℕ → ℂ}
+    {firstInverse firstLeading secondInverse secondLeading : ℂ}
+    (hfirstInverse : firstInverse ≠ 0) (hfirstLeading : firstLeading ≠ 0)
+    (hsecondInverse : secondInverse ≠ 0) (hsecondLeading : secondLeading ≠ 0)
+    (hfirst : coefficient ~[atTop]
+      chapterVILeadingDarbouxModel firstInverse firstLeading)
+    (hsecond : coefficient ~[atTop]
+      chapterVILeadingDarbouxModel secondInverse secondLeading) :
+    firstInverse = secondInverse := by
+  exact tendsto_nhds_unique
+    (tendsto_successiveCoefficientRatio_of_chapterVI_darboux_asymptotic
+      hfirstInverse hfirstLeading hfirst)
+    (tendsto_successiveCoefficientRatio_of_chapterVI_darboux_asymptotic
+      hsecondInverse hsecondLeading hsecond)
+
 end PoincareChapterVI

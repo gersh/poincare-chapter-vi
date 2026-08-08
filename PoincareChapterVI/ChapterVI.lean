@@ -80,7 +80,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a
   little-oh remainder to Poincaré's leading Darboux model.
   `eventually_coefficient_ne_zero_of_chapterVI_darboux_asymptotic` then verifies asymptotics-to-
-  nonvanishing. `tendsto_chapterVI_quadraticPinch_sub_log` evaluates the real symmetric prepared
+  nonvanishing. `tendsto_successiveCoefficientRatio_of_chapterVI_darboux_asymptotic` proves the
+  p. 326 recovery formula `Dₙ₊₁/Dₙ → z₀⁻¹`, and
+  `chapterVI_darbouxSingularityInverse_unique` proves that an isolated leading singularity is
+  determined by its coefficient sequence. `tendsto_chapterVI_quadraticPinch_sub_log` evaluates
+  the real symmetric prepared
   quadratic model and proves its exact logarithmic asymptotic. Identifying the actual convergent
   analytic germ with the formal series, transporting the complex contour and square-root branch,
   handling the analytic unit, and proving the remainder estimate remain open. The predicates
@@ -89,9 +93,12 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling
   factor `-z₁⁶ / ζ⁷` in §102. It does not establish the analytic dependence or rank hypotheses.
+  `chapterVI_scaledSingularities_jacobian_det_eq_zero_iff` proves the ensuing equivalence between
+  dependence of the six scaled singularities and dependence of their five ratios.
   `ChapterVISection102.lean` verifies the block-determinant step on p. 329 and reduces the
-  §102--103 contradiction to the rank-at-most-two assertion for the canonical differential of
-  all constructed second-kind roots. In §103,
+  §102--103 contradiction to isolated Darboux coefficient data factoring through two essential
+  orientation coordinates; the formal recovery theorem derives the rank-at-most-two assertion
+  for the canonical differential of all constructed second-kind roots. In §103,
   `chapterVI_curvePolynomial_derivative` verifies the corrected identity
   `x ∂P/∂x = 2 ∑ VᵢUᵢ + 2P`; the printing has `+P`, which agrees only after restricting to `P=0`.
   `chapterVI_cubicDerivativeCurveEquation_reduction` verifies the subsequent reduction modulo

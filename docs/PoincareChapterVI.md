@@ -47,9 +47,9 @@ transcription of the 1892 text.
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves its logarithmic asymptotic | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, the analytic unit, and the remainder |
-| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
+| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm, asymptotic-to-nonvanishing, and Poincaré's p. 326 recovery formula `Dₙ₊₁/Dₙ → z₀⁻¹` for an isolated leading singularity | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, and separate all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
-| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`. `ChapterVISection102.lean` verifies the block-determinant step on p. 329, states the intrinsic rank-at-most-two root differential, and proves that this rank bound contradicts §103 | Formalize the Chapter V input and analytic dependence/enumeration of singular roots, then justify Poincaré's passage from coefficient relations and Darboux asymptotics to the rank-at-most-two singular-root differential |
+| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed factor `-z₁⁶/ζ⁷` and proves that vanishing of the six scaled-root Jacobian is equivalent to vanishing of the five ratio Jacobian. `ChapterVISection102.lean` verifies the p. 329 block determinant and proves that a two-coordinate factorization of isolated Darboux coefficient sequences forces the canonical 24-root differential to have rank at most two, contradicting §103 | Derive the two-coordinate coefficient data from the Chapter V uniform-integral relation and the actual contour integral, including analytic enumeration and separation of competing singularities |
 | §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
 
 ## What the current Lean files actually establish
@@ -62,10 +62,12 @@ parameter derivative with the certified rotation source.
 coordinate calculation: the explicit singularity parameter has Poincaré's displayed
 logarithmic differential, its polynomial kernel direction is exactly the direction defining the
 reduced septic, and the certified sextic derivative vanishes in that direction at all 24 points.
-The still-open bridge is precisely the analytic derivation of the §102 rank bound from the
-uniform-integral coefficient relations and Poincaré's singularity analysis. Local constancy is
-not required: a nonzero common stationary direction is exactly what the printed Jacobian argument
-and the formal §103 endgame use.
+The still-open bridge is now narrower: construct the isolated coefficient sequences appearing in
+`TwoCoordinateDarbouxFactorization` from the actual contour integral and derive their dependence
+on two essential orientation coordinates from the Chapter V uniform-integral relation. Darboux
+uniqueness, coefficient constancy to root constancy, the root rank bound, and the §103
+contradiction are formalized. A nonzero common stationary direction is exactly what the printed
+Jacobian argument and the formal §103 endgame use.
 
 The source-facing files added after the standalone-project commit are deliberately small lemmas:
 
@@ -77,14 +79,16 @@ The source-facing files added after the standalone-project commit are deliberate
   symmetries that they imply.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
-- `ChapterVIDarboux.lean`: the model logarithm's coefficients and the conditional implication from
-  a nonzero Darboux asymptotic to eventual coefficient nonvanishing.
+- `ChapterVIDarboux.lean`: the model logarithm's coefficients, the conditional implication from
+  a nonzero Darboux asymptotic to eventual coefficient nonvanishing, convergence of consecutive
+  coefficient ratios to the inverse singularity, and uniqueness of that recovered singularity.
 - `ChapterVIJacobian.lean`: the exact determinant row reduction in §102 from the six scaled
-  singularities to five singularity ratios, without assuming the missing analytic/rank input.
+  singularities to five singularity ratios and the resulting equivalence of determinant
+  vanishing, without assuming the missing analytic/rank input.
 - `ChapterVISection102.lean`: the p. 329 block-triangular determinant factorization, the canonical
   differential of all 24 constructed second-kind roots, rank-nullity extraction of a nonzero
-  common stationary direction, and the contradiction with the compiled §103 restriction
-  certificate.
+  common stationary direction, the coefficient-to-root Darboux recovery bridge, and the
+  contradiction with the compiled §103 restriction certificate.
 - `ChapterVICurveAlgebra.lean`: the five-term cubic-form simplification in §103, the corrected
   derivative identity for `P = ∑ Uᵢ²`, the exact derivative-equation reduction modulo `P`, and
   the degree-seven estimate for the reduced curve.

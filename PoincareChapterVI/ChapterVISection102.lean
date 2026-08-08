@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.LinearAlgebra.Determinant
+import PoincareChapterVI.ChapterVIDarboux
 import PoincareChapterVI.Section103.MovingAlgebraicBranches
 
 /-!
@@ -21,10 +22,11 @@ one nonzero orientation direction in which every singular root is stationary.  T
 moving-curve formalization turns that stationarity into Poincaré's equation (2), and its
 LeanCompCert certificate gives the contradiction.
 
-The remaining historical input is the `rank_le_two` field (or, in the optional coordinate
-formulation below, `factors`): it must ultimately be derived from the coefficient relations
-supplied by the putative uniform integral in Chapter V and the singularity classification in
-§§93--100.
+The file now derives that rank conclusion from `TwoCoordinateDarbouxFactorization`: isolated
+coefficient sequences factor through two essential coordinates and have Poincaré's stated
+Darboux leading term.  Constructing that data from the putative uniform integral in Chapter V,
+the contour integral, and the singularity classification in §§93--100 remains the historical
+analytic input.
 -/
 
 noncomputable section
@@ -33,11 +35,31 @@ namespace PoincareChapterVI.ChapterVISection102
 
 open AffineIntersectionCount
 open MovingAlgebraicBranches
+open Asymptotics Filter
 
 private abbrev Orientation := Fin 3 → ℂ
 private abbrev Essential := Fin 2 → ℂ
 private abbrev FiniteSingularPoint :=
   { point : Fin 2 → ℂ // point ∈ finiteIntersectionPoints }
+
+/-- If a linear root differential kills every direction killed by a two-coordinate map, then
+its rank is at most two.  This is the intrinsic rank form of Poincaré's parameter count. -/
+theorem finrank_range_le_two_of_ker_le_essentialKernel
+    {RootValues : Type*} [AddCommGroup RootValues] [Module ℂ RootValues]
+    (rootDifferential : Orientation →ₗ[ℂ] RootValues)
+    (essentialCoordinates : Orientation →ₗ[ℂ] Essential)
+    (hker : LinearMap.ker essentialCoordinates ≤ LinearMap.ker rootDifferential) :
+    Module.finrank ℂ rootDifferential.range ≤ 2 := by
+  have hkerDimension : Module.finrank ℂ (LinearMap.ker essentialCoordinates) ≤
+      Module.finrank ℂ (LinearMap.ker rootDifferential) :=
+    Submodule.finrank_mono hker
+  have hroot := LinearMap.finrank_range_add_finrank_ker rootDifferential
+  have hessential := LinearMap.finrank_range_add_finrank_ker essentialCoordinates
+  have hessentialRange : Module.finrank ℂ essentialCoordinates.range ≤ 2 := by
+    simpa using (LinearMap.range essentialCoordinates).finrank_le
+  have horientation : Module.finrank ℂ Orientation = 3 := by simp
+  rw [horientation] at hroot hessential
+  omega
 
 /-- The block-triangular determinant reduction on p. 329.  The first-kind parameters `τ,τ'`
 depend separately and nontrivially on the two eccentricities, so vanishing of the full five-by-five
@@ -79,6 +101,173 @@ def concreteSecondKindRootDifferential :
     concreteSecondKindRootDifferential rotation point =
       branchSingularityParameterDerivative rotation point.1 point.2 := by
   exact branchSingularityDifferential_apply rotation point.1 point.2
+
+/-- The singularity value along the concrete one-parameter IFT branch in a chosen infinitesimal
+orientation direction. -/
+def branchSingularityValue (rotation : Orientation)
+    (point : FiniteSingularPoint) (γ : ℂ) : ℂ :=
+  SingularityParameterTangent.halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
+    ((movingLocalSystem rotation point.1 point.2).branch γ).1
+    ((movingLocalSystem rotation point.1 point.2).branch γ).2
+
+@[simp] theorem branchSingularityValue_zero
+    (rotation : Orientation) (point : FiniteSingularPoint) :
+    branchSingularityValue rotation point 0 =
+      SingularityParameterTangent.halfAngleSingularityParameter
+        (-2) 3 (1 / 3) (1 / 5) (point.1 0) (point.1 1) := by
+  simp [branchSingularityValue, movingLocalSystem]
+
+/-- The concrete IFT branch stays away from the coordinate axes near its certified base point,
+so Poincaré's exponential singularity parameter remains nonzero. -/
+theorem eventually_branchSingularityValue_ne_zero
+    (rotation : Orientation) (point : FiniteSingularPoint) :
+    ∀ᶠ γ in nhds 0, branchSingularityValue rotation point γ ≠ 0 := by
+  let data := movingLocalSystem rotation point.1 point.2
+  have hcoordinates :=
+    ReducedCurveTangent.finiteIntersectionPoint_coordinates_ne_zero point.1 point.2
+  have hx : Tendsto (fun γ ↦ (data.branch γ).1) (nhds 0) (nhds (point.1 0)) := by
+    simpa [data, movingLocalSystem] using data.timeBranch_hasDerivAt.continuousAt.tendsto
+  have hy : Tendsto (fun γ ↦ (data.branch γ).2) (nhds 0) (nhds (point.1 1)) := by
+    simpa [data, movingLocalSystem] using
+      data.singularValueBranch_hasDerivAt.continuousAt.tendsto
+  filter_upwards [hx.eventually_ne hcoordinates.1, hy.eventually_ne hcoordinates.2] with
+      γ hxγ hyγ
+  exact SingularityParameterTangent.halfAngleSingularityParameter_ne_zero
+    (-2) 3 (1 / 3) (1 / 5) hxγ hyγ
+
+/-- The exact coefficient-to-singularity input behind Poincaré's §102 dependency argument.
+
+For each isolated second-kind singular branch, `coefficient` is the corresponding coefficient
+sequence after the competing singular contributions have been separated.  Along a direction
+that fixes the two essential coordinates, this sequence is locally constant.  Darboux's formula
+identifies its leading exponential base with the inverse singularity value.  The nonvanishing
+condition excludes a missing leading term; nonvanishing of the concrete singularity value is
+proved from the IFT branch and the certified nonzero base coordinates.
+
+Deriving this structure from Poincaré's actual contour integral remains the analytic work of
+§§93--100; unlike a direct rank assumption, these fields state the coefficient asymptotics that
+his printed §102 argument invokes. -/
+structure DarbouxCoefficientRecovery
+    (essentialCoordinates : Orientation →L[ℂ] Essential) where
+  coefficient : FiniteSingularPoint → Orientation → ℂ → ℕ → ℂ
+  leadingCoefficient : FiniteSingularPoint → Orientation → ℂ → ℂ
+  coefficient_eventually_constant : ∀ rotation,
+    essentialCoordinates rotation = 0 → ∀ point,
+      (fun γ ↦ coefficient point rotation γ) =ᶠ[nhds 0]
+        fun _ ↦ coefficient point rotation 0
+  eventually_asymptotic : ∀ rotation point, ∀ᶠ γ in nhds 0,
+    coefficient point rotation γ ~[atTop]
+      PoincareChapterVI.chapterVILeadingDarbouxModel
+        (branchSingularityValue rotation point γ)⁻¹
+        (leadingCoefficient point rotation γ)
+  eventually_leadingCoefficient_ne_zero : ∀ rotation point, ∀ᶠ γ in nhds 0,
+    leadingCoefficient point rotation γ ≠ 0
+
+/-- A direct formulation of Poincaré's claim that the isolated coefficient data depend on only
+two essential orientation coordinates.  The scalar `γ` moves along the image of an orientation
+direction, starting at `baseEssential`. -/
+structure TwoCoordinateDarbouxFactorization
+    (essentialCoordinates : Orientation →L[ℂ] Essential) where
+  baseEssential : Essential
+  coefficient : FiniteSingularPoint → Essential → ℕ → ℂ
+  leadingCoefficient : FiniteSingularPoint → Orientation → ℂ → ℂ
+  eventually_asymptotic : ∀ rotation point, ∀ᶠ γ in nhds 0,
+    coefficient point (baseEssential + γ • essentialCoordinates rotation) ~[atTop]
+      PoincareChapterVI.chapterVILeadingDarbouxModel
+        (branchSingularityValue rotation point γ)⁻¹
+        (leadingCoefficient point rotation γ)
+  eventually_leadingCoefficient_ne_zero : ∀ rotation point, ∀ᶠ γ in nhds 0,
+    leadingCoefficient point rotation γ ≠ 0
+
+/-- Explicit dependence through two coordinates supplies the coefficient-constancy form needed
+by Darboux uniqueness. -/
+def TwoCoordinateDarbouxFactorization.toCoefficientRecovery
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateDarbouxFactorization essentialCoordinates) :
+    DarbouxCoefficientRecovery essentialCoordinates where
+  coefficient point rotation γ :=
+    factorization.coefficient point
+      (factorization.baseEssential + γ • essentialCoordinates rotation)
+  leadingCoefficient := factorization.leadingCoefficient
+  coefficient_eventually_constant := by
+    intro rotation hrotation point
+    filter_upwards with γ
+    simp [hrotation]
+  eventually_asymptotic := factorization.eventually_asymptotic
+  eventually_leadingCoefficient_ne_zero :=
+    factorization.eventually_leadingCoefficient_ne_zero
+
+/-- Darboux uniqueness upgrades coefficient constancy to constancy of the corresponding isolated
+singularity branch. -/
+theorem DarbouxCoefficientRecovery.eventually_branchSingularityValue_eq
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (recovery : DarbouxCoefficientRecovery essentialCoordinates)
+    (rotation : Orientation) (hrotation : essentialCoordinates rotation = 0)
+    (point : FiniteSingularPoint) :
+    (fun γ ↦ branchSingularityValue rotation point γ) =ᶠ[nhds 0]
+      fun _ ↦ branchSingularityValue rotation point 0 := by
+  have hasymptoticZero :=
+    (recovery.eventually_asymptotic rotation point).self_of_nhds
+  have hsingularityZero :=
+    (eventually_branchSingularityValue_ne_zero rotation point).self_of_nhds
+  have hleadingZero :=
+    (recovery.eventually_leadingCoefficient_ne_zero rotation point).self_of_nhds
+  filter_upwards [recovery.coefficient_eventually_constant rotation hrotation point,
+    recovery.eventually_asymptotic rotation point,
+    eventually_branchSingularityValue_ne_zero rotation point,
+    recovery.eventually_leadingCoefficient_ne_zero rotation point] with
+      γ hcoefficient hasymptotic hsingularity hleading
+  have hasymptoticZero' : recovery.coefficient point rotation γ ~[atTop]
+      PoincareChapterVI.chapterVILeadingDarbouxModel
+        (branchSingularityValue rotation point 0)⁻¹
+        (recovery.leadingCoefficient point rotation 0) := by
+    rw [hcoefficient]
+    exact hasymptoticZero
+  apply inv_injective
+  exact PoincareChapterVI.chapterVI_darbouxSingularityInverse_unique
+    (inv_ne_zero hsingularity) hleading
+    (inv_ne_zero hsingularityZero) hleadingZero
+    hasymptotic hasymptoticZero'
+
+/-- The coefficient-recovery hypotheses imply the local branch constancy that is sufficient for
+the §103 tangent calculation. -/
+theorem DarbouxCoefficientRecovery.branchConstancy_of_mem_ker
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (recovery : DarbouxCoefficientRecovery essentialCoordinates)
+    (rotation : Orientation) (hrotation : essentialCoordinates rotation = 0) :
+    BranchSingularityConstancy rotation where
+  eventually_constant := by
+    intro point hpoint
+    let indexedPoint : FiniteSingularPoint := ⟨point, hpoint⟩
+    have hconstant := recovery.eventually_branchSingularityValue_eq
+      essentialCoordinates rotation hrotation indexedPoint
+    simpa [branchSingularityValue, indexedPoint, movingLocalSystem] using hconstant
+
+/-- Every direction invisible to the two essential coordinates is also killed by the canonical
+differential of all 24 singular roots. -/
+theorem DarbouxCoefficientRecovery.essentialKernel_le_concreteDifferentialKernel
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (recovery : DarbouxCoefficientRecovery essentialCoordinates) :
+    LinearMap.ker essentialCoordinates.toLinearMap ≤
+      LinearMap.ker concreteSecondKindRootDifferential.toLinearMap := by
+  intro rotation hrotation
+  have hcoordinates : essentialCoordinates rotation = 0 := hrotation
+  have hstationary :=
+    (recovery.branchConstancy_of_mem_ker essentialCoordinates rotation hcoordinates).toStationarity
+  change concreteSecondKindRootDifferential rotation = 0
+  funext point
+  rw [concreteSecondKindRootDifferential_apply]
+  exact hstationary.derivative_eq_zero point.1 point.2
+
+/-- Poincaré's coefficient-dependence and Darboux-recovery premises imply the exact §102 rank
+bound, without assuming that rank bound separately. -/
+theorem DarbouxCoefficientRecovery.concreteDifferential_rank_le_two
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (recovery : DarbouxCoefficientRecovery essentialCoordinates) :
+    Module.finrank ℂ concreteSecondKindRootDifferential.toLinearMap.range ≤ 2 := by
+  apply finrank_range_le_two_of_ker_le_essentialKernel
+    concreteSecondKindRootDifferential.toLinearMap essentialCoordinates.toLinearMap
+  exact recovery.essentialKernel_le_concreteDifferentialKernel essentialCoordinates
 
 /-- Package the canonical differential once the sole §102 rank bound is known. -/
 def concreteSecondKindRootDifferentialData
@@ -129,6 +318,22 @@ theorem not_concreteSecondKindRootDifferential_rank_le_two
     False :=
   not_rankAtMostTwo_secondKindRootDifferential
     (concreteSecondKindRootDifferentialData hrank)
+
+/-- Source-facing §102--103 contradiction: no two-coordinate coefficient family satisfying the
+isolated Darboux recovery hypotheses can produce the 24 concrete second-kind branches. -/
+theorem not_darbouxCoefficientRecovery
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (recovery : DarbouxCoefficientRecovery essentialCoordinates) : False :=
+  not_concreteSecondKindRootDifferential_rank_le_two
+    (recovery.concreteDifferential_rank_le_two essentialCoordinates)
+
+/-- Poincaré's asserted two-coordinate coefficient factorization, together with isolated Darboux
+asymptotics, directly contradicts the certified §103 family. -/
+theorem not_twoCoordinateDarbouxFactorization
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateDarbouxFactorization essentialCoordinates) : False :=
+  not_darbouxCoefficientRecovery essentialCoordinates
+    (factorization.toCoefficientRecovery essentialCoordinates)
 
 /-- Differential form of Poincaré's assertion that all second-kind singular roots depend on only
 two essential coordinates.  Each root has a covector on the two-dimensional essential-coordinate

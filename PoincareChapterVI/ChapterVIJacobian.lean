@@ -190,4 +190,29 @@ theorem chapterVI_scaledSingularities_jacobian_det
       exact chapterVI_scaledJacobian_factor (z 0) ζ
         (chapterVIRatioDerivativeMatrix z derivative).det hζ
 
+/-- Under Poincaré's nonzero hypotheses, the six scaled singularities are functionally
+dependent exactly when the five ratios to the first singularity are functionally dependent.
+This closes the logical implication immediately following the displayed determinant on p. 327. -/
+theorem chapterVI_scaledSingularities_jacobian_det_eq_zero_iff
+    (z : Fin 6 → ℂ) (derivative : Matrix (Fin 6) (Fin 5) ℂ) (ζ : ℂ)
+    (hz : z 0 ≠ 0) (hζ : ζ ≠ 0) :
+    det (fun i : Fin 6 ↦ fun j : Fin 6 ↦
+      Fin.cases (-z i / ζ ^ 2) (fun parameter ↦ derivative i parameter / ζ) j :
+        Matrix (Fin 6) (Fin 6) ℂ) = 0 ↔
+      (chapterVIRatioDerivativeMatrix z derivative).det = 0 := by
+  rw [chapterVI_scaledSingularities_jacobian_det z derivative ζ hz hζ,
+    mul_eq_zero]
+  simp [hz, hζ]
+
+/-- Forward form used in §102: dependence of the six scaled singularities forces dependence of
+the five ratios. -/
+theorem chapterVI_ratioJacobian_det_eq_zero_of_scaledSingularities
+    (z : Fin 6 → ℂ) (derivative : Matrix (Fin 6) (Fin 5) ℂ) (ζ : ℂ)
+    (hz : z 0 ≠ 0) (hζ : ζ ≠ 0)
+    (hscaled : det (fun i : Fin 6 ↦ fun j : Fin 6 ↦
+      Fin.cases (-z i / ζ ^ 2) (fun parameter ↦ derivative i parameter / ζ) j :
+        Matrix (Fin 6) (Fin 6) ℂ) = 0) :
+    (chapterVIRatioDerivativeMatrix z derivative).det = 0 :=
+  (chapterVI_scaledSingularities_jacobian_det_eq_zero_iff z derivative ζ hz hζ).mp hscaled
+
 end PoincareChapterVI
