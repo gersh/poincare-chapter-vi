@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import Mathlib.Analysis.Fourier.AddCircle
 import PoincareChapterVI.ChapterVIContour
+import PoincareChapterVI.ChapterVIPhi
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra

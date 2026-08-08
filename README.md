@@ -153,6 +153,14 @@ The strongest newly completed component is the finite algebra in §103:
   image stays in the domain; `C²` extensions of the endpoint paths automatically discharge the
   homotopy regularity condition. This yields a direct convex-domain theorem for the prepared
   inverse square-root branch.
+- Poincaré's §94 function is now defined literally as
+  `Φ(z)=(2πi)⁻¹∮F(z,t)dt`. For a finite Fourier table, Lean proves that the contour keeps exactly
+  the affine frequency ray `(m₁,m₂)=(an+b,cn+d)` and, after an explicit choice `root^c=z`, that
+  the result is the displayed Laurent polynomial `∑ Aₘ₁ₘ₂ zⁿ`. A second definition records the
+  continued contour as an actual `Path`; the normalized integral is proved invariant under a
+  checked relative `C²` homotopy inside a holomorphic branch domain. The remaining source task is
+  to construct that path deformation for the physical collision cycle, not to re-prove abstract
+  contour invariance.
 - the formal-to-analytic identity boundary is explicit. If the actual radicand and its prepared
   expression are proved to realize the same convergent multivariable power series, Lean proves
   their equality on a neighborhood and proves the prepared unit remains nonzero there. Local
