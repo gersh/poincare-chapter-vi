@@ -34,6 +34,7 @@ import PoincareChapterVI.Section103.RuppertNormalization
 import PoincareChapterVI.ChapterVIWeierstrass
 import PoincareChapterVI.ChapterVIAnalyticPreparation
 import PoincareChapterVI.ChapterVIJointPreparation
+import PoincareChapterVI.ChapterVIParametricMorse
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 
 /-!

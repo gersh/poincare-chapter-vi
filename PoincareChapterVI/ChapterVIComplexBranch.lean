@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.Complex.SqrtDeriv
+import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import Mathlib.Analysis.Analytic.ChangeOrigin
 
@@ -298,6 +299,36 @@ noncomputable def ChapterVIHolomorphicSquareRootGerm.of_analyticAt
           intro x hx
           exact mul_ne_zero Complex.I_ne_zero
             (Complex.sqrt_ne_zero_of_mem_slitPlane (hinterior hx.2)) }
+
+/-- The root selected by `of_analyticAt` is itself analytic at the base point.  The structure only
+stores differentiability on an open germ because that is enough for branch integration; the
+stronger statement is useful for the parametric holomorphic Morse coordinate. -/
+theorem ChapterVIHolomorphicSquareRootGerm.analyticAt_root_of_analyticAt
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {unit : X → ℂ} {base : X}
+    (hunit : AnalyticAt ℂ unit base) (hbase : unit base ≠ 0) :
+    AnalyticAt ℂ
+      (ChapterVIHolomorphicSquareRootGerm.of_analyticAt hunit hbase).root base := by
+  classical
+  by_cases hprincipal : unit base ∈ Complex.slitPlane
+  · have hsqrt : AnalyticAt ℂ Complex.sqrt (unit base) :=
+      Complex.differentiableOn_sqrt.analyticAt
+        (Complex.isOpen_slitPlane.mem_nhds hprincipal)
+    have hcomp := hsqrt.comp hunit
+    simpa [ChapterVIHolomorphicSquareRootGerm.of_analyticAt, hprincipal,
+      Function.comp_def] using hcomp
+  · have hrotated : -unit base ∈ Complex.slitPlane :=
+      (Complex.mem_slitPlane_or_neg_mem_slitPlane hbase).resolve_left hprincipal
+    have hsqrt : AnalyticAt ℂ Complex.sqrt (-unit base) :=
+      Complex.differentiableOn_sqrt.analyticAt
+        (Complex.isOpen_slitPlane.mem_nhds hrotated)
+    have hneg : AnalyticAt ℂ (fun z : ℂ ↦ -z) (unit base) := analyticAt_id.neg
+    have hcomp := ((hsqrt.comp hneg).comp hunit).const_smul (c := Complex.I)
+    simp only [ChapterVIHolomorphicSquareRootGerm.of_analyticAt, hprincipal]
+    change AnalyticAt ℂ (fun x : X ↦ Complex.I * Complex.sqrt (-unit x)) base
+    apply hcomp.congr
+    exact Filter.Eventually.of_forall fun x ↦ by
+      simp only [Pi.smul_apply, smul_eq_mul, Function.comp_apply]
 
 /-- Combine the principal branch of the quadratic factor with an arbitrary local holomorphic
 square-root germ of the analytic unit. -/

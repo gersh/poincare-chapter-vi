@@ -209,6 +209,14 @@ The strongest newly completed component is the finite algebra in §103:
   `A(0)(log u₁-log u₀)+Q(u₁)-Q(u₀)` with `A(0)≠0`. Thus the remaining §100 gap is placement of
   Poincaré's continued source cycle and control of its complementary, nonlocal arcs—not the
   fundamental-theorem-of-calculus passage from the prepared branch to its logarithm.
+- the subtraction used for joint Hadamard division is now explicitly undone. If `S²=U`, Lean
+  constructs the analytic Morse coordinate `v=uS(z,u)`, proves its derivative at D is a continuous
+  linear equivalence, constructs an analytic local inverse `(z,v)↦(z,u(z,v))`, and proves for the
+  original translated radicand that
+  `ψ(z,h(z)+u(z,v)) = ψ(z,h(z)) + v²` near D. Thus Poincaré's moving `k(z)` is the genuine analytic
+  critical value `ψ(z,h(z))`; it is not replaced by zero. This supplies a convergent
+  parameter-dependent quadratic normal form through a documented holomorphic coordinate change,
+  without pretending that formal Weierstrass preparation alone proves convergence.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
