@@ -317,6 +317,13 @@ The strongest newly completed component is the finite algebra in §103:
   first-body Laurent coordinates are squared binomials, and the circular second-body coordinates
   are `y` and `y⁻¹`; the resulting checker expression needs only rational complex arithmetic and
   one complex exponential.
+- `ChapterVIIntervalCertificate.lean` gives the compiled comparisons their analytic meaning.
+  Signed dyadic multiplication is certified by eight integer corner inequalities, positive
+  reciprocal by two cross-multiplied inequalities, and four real products assemble a rectangular
+  complex product. `ChapterVIDOuterArcInterval.lean` removes the remaining complex exponential
+  from the machine calculation: on the coarse radius annulus, Mathlib's exponential remainder
+  theorem encloses it by `1+x` plus an explicit norm error. The compiled sweep therefore performs
+  only signed fixed-point arithmetic and checked outward widening.
 - `ChapterVILeanCompCertRealBridge.lean` proves the encoding theorem needed by the compiled route:
   LeanCompCert's all-integer fixed-point `rpow` bracket implies the corresponding outward-rounded
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested

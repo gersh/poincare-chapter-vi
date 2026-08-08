@@ -29,13 +29,78 @@ open scoped Topology unitInterval
 
 namespace PoincareChapterVI
 
+/-- The small complex exponent in Poincaré's `u ↦ t` coordinate change.  Naming it exposes
+the only transcendental operation required by the compiled outer-arc checker. -/
+def chapterVIDRootExponentialArgument (u : ℂ) : ℂ :=
+  (100 / 30003 : ℂ) * ((u ^ 3)⁻¹ - u ^ 3)
+
 /-- The exact §97 change from `u=x^(1/3)` back to the original §94 contour variable `t`. -/
 def chapterVIDRootToOriginalContour (u : ℂ) : ℂ :=
-  u * exp ((100 / 30003 : ℂ) * ((u ^ 3)⁻¹ - u ^ 3))
+  u * exp (chapterVIDRootExponentialArgument u)
+
+/-- First-order polynomial approximation used by the compiled interval calculation. -/
+def chapterVIDRootToOriginalContourLinearApprox (u : ℂ) : ℂ :=
+  u * (1 + chapterVIDRootExponentialArgument u)
+
+/-- Elementary norm bound for the coordinate-change exponent. -/
+theorem norm_chapterVIDRootExponentialArgument_le (u : ℂ) :
+    ‖chapterVIDRootExponentialArgument u‖ ≤
+      (100 / 30003 : ℝ) * ((‖u‖ ^ 3)⁻¹ + ‖u‖ ^ 3) := by
+  unfold chapterVIDRootExponentialArgument
+  rw [norm_mul]
+  have hcoefficient : ‖(100 / 30003 : ℂ)‖ = (100 / 30003 : ℝ) := by
+    norm_num [Complex.norm_def]
+  rw [hcoefficient]
+  apply mul_le_mul_of_nonneg_left _ (by norm_num)
+  calc
+    ‖(u ^ 3)⁻¹ - u ^ 3‖ ≤ ‖(u ^ 3)⁻¹‖ + ‖u ^ 3‖ := norm_sub_le _ _
+    _ = (‖u‖ ^ 3)⁻¹ + ‖u‖ ^ 3 := by simp
+
+/-- A coarse annulus is already enough for the first-order exponential enclosure.  This avoids
+all trigonometric or transcendental evaluation inside the compiled sample sweep. -/
+theorem norm_chapterVIDRootExponentialArgument_le_one_of_mem_annulus
+    {u : ℂ} (hlower : (1 / 5 : ℝ) ≤ ‖u‖) (hupper : ‖u‖ ≤ 1) :
+    ‖chapterVIDRootExponentialArgument u‖ ≤ 1 := by
+  have hnormpos : 0 < ‖u‖ := lt_of_lt_of_le (by norm_num) hlower
+  have hcubeLower : (1 / 125 : ℝ) ≤ ‖u‖ ^ 3 := by
+    nlinarith [sq_nonneg (‖u‖ - 1 / 5),
+      mul_nonneg (sub_nonneg.mpr hlower) (sq_nonneg ‖u‖)]
+  have hinverse : (‖u‖ ^ 3)⁻¹ ≤ (125 : ℝ) := by
+    rw [inv_le_iff_one_le_mul₀ (pow_pos hnormpos 3)]
+    nlinarith
+  have hcubeUpper : ‖u‖ ^ 3 ≤ 1 := by
+    nlinarith [sq_nonneg ‖u‖,
+      mul_nonneg (norm_nonneg u) (sub_nonneg.mpr hupper)]
+  calc
+    ‖chapterVIDRootExponentialArgument u‖ ≤
+        (100 / 30003 : ℝ) * ((‖u‖ ^ 3)⁻¹ + ‖u‖ ^ 3) :=
+      norm_chapterVIDRootExponentialArgument_le u
+    _ ≤ (100 / 30003 : ℝ) * (125 + 1) := by gcongr
+    _ ≤ 1 := by norm_num
+
+/-- Mathlib's complex exponential remainder bound turns the only transcendental operation in
+the checker formula into polynomial arithmetic plus an explicit norm error. -/
+theorem norm_chapterVIDRootToOriginalContour_sub_linearApprox_le
+    {u : ℂ} (hargument : ‖chapterVIDRootExponentialArgument u‖ ≤ 1) :
+    ‖chapterVIDRootToOriginalContour u -
+        chapterVIDRootToOriginalContourLinearApprox u‖ ≤
+      ‖u‖ * ‖chapterVIDRootExponentialArgument u‖ ^ 2 := by
+  have hexponential :=
+    Complex.norm_exp_sub_one_sub_id_le hargument
+  rw [chapterVIDRootToOriginalContour,
+    chapterVIDRootToOriginalContourLinearApprox]
+  have hfactor :
+      u * exp (chapterVIDRootExponentialArgument u) -
+          u * (1 + chapterVIDRootExponentialArgument u) =
+        u * (exp (chapterVIDRootExponentialArgument u) - 1 -
+          chapterVIDRootExponentialArgument u) := by
+    ring
+  rw [hfactor, norm_mul]
+  exact mul_le_mul_of_nonneg_left hexponential (norm_nonneg u)
 
 theorem continuousOn_chapterVIDRootToOriginalContour :
     ContinuousOn chapterVIDRootToOriginalContour ({0} : Set ℂ)ᶜ := by
-  unfold chapterVIDRootToOriginalContour
+  unfold chapterVIDRootToOriginalContour chapterVIDRootExponentialArgument
   fun_prop (disch := simp_all)
 
 /-- Away from the ramification point `u=0`, Poincaré's exact change back to the original
@@ -43,7 +108,7 @@ contour variable is holomorphic. -/
 theorem analyticAt_chapterVIDRootToOriginalContour
     {u : ℂ} (hu : u ≠ 0) :
     AnalyticAt ℂ chapterVIDRootToOriginalContour u := by
-  unfold chapterVIDRootToOriginalContour
+  unfold chapterVIDRootToOriginalContour chapterVIDRootExponentialArgument
   exact analyticAt_id.mul
     ((analyticAt_const.mul
       (((analyticAt_id.pow 3).inv (pow_ne_zero 3 hu)).sub
@@ -53,7 +118,8 @@ theorem analyticAt_chapterVIDRootToOriginalContour
 theorem chapterVIDRootToOriginalContour_pow (u : ℂ) :
     chapterVIDRootToOriginalContour u ^ 3 =
       chapterVIKeplerExponential chapterVIDEccentricity (u ^ 3) := by
-  unfold chapterVIDRootToOriginalContour chapterVIKeplerExponential chapterVIDEccentricity
+  unfold chapterVIDRootToOriginalContour chapterVIDRootExponentialArgument
+    chapterVIKeplerExponential chapterVIDEccentricity
   rw [mul_pow, ← Complex.exp_nat_mul]
   congr 1
   ring_nf

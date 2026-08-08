@@ -246,7 +246,8 @@ theorem chapterVIDOuterArcRadicand_eq_certificateFormula
   rw [chapterVIDRootCoordinateRadicand_eq_certificateFormula
     (chapterVIDCommonParameterRootPath_ne_zero st.1)
     (chapterVIDOuterArcPoint_ne_zero side st)]
-  simp [chapterVIDRootSecondAnomaly, chapterVIDRootToOriginalContour, mul_assoc]
+  simp [chapterVIDRootSecondAnomaly, chapterVIDRootToOriginalContour,
+    chapterVIDRootExponentialArgument, mul_assoc]
 
 theorem continuous_chapterVIDOuterArcRadicand
     (side : ChapterVIDOuterArcSide) :

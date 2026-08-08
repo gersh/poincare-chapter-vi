@@ -153,6 +153,13 @@ The source-facing files added after the standalone-project commit are deliberate
   positive-real-part certificate, not the sampled minimum. An exact source-identity theorem also
   rewrites the literal radicand to the sparse checker formula with squared binomials, circular
   coordinates `y,y⁻¹`, rational complex arithmetic, and one complex exponential.
+- `ChapterVIIntervalCertificate.lean` formalizes the semantic side of the compiled interval
+  artifact: eight signed-integer corner comparisons certify each dyadic multiplication, two
+  cross-products certify a positive reciprocal, and four real certificates produce a complex
+  rectangle product. `ChapterVIDOuterArcInterval.lean` proves that the coordinate-change
+  exponential is within its first-order polynomial by an explicit norm error throughout the
+  coarse contour annulus. Thus no unverified floating-point or transcendental evaluation is part
+  of the eventual compiled sample sweep.
 - `ChapterVILeanCompCertRealBridge.lean`: closes one concrete encoding gap in that certificate.
   It turns LeanCompCert's natural-number power inequalities into genuine `Real.rpow` bounds, so a
   compiled fixed-point result can be used by the analytic contour proof without treating the
