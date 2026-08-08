@@ -272,7 +272,9 @@ The strongest newly completed component is the finite algebra in §103:
 - `ChapterVIThreeArcAsymptotic.lean` combines those results: if the checked source-sheet
   deformation identifies this middle cycle and the two complementary arc integrals are
   `o(-log k)`, the full continued principal integral has the same explicitly nonzero logarithmic
-  coefficient. Its continuation structure is the current global interface.
+  coefficient. A finite limit of the complementary contribution automatically implies that
+  lower-order condition, so ordinary continuity of the regular arcs is enough. Its continuation
+  structure is the current global interface.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

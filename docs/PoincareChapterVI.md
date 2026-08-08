@@ -393,8 +393,9 @@ This remains the conceptual bottleneck globally, but the local coefficient is no
 principal numerator/Jacobian on a rectangle where the actual source radicand is exactly `k+v²`;
 the coefficient is proved nonzero. `ChapterVIThreeArcAsymptotic.lean` proves that this is also the
 full contour coefficient once the source-sheet three-arc realization and an `o(-log k)` estimate
-for the two outer arcs are supplied. The missing theorem must construct that relative `C²`
-source-sheet deformation and prove the exposed regular-remainder estimate.
+for the two outer arcs are supplied; it also proves that any finite regular-arc limit implies this
+estimate automatically. The missing theorem must construct that relative `C²` source-sheet
+deformation and prove continuity of the exposed regular remainder.
 
 ### 2. From a local logarithm to a coefficient theorem (§100)
 

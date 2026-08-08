@@ -121,6 +121,41 @@ structure ChapterVIDPrincipalThreeArcContinuation
     (fun k : ℝ ↦ (-Real.log k)⁻¹ • regularContribution k)
     (𝓝[>] 0) (𝓝 0)
 
+/-- Any regular contribution with a finite limit is automatically lower order than Poincare's
+logarithm.  Thus the outer-arc obligation can be discharged by ordinary continuity (or
+analyticity) of those arc integrals at the collision parameter. -/
+theorem tendsto_inv_neg_log_smul_zero_of_tendsto
+    {regularContribution : ℝ → ℂ} {regularLimit : ℂ}
+    (hregular : Tendsto regularContribution (𝓝[>] 0) (𝓝 regularLimit)) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ • regularContribution k)
+      (𝓝[>] 0) (𝓝 0) := by
+  have hdenominator : Tendsto (fun k : ℝ ↦ -Real.log k) (𝓝[>] 0) atTop := by
+    apply tendsto_neg_atTop_iff.mpr
+    exact Real.tendsto_log_nhdsGT_zero
+  have hinverse : Tendsto (fun k : ℝ ↦ (-Real.log k)⁻¹)
+      (𝓝[>] 0) (𝓝 0) :=
+    hdenominator.inv_tendsto_atTop
+  simpa using hinverse.smul hregular
+
+/-- Construct the three-arc asymptotic package from the more natural source-facing assertion
+that the two outer-arc contributions have a finite limit. -/
+def ChapterVIDPrincipalThreeArcContinuation.of_tendsto_regular
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalLocalSourceModel massProduct b d}
+    (fullContribution regularContribution : ℝ → ℂ)
+    (decomposition : ∀ᶠ k in 𝓝[>] (0 : ℝ),
+      fullContribution k = regularContribution k +
+        chapterVIDPrincipalLocalPhiContribution massProduct b d model.L k)
+    {regularLimit : ℂ}
+    (regular_tendsto : Tendsto regularContribution (𝓝[>] 0) (𝓝 regularLimit)) :
+    ChapterVIDPrincipalThreeArcContinuation massProduct b d model where
+  fullContribution := fullContribution
+  regularContribution := regularContribution
+  decomposition := decomposition
+  regular_sublog :=
+    tendsto_inv_neg_log_smul_zero_of_tendsto regular_tendsto
+
 /-- Once the source-sheet three-arc continuation is supplied, the full continued principal
 integral inherits the nonzero logarithmic coefficient proved on the middle cycle. -/
 theorem ChapterVIDPrincipalThreeArcContinuation.tendsto_full_inv_neg_log_smul
