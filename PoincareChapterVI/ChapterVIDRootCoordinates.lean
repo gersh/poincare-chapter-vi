@@ -209,6 +209,26 @@ theorem chapterVIDRootCoordinateRadicand_eq_certificateFormula
   field_simp [hu, hy]
   ring
 
+/-- Dependency-preserving form of the sparse certificate.  Writing the Laurent quotients with
+`u³` and `u⁻³` separately is equivalent to the literal formula but is much sharper for polar
+interval evaluation. -/
+theorem chapterVIDRootCoordinateRadicand_eq_polarCertificateFormula
+    {ζ u : ℂ} (hζ : ζ ≠ 0) (hu : u ≠ 0) :
+    chapterVIDRootCoordinateRadicand ζ u =
+      ((((1 / 10001 : ℝ) : ℂ) *
+            ((10000 : ℂ) * u ^ 3 + (u ^ 3)⁻¹ - 200) -
+          2 * chapterVIDRootSecondAnomaly ζ u) *
+        (((1 / 10001 : ℝ) : ℂ) *
+            (u ^ 3 + 10000 * (u ^ 3)⁻¹ - 200) -
+          2 * (chapterVIDRootSecondAnomaly ζ u)⁻¹)) := by
+  rw [chapterVIDRootCoordinateRadicand_eq_certificateFormula hζ hu]
+  have hy : chapterVIDRootSecondAnomaly ζ u ≠ 0 :=
+    mul_ne_zero hζ (chapterVIDRootToOriginalContour_ne_zero hu)
+  have hcoefficient : (((1 / 10001 : ℝ) : ℂ)) = 1 / 10001 := by norm_num
+  rw [hcoefficient]
+  field_simp [hu, hy]
+  ring
+
 /-- The positive real cubic root, used for Poincaré's radial `ζ=z^(1/3)` segment. -/
 noncomputable def chapterVIPositiveRealCubicValue (x : ℝ) : ℝ :=
   max x 0 ^ ((3 : ℝ)⁻¹)

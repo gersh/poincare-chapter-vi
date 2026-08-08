@@ -321,10 +321,16 @@ The strongest newly completed component is the finite algebra in §103:
   exact source cubic root and the explicit contour radius. The generated table is reproducible
   with `research/generate_chapter_vi_radial_grid.py`; the generator is not part of the trust base.
 - `ChapterVILeanCompCertPolarTrace.lean` preserves the exact polar dependency `u = r*v` and
-  `v⁻¹ = conj(v)` for `‖v‖ = 1`. Its compiled trace encloses `u`, `u³`, and `u⁻³` using only the
+  `v⁻¹ = conj(v)` for `‖v‖ = 1`. Its compiled trace encloses `u`, `u⁻¹`, `u³`, and `u⁻³` using only the
   existing signed-dyadic products and positive reciprocal checker. This avoids the large
   overestimate caused by independently inverting a rectangular enclosure of `u` near the D
   collision.
+- `ChapterVILeanCompCertRadicandTrace.lean` carries those polar enclosures through both first-order
+  exponential approximations, computes and checks the analytic remainder widths, and evaluates
+  the two sparse Laurent factors. Its semantic theorem identifies the output with the literal
+  root-coordinate radicand. A fixed-point feasibility scan finds a passing 20-bit mesh with 28
+  cubically clustered radial cells and 32 quadratically clustered angular cells; the scan only
+  chooses the mesh, while LeanCompCert must independently check the generated operations.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

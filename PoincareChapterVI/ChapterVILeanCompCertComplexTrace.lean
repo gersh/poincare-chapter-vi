@@ -31,6 +31,11 @@ def Contains {precision : ℕ}
     (rectangle : ChapterVISignedDyadicComplexRectangle precision) (value : ℂ) : Prop :=
   rectangle.real.Contains value.re ∧ rectangle.imag.Contains value.im
 
+noncomputable def toComplexRectangle {precision : ℕ}
+    (rectangle : ChapterVISignedDyadicComplexRectangle precision) :
+    ChapterVIComplexRectangle :=
+  ⟨rectangle.real.toRealInterval, rectangle.imag.toRealInterval⟩
+
 def add {precision : ℕ}
     (x y : ChapterVISignedDyadicComplexRectangle precision) :
     ChapterVISignedDyadicComplexRectangle precision :=
@@ -51,6 +56,27 @@ def conjugate {precision : ℕ}
     (x : ChapterVISignedDyadicComplexRectangle precision) :
     ChapterVISignedDyadicComplexRectangle precision :=
   ⟨x.real, x.imag.neg⟩
+
+/-- Exact multiplication of both rectangle coordinates by a natural number. -/
+def nsmul {precision : ℕ} (n : ℕ)
+    (x : ChapterVISignedDyadicComplexRectangle precision) :
+    ChapterVISignedDyadicComplexRectangle precision :=
+  ⟨⟨n * x.real.lower, n * x.real.upper⟩,
+    ⟨n * x.imag.lower, n * x.imag.upper⟩⟩
+
+/-- An exactly represented real integer, viewed as a complex rectangle. -/
+def pointInt (precision : ℕ) (value : ℤ) :
+    ChapterVISignedDyadicComplexRectangle precision :=
+  ⟨ChapterVISignedDyadicInterval.pointInt precision value,
+    ChapterVISignedDyadicInterval.pointInt precision 0⟩
+
+/-- Exact dyadic widening by the upper endpoint of a nonnegative error interval. -/
+def widenUpper {precision : ℕ}
+    (x : ChapterVISignedDyadicComplexRectangle precision)
+    (error : ChapterVISignedDyadicInterval precision) :
+    ChapterVISignedDyadicComplexRectangle precision :=
+  ⟨⟨x.real.lower - error.upper, x.real.upper + error.upper⟩,
+    ⟨x.imag.lower - error.upper, x.imag.upper + error.upper⟩⟩
 
 theorem add_contains {precision : ℕ}
     {x y : ChapterVISignedDyadicComplexRectangle precision} {a b : ℂ}
@@ -83,6 +109,66 @@ theorem conjugate_contains_inv_of_norm_one {precision : ℕ}
     (ha : x.Contains a) (hnorm : ‖a‖ = 1) : x.conjugate.Contains a⁻¹ := by
   rw [Complex.inv_eq_conj hnorm]
   exact conjugate_contains ha
+
+theorem nsmul_contains {precision : ℕ} (n : ℕ)
+    {x : ChapterVISignedDyadicComplexRectangle precision} {a : ℂ}
+    (ha : x.Contains a) : (x.nsmul n).Contains (n * a) := by
+  constructor
+  · change ((n : ℤ) * x.real.lower : ℤ) / ChapterVISignedDyadicInterval.scale precision ≤
+      (n * a).re ∧
+      (n * a).re ≤
+        ((n : ℤ) * x.real.upper : ℤ) / ChapterVISignedDyadicInterval.scale precision
+    simpa [Complex.mul_re, ChapterVISignedDyadicInterval.Contains,
+      ChapterVISignedDyadicInterval.toRealInterval, nsmul,
+      div_eq_mul_inv, mul_assoc] using
+      ⟨mul_le_mul_of_nonneg_left ha.1.1 (Nat.cast_nonneg n),
+        mul_le_mul_of_nonneg_left ha.1.2 (Nat.cast_nonneg n)⟩
+  · change ((n : ℤ) * x.imag.lower : ℤ) / ChapterVISignedDyadicInterval.scale precision ≤
+      (n * a).im ∧
+      (n * a).im ≤
+        ((n : ℤ) * x.imag.upper : ℤ) / ChapterVISignedDyadicInterval.scale precision
+    simpa [Complex.mul_im, ChapterVISignedDyadicInterval.Contains,
+      ChapterVISignedDyadicInterval.toRealInterval, nsmul,
+      div_eq_mul_inv, mul_assoc] using
+      ⟨mul_le_mul_of_nonneg_left ha.2.1 (Nat.cast_nonneg n),
+        mul_le_mul_of_nonneg_left ha.2.2 (Nat.cast_nonneg n)⟩
+
+theorem pointInt_contains (precision : ℕ) (value : ℤ) :
+    (pointInt precision value).Contains (value : ℂ) := by
+  constructor
+  · simpa [pointInt] using ChapterVISignedDyadicInterval.pointInt_contains precision value
+  · simpa [pointInt] using ChapterVISignedDyadicInterval.pointInt_contains precision 0
+
+theorem widenUpper_contains_of_norm_sub_le {precision : ℕ}
+    {x : ChapterVISignedDyadicComplexRectangle precision}
+    {error : ChapterVISignedDyadicInterval precision} {approximation value : ℂ}
+    (happroximation : x.Contains approximation)
+    (herror : ‖value - approximation‖ ≤
+      (error.upper : ℝ) / ChapterVISignedDyadicInterval.scale precision) :
+    (x.widenUpper error).Contains value := by
+  have hwiden := ChapterVIComplexRectangle.widen_contains_of_norm_sub_le
+    (rectangle := x.toComplexRectangle) happroximation herror
+  constructor <;> constructor
+  · change ((x.real.lower - error.upper : ℤ) : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision ≤ value.re
+    convert hwiden.1.1 using 1 <;>
+      simp only [toComplexRectangle, ChapterVIComplexRectangle.widen,
+        ChapterVISignedDyadicInterval.toRealInterval] <;> push_cast <;> ring
+  · change value.re ≤ ((x.real.upper + error.upper : ℤ) : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision
+    convert hwiden.1.2 using 1 <;>
+      simp only [toComplexRectangle, ChapterVIComplexRectangle.widen,
+        ChapterVISignedDyadicInterval.toRealInterval] <;> push_cast <;> ring
+  · change ((x.imag.lower - error.upper : ℤ) : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision ≤ value.im
+    convert hwiden.2.1 using 1 <;>
+      simp only [toComplexRectangle, ChapterVIComplexRectangle.widen,
+        ChapterVISignedDyadicInterval.toRealInterval] <;> push_cast <;> ring
+  · change value.im ≤ ((x.imag.upper + error.upper : ℤ) : ℝ) /
+      ChapterVISignedDyadicInterval.scale precision
+    convert hwiden.2.2 using 1 <;>
+      simp only [toComplexRectangle, ChapterVIComplexRectangle.widen,
+        ChapterVISignedDyadicInterval.toRealInterval] <;> push_cast <;> ring
 
 /-- Two rounded real products scale a complex rectangle by a real interval. -/
 structure RealMulTrace {precision : ℕ}

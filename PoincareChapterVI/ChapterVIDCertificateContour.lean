@@ -49,6 +49,18 @@ theorem chapterVIDCertificateParameter_pos (s : I) :
       (by linarith [chapterVIDCriticalParameterModulus_lt_one])
   nlinarith [chapterVIDCriticalParameterModulus_pos]
 
+/-- The real cubic-root value certified by the radial grid is exactly the source root path used
+in the literal outer-arc radicand. -/
+theorem chapterVIDCommonParameterRootPath_eq_certificateValue (s : I) :
+    chapterVIDCommonParameterRootPath s =
+      ((chapterVIDCertificateParameter s ^ ((3 : ℝ)⁻¹) : ℝ) : ℂ) := by
+  change chapterVIPositiveRealCubicLift
+      (AffineMap.lineMap 1 chapterVIDCriticalParameterModulus (s : ℝ)) = _
+  rw [show AffineMap.lineMap 1 chapterVIDCriticalParameterModulus (s : ℝ) =
+      chapterVIDCertificateParameter s by rfl]
+  simp [chapterVIPositiveRealCubicLift, chapterVIPositiveRealCubicValue,
+    max_eq_left (chapterVIDCertificateParameter_pos s).le]
+
 theorem continuous_chapterVIDCertificateParameter :
     Continuous chapterVIDCertificateParameter := by
   unfold chapterVIDCertificateParameter
