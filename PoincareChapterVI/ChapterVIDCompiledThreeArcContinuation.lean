@@ -14,10 +14,11 @@ The local middle curve is now a literal source-coordinate path, and the compiled
 certificate proves that the two complementary outer integrals have a finite collision limit.
 This file joins those two completed analytic statements.
 
-The remaining datum is deliberately geometric: synchronize the positive local critical value
-`k` with the certified global radial parameter and prove that the continued full source contour
-decomposes into the certified outer contribution plus the constructed local middle contribution.
-Once that placement is supplied, regularity and the nonzero logarithmic coefficient are automatic.
+The remaining data are deliberately geometric: synchronize the positive local critical value
+`k` with the certified global radial parameter, join the certified quarter-arcs at `i` and `-i`
+to the endpoints of the local Morse segment by two regular connectors, and prove the resulting
+source-contour decomposition. Once the connector contribution has a finite limit, the nonzero
+logarithmic coefficient is automatic.
 -/
 
 noncomputable section
@@ -26,9 +27,11 @@ open Filter Topology
 
 namespace PoincareChapterVI
 
-/-- The exact remaining placement data after the compiled outer certificate and the literal
-local middle path have been proved.  `globalParameter` synchronizes the local critical value with
-the outer certificate's radial parameter; `decomposition` is the source-sheet contour identity. -/
+/-- The exact remaining placement data after the compiled outer quarters and the literal local
+middle path have been proved. `globalParameter` synchronizes the two parameterizations.
+`connectorContribution` is the normalized sum of the two regular arcs from the quarter endpoints
+to the local path endpoints; unlike the pinched middle path it must have an ordinary finite
+limit. `decomposition` is the source-sheet contour identity containing all five pieces. -/
 structure ChapterVIDCompiledPrincipalThreeArcPlacement
     (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
     (massProduct : ℂ) (b d : ℤ)
@@ -37,10 +40,15 @@ structure ChapterVIDCompiledPrincipalThreeArcPlacement
   globalParameter : ℝ → unitInterval
   globalParameter_tendsto :
     Tendsto globalParameter (𝓝[>] (0 : ℝ)) (𝓝 (1 : unitInterval))
+  connectorContribution : ℝ → ℂ
+  connectorLimit : ℂ
+  connector_tendsto :
+    Tendsto connectorContribution (𝓝[>] (0 : ℝ)) (𝓝 connectorLimit)
   decomposition : ∀ᶠ k in 𝓝[>] (0 : ℝ),
     fullContribution k =
-      ChapterVIDOuterArcRegularity.principalRegularContribution
-        run massProduct b d (globalParameter k) +
+      (ChapterVIDOuterArcRegularity.principalRegularContribution
+          run massProduct b d (globalParameter k) +
+        connectorContribution k) +
       chapterVIDPrincipalLocalPhiContribution massProduct b d model.L k
 
 namespace ChapterVIDCompiledPrincipalThreeArcPlacement
@@ -54,7 +62,8 @@ def regularContribution
     (placement : ChapterVIDCompiledPrincipalThreeArcPlacement
       run massProduct b d model) : ℝ → ℂ :=
   fun k ↦ ChapterVIDOuterArcRegularity.principalRegularContribution
-    run massProduct b d (placement.globalParameter k)
+      run massProduct b d (placement.globalParameter k) +
+    placement.connectorContribution k
 
 /-- The compiled outer contribution has a finite limit after synchronization with the local
 critical-value parameter. -/
@@ -66,15 +75,15 @@ theorem tendsto_regularContribution
       run massProduct b d model) :
     Tendsto placement.regularContribution (𝓝[>] (0 : ℝ))
       (𝓝 (ChapterVIDOuterArcRegularity.principalRegularContribution
-        run massProduct b d 1)) :=
-  Filter.Tendsto.comp
-    (ChapterVIDOuterArcRegularity.tendsto_principalRegularContribution_collision
-      run massProduct b d)
-    placement.globalParameter_tendsto
+        run massProduct b d 1 + placement.connectorLimit)) :=
+  (Filter.Tendsto.comp
+      (ChapterVIDOuterArcRegularity.tendsto_principalRegularContribution_collision
+        run massProduct b d)
+      placement.globalParameter_tendsto).add placement.connector_tendsto
 
 /-- Convert the geometric placement data into the generic three-arc asymptotic package.  In
 particular, the formerly abstract `regular_sublog` field is discharged by the compiled finite
-outer limit. -/
+outer limit together with the named finite connector limit. -/
 def toThreeArcContinuation
     {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
     {massProduct : ℂ} {b d : ℤ}

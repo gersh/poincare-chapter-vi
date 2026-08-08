@@ -386,10 +386,12 @@ The strongest newly completed component is the finite algebra in §103:
   compatibility; the formerly separate cubic-root branch hypothesis is discharged automatically.
 - `ChapterVIDCompiledThreeArcContinuation.lean` is the compiled-route global interface. Given
   only a synchronization from positive local critical values to the certified radial parameter
-  and the actual source-contour decomposition, it pulls back the compiled outer finite limit,
-  automatically discharges the former `regular_sublog` premise, and proves that the full
-  continuation has the explicit nonzero logarithmic coefficient. No independent analytic
-  regularity assumption remains in this interface.
+  together with the two regular connector arcs and the actual five-piece source-contour
+  decomposition, it pulls back the compiled outer finite limit, combines it with the connector
+  finite limit, automatically discharges the former broad `regular_sublog` premise, and proves
+  that the full continuation has the explicit nonzero logarithmic coefficient. The remaining
+  regularity target is now precisely the connector contribution, rather than an unnamed global
+  remainder.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
