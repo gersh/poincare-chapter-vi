@@ -181,10 +181,51 @@ def Contains {precision : ℕ}
     (x : ChapterVISignedDyadicInterval precision) (value : ℝ) : Prop :=
   x.toRealInterval.Contains value
 
+/-- An exactly represented integer at the chosen binary scale. -/
+def pointInt (precision : ℕ) (value : ℤ) :
+    ChapterVISignedDyadicInterval precision :=
+  ⟨value * (2 ^ precision : ℤ), value * (2 ^ precision : ℤ)⟩
+
+theorem pointInt_contains (precision : ℕ) (value : ℤ) :
+    (pointInt precision value).Contains (value : ℝ) := by
+  constructor <;>
+    simp [toRealInterval, pointInt, scale]
+
+/-- Two exact integer comparisons certify a rational constant's outward-rounded dyadic
+enclosure. This is used for coefficients such as `100/30003` in the sparse radicand. -/
+theorem contains_rational {precision : ℕ}
+    (interval : ChapterVISignedDyadicInterval precision)
+    (numerator denominator : ℤ) (hdenominator : 0 < denominator)
+    (hlower : interval.lower * denominator ≤ numerator * (2 ^ precision : ℤ))
+    (hupper : numerator * (2 ^ precision : ℤ) ≤ interval.upper * denominator) :
+    interval.Contains ((numerator : ℝ) / denominator) := by
+  have hdenReal : (0 : ℝ) < denominator := by exact_mod_cast hdenominator
+  constructor
+  · change (interval.lower : ℝ) / scale precision ≤ (numerator : ℝ) / denominator
+    rw [div_le_div_iff₀ (scale_pos precision) hdenReal]
+    have hcast : ((interval.lower * denominator : ℤ) : ℝ) ≤
+        ((numerator * (2 ^ precision : ℤ) : ℤ) : ℝ) := by exact_mod_cast hlower
+    simpa [scale] using hcast
+  · change (numerator : ℝ) / denominator ≤ (interval.upper : ℝ) / scale precision
+    rw [div_le_div_iff₀ hdenReal (scale_pos precision)]
+    have hcast : ((numerator * (2 ^ precision : ℤ) : ℤ) : ℝ) ≤
+        ((interval.upper * denominator : ℤ) : ℝ) := by exact_mod_cast hupper
+    simpa [scale] using hcast
+
 def add {precision : ℕ}
     (x y : ChapterVISignedDyadicInterval precision) :
     ChapterVISignedDyadicInterval precision :=
   ⟨x.lower + y.lower, x.upper + y.upper⟩
+
+def neg {precision : ℕ}
+    (x : ChapterVISignedDyadicInterval precision) :
+    ChapterVISignedDyadicInterval precision :=
+  ⟨-x.upper, -x.lower⟩
+
+def sub {precision : ℕ}
+    (x y : ChapterVISignedDyadicInterval precision) :
+    ChapterVISignedDyadicInterval precision :=
+  x.add y.neg
 
 theorem add_contains {precision : ℕ}
     {x y : ChapterVISignedDyadicInterval precision} {a b : ℝ}
@@ -192,6 +233,19 @@ theorem add_contains {precision : ℕ}
     (x.add y).Contains (a + b) := by
   simpa [Contains, toRealInterval, add, ChapterVIRealInterval.add, scale,
     add_div] using ChapterVIRealInterval.add_contains ha hb
+
+theorem neg_contains {precision : ℕ}
+    {x : ChapterVISignedDyadicInterval precision} {value : ℝ}
+    (hvalue : x.Contains value) : x.neg.Contains (-value) := by
+  constructor
+  · simpa [Contains, toRealInterval, neg, neg_div] using neg_le_neg hvalue.2
+  · simpa [Contains, toRealInterval, neg, neg_div] using neg_le_neg hvalue.1
+
+theorem sub_contains {precision : ℕ}
+    {x y : ChapterVISignedDyadicInterval precision} {a b : ℝ}
+    (ha : x.Contains a) (hb : y.Contains b) :
+    (x.sub y).Contains (a - b) := by
+  simpa [sub, sub_eq_add_neg] using add_contains ha (neg_contains hb)
 
 /-- The exact integer comparisons checked for an outward-rounded signed dyadic product. -/
 structure MulCertificate {precision : ℕ}

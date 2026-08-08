@@ -329,6 +329,16 @@ The strongest newly completed component is the finite algebra in §103:
   from the machine calculation: on the coarse radius annulus, Mathlib's exponential remainder
   theorem encloses it by `1+x` plus an explicit norm error. The compiled sweep therefore performs
   only signed fixed-point arithmetic and checked outward widening.
+- `ChapterVILeanCompCertBatch.lean` concatenates all multiplication and positive-reciprocal
+  conditions in a campaign. One compiled zero-failure verdict reconstructs every individual
+  interval certificate; the full grid therefore needs one auditable run rather than an artifact
+  per arithmetic operation.
+- `ChapterVIUnitSquareGrid.lean` proves that the exact rational `(n+2) × (n+2)` sample grid covers
+  `I × I` within product distance `1/(n+1)`. It also packages a checked grid table and a Lipschitz
+  estimate into the positive-real-part cover consumed by the square-root theorem.
+  The same file provides a stronger interval-cell interface: if each compiled row encloses its
+  entire rational cell, the cells cover `I × I` directly and no global Lipschitz estimate is
+  required. This is the preferred route for the full campaign.
 - `ChapterVIDOuterArcCompiledSample.lean` instantiates the compiled route at the initial corner of
   the initial outer arc. Both sparse factors there are `-10201/10001`; a 16-bit dyadic enclosure
   and the signed LeanCompCert checker prove that their product lies in the strictly positive

@@ -106,6 +106,48 @@ structure ChapterVIFinitePositiveRealPartCover
   sampleRealPart : ∀ center ∈ samples, sampleMargin ≤ (radicand center).re
   error_lt_margin : (lipschitzConstant : ℝ) * coverRadius < sampleMargin
 
+/-- A finite interval-box variant of the positive-real-part certificate.  Unlike a point-sample
+certificate, each compiled row encloses the radicand on an entire cell.  This removes the need for
+a separate global Lipschitz estimate when the interval evaluator already propagates input ranges. -/
+structure ChapterVIFinitePositiveRealPartIndexedCover
+    {A Cell : Type*} [Fintype Cell] (region : Cell → Set A)
+    (radicand : A → ℂ) where
+  margin : ℝ
+  margin_pos : 0 < margin
+  covers : ∀ x : A, ∃ cell : Cell, x ∈ region cell
+  cellRealPart : ∀ cell : Cell, ∀ x ∈ region cell, margin ≤ (radicand x).re
+
+theorem ChapterVIFinitePositiveRealPartIndexedCover.realPart_pos
+    {A Cell : Type*} [Fintype Cell] {region : Cell → Set A}
+    {radicand : A → ℂ}
+    (certificate : ChapterVIFinitePositiveRealPartIndexedCover region radicand)
+    (x : A) : 0 < (radicand x).re := by
+  obtain ⟨cell, hx⟩ := certificate.covers x
+  exact certificate.margin_pos.trans_le (certificate.cellRealPart cell x hx)
+
+theorem ChapterVIFinitePositiveRealPartIndexedCover.ne_zero
+    {A Cell : Type*} [Fintype Cell] {region : Cell → Set A}
+    {radicand : A → ℂ}
+    (certificate : ChapterVIFinitePositiveRealPartIndexedCover region radicand)
+    (x : A) : radicand x ≠ 0 := by
+  intro hzero
+  have := certificate.realPart_pos x
+  simp [hzero] at this
+
+/-- An interval-box certificate can feed the same covering-space square-root construction without
+passing through point samples or a Lipschitz estimate. -/
+theorem ChapterVIFinitePositiveRealPartIndexedCover.exists_continuousSquareRootSheet
+    {A Cell : Type*} [TopologicalSpace A] [Fintype Cell]
+    [SimplyConnectedSpace A] [LocallyPathConnectedSpace A]
+    {region : Cell → Set A} {radicand : A → ℂ}
+    (certificate : ChapterVIFinitePositiveRealPartIndexedCover region radicand)
+    (hcontinuous : Continuous radicand)
+    (base : A) (baseRoot : ℂ) (hbaseRoot : baseRoot ^ 2 = radicand base) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet radicand,
+      sheet.root base = baseRoot :=
+  exists_chapterVIContinuousSquareRootSheet radicand hcontinuous
+    certificate.ne_zero base baseRoot hbaseRoot
+
 /-- Forgetting the stronger positive-real-part information gives the general finite
 nonvanishing certificate. -/
 def ChapterVIFinitePositiveRealPartCover.toNonvanishingCover
