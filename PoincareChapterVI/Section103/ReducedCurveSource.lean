@@ -104,6 +104,26 @@ def source : Sparse :=
     (mul (mul (constant (-2)) secondOutside)
       (sumCoordinates fun i ↦ mul (secondReduced i) (cubic i)))
 
+/-- Sparse source presentation of `P = ∑ᵢ Uᵢ²`. -/
+def curveSource : Sparse :=
+  sumCoordinates fun i ↦ mul (cubic i) (cubic i)
+
+/-- Exact coefficients of `50700 · P`, in the same rational-Gaussian representation used by
+the compiled reduced-curve certificate below. -/
+def curveClearedCoefficient : Fin 5 → Fin 5 → QI :=
+  ![![⟨0, 0⟩, ⟨0, 0⟩, ⟨4563, 0⟩, ⟨0, 0⟩, ⟨0, 0⟩],
+    ![⟨0, 0⟩, ⟨21320, -33280⟩, ⟨-56420, 20800⟩, ⟨46280, -20800⟩, ⟨0, 0⟩],
+    ![⟨7500, 0⟩, ⟨-118560, 7488⟩, ⟨308826, 0⟩,
+      ⟨-118560, -7488⟩, ⟨7500, 0⟩],
+    ![⟨0, 0⟩, ⟨46280, 20800⟩, ⟨-56420, -20800⟩,
+      ⟨21320, 33280⟩, ⟨0, 0⟩],
+    ![⟨0, 0⟩, ⟨0, 0⟩, ⟨4563, 0⟩, ⟨0, 0⟩, ⟨0, 0⟩]]
+
+def curveCleared : Sparse :=
+  (List.ofFn fun a : Fin 5 ↦
+    List.ofFn fun b : Fin 5 ↦
+      ⟨⟨a.val, b.val, 6 - a.val - b.val⟩, curveClearedCoefficient a b⟩).flatten
+
 def reducedCoefficient : Fin 5 → Fin 5 → QI :=
   ![![⟨0, 0⟩, ⟨90285, -99840⟩, ⟨-136890, 0⟩, ⟨-112515, 62400⟩, ⟨0, 0⟩],
     ![⟨106500, -96000⟩, ⟨-1051430, 914464⟩, ⟨1041300, -468000⟩,
@@ -135,11 +155,20 @@ set_option maxHeartbeats 20000000 in
 theorem certificate : coefficientCube (scale 438750 source) = coefficientCube cleared := by
   verified_decide
 
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 20000000 in
+/-- Compiled finite certificate for the source identity `50700 · ∑ᵢ Uᵢ² = P`. -/
+theorem curveCertificate :
+    coefficientCube (scale 50700 curveSource) = coefficientCube curveCleared := by
+  verified_decide
+
 def bounded (p : Sparse) : Bool :=
   p.all fun t ↦ t.exp.x < 8 && t.exp.y < 8 && t.exp.z < 8
 
 theorem source_bounded : bounded (scale 438750 source) = true := by verified_decide
 theorem cleared_bounded : bounded cleared = true := by verified_decide
+theorem curveSource_bounded : bounded (scale 50700 curveSource) = true := by verified_decide
+theorem curveCleared_bounded : bounded curveCleared = true := by verified_decide
 
 noncomputable def qiToComplex : QI →+* ℂ where
   toFun q := (q.re : ℂ) + (q.im : ℂ) * Complex.I
@@ -306,11 +335,15 @@ theorem toMv_eq_of_cube_eq
 theorem mv_certificate : toMv (scale 438750 source) = toMv cleared :=
   toMv_eq_of_cube_eq certificate source_bounded cleared_bounded
 
+theorem curve_mv_certificate :
+    toMv (scale 50700 curveSource) = toMv curveCleared :=
+  toMv_eq_of_cube_eq curveCertificate curveSource_bounded curveCleared_bounded
+
 private abbrev Trivar := MvPolynomial (Fin 3) ℂ
 
-private def mvX : Trivar := MvPolynomial.X 0
-private def mvY : Trivar := MvPolynomial.X 1
-private def mvZ : Trivar := MvPolynomial.X 2
+def mvX : Trivar := MvPolynomial.X 0
+def mvY : Trivar := MvPolynomial.X 1
+def mvZ : Trivar := MvPolynomial.X 2
 
 /-- The source cubic `Uᵢ` obtained from the two physical ellipses in `Geometry`. -/
 def sourceCubic (coordinate : Fin 3) : Trivar :=
@@ -320,21 +353,21 @@ def sourceCubic (coordinate : Fin 3) : Trivar :=
     MvPolynomial.C (chapterVISection103CubicCoefficient 3 coordinate) * mvX * mvZ ^ 2 +
     MvPolynomial.C (chapterVISection103CubicCoefficient 4 coordinate) * mvY * mvZ ^ 2
 
-private def sourceFirstOutside : Trivar :=
+def sourceFirstOutside : Trivar :=
   MvPolynomial.C (1 + (1 / 3 : ℂ) ^ 2) *
     (mvY - MvPolynomial.C (1 / 5) * mvZ) *
     (mvZ - MvPolynomial.C (1 / 5) * mvY)
 
-private def sourceSecondOutside : Trivar :=
+def sourceSecondOutside : Trivar :=
   MvPolynomial.C (1 + (1 / 5 : ℂ) ^ 2) *
     (mvX - MvPolynomial.C (1 / 3) * mvZ) *
     (mvZ - MvPolynomial.C (1 / 3) * mvX)
 
-private def sourceFirstReduced (coordinate : Fin 3) : Trivar :=
+def sourceFirstReduced (coordinate : Fin 3) : Trivar :=
   MvPolynomial.C (chapterVISection103CubicCoefficient 0 coordinate) * mvX ^ 2 -
     MvPolynomial.C (chapterVISection103CubicCoefficient 4 coordinate) * mvZ ^ 2
 
-private def sourceSecondReduced (coordinate : Fin 3) : Trivar :=
+def sourceSecondReduced (coordinate : Fin 3) : Trivar :=
   MvPolynomial.C (chapterVISection103CubicCoefficient 1 coordinate) * mvY ^ 2 -
     MvPolynomial.C (chapterVISection103CubicCoefficient 3 coordinate) * mvZ ^ 2
 
@@ -385,6 +418,42 @@ private theorem toMv_cubic (coordinate : Fin 3) :
   simp [cubic, sourceCubic, toMv_add, toMv_mul, toMv_constant, toMv_power,
     toMv_x, toMv_y, toMv_z, qiToComplex_cubicCoefficient]
   ring
+
+private theorem toMv_curveSource :
+    toMv curveSource = ∑ coordinate : Fin 3, sourceCubic coordinate ^ 2 := by
+  simp [curveSource, sumCoordinates, toMv_add, toMv_mul, toMv_cubic,
+    Fin.sum_univ_succ, pow_two]
+
+private theorem qiToComplex_curveClearedCoefficient (a b : Fin 5) :
+    qiToComplex (curveClearedCoefficient a b) =
+      (chapterVISection103AffineGaussianCoefficient a b : ℂ) := by
+  fin_cases a <;> fin_cases b <;> apply Complex.ext <;>
+    norm_num [qiToComplex, curveClearedCoefficient,
+      chapterVISection103AffineGaussianCoefficient, GaussianInt.toComplex_def,
+      Complex.mul_re, Complex.mul_im]
+
+private theorem qiToComplex_curveClearing :
+    qiToComplex (50700 : QI) = (50700 : ℂ) := by
+  norm_num [qiToComplex, QuadraticAlgebra.re_ofNat, QuadraticAlgebra.im_ofNat]
+
+private theorem projectiveMonomial_eq_expFinsupp (a b : ℕ) :
+    chapterVIProjectiveMonomial a b = expFinsupp ⟨a, b, 6 - a - b⟩ := by
+  rfl
+
+private theorem toMv_curveCleared :
+    toMv curveCleared = chapterVISection103ProjectivePolynomial := by
+  simp [curveCleared, toMv, termToMv,
+    chapterVISection103ProjectivePolynomial,
+    projectiveMonomial_eq_expFinsupp,
+    qiToComplex_curveClearedCoefficient, Fin.sum_univ_succ]
+  abel
+
+/-- Kernel bridge from the compiled coefficient certificate to Poincaré's projective sextic. -/
+theorem chapterVISection103_curveSource_eq_projectivePolynomial :
+    MvPolynomial.C 50700 * (∑ coordinate : Fin 3, sourceCubic coordinate ^ 2) =
+      chapterVISection103ProjectivePolynomial := by
+  rw [← toMv_curveSource, ← toMv_curveCleared, ← curve_mv_certificate]
+  simp [scale, toMv_mul, toMv_constant, qiToComplex_curveClearing]
 
 private theorem toMv_source : toMv source = chapterVISection103ReducedSourcePolynomial := by
   simp [source, chapterVISection103ReducedSourcePolynomial, firstOutside, secondOutside,

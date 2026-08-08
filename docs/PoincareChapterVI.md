@@ -59,6 +59,12 @@ identification, while `SingularBranches.lean`, `SingularJacobian.lean`, and
 §102–103 obligation is source-specific. `AffineTransversality.lean` proves the exact `(P,R)`
 pair is nondegenerate at all 24 finite points; it remains to connect that result to the source
 coordinates, establish §102 constancy, and verify agreement with the rotating-ellipse equation.
+`SingularityParameterTangent.lean` and `ReducedCurveTangent.lean` now close the intermediate
+coordinate calculation: the explicit singularity parameter has Poincaré's displayed
+logarithmic differential, its polynomial kernel direction is exactly the direction defining the
+reduced septic, and the certified sextic derivative vanishes in that direction at all 24 points.
+The still-open bridge is from this algebraic `(x,y)` statement to the moving source equations
+`(Δ,Δₜ)` and the §102 factorization/constancy assertion.
 
 The source-facing files added after the standalone-project commit are deliberately small lemmas:
 
@@ -93,8 +99,14 @@ The source-facing files added after the standalone-project commit are deliberate
 - `Section103/ReducedCurve.lean` and `Section103/ReducedCurveSource.lean`: the reduced septic's
   exact cleared Gaussian coefficient table, homogeneity, and no-common-component theorem, together
   with a LeanCompCert-backed sparse computation proving that `438750` times Poincaré's displayed
-  source formula is exactly that projective polynomial. The coefficient table is also connected
-  to the cubic vectors derived from the physical ellipse data in `Geometry.lean`.
+  source formula is exactly that projective polynomial. A second compiled coefficient-cube
+  certificate proves `50700 · ∑ᵢ Uᵢ²` is the certified projective sextic. The coefficient tables
+  are connected to the cubic vectors derived from the physical ellipse data in `Geometry.lean`.
+- `Section103/SingularityParameterTangent.lean` and
+  `Section103/ReducedCurveTangent.lean`: direct differentiation of Poincaré's transcendental
+  singularity parameter, the exact `dz = 0` chain-rule consequence, dehomogenization of both
+  compiled source certificates, and the theorem that the certified sextic has zero derivative
+  in the constant-singularity-value direction at every one of the 24 finite intersections.
 - `Section103/LocalIntersection.lean`, `Section103/IntersectionResultant.lean`,
   `Section103/ResultantSoundness.lean`, `Section103/ChartResultant.lean`, and
   `Section103/LocalAlgebra.lean`: exact
@@ -378,6 +390,9 @@ Independently, `AffineTransversality.lean` now proves from the checked shape bas
 certificate that the exact affine sextic and reduced septic have invertible Jacobian at every
 certified finite point, so the remaining nondegeneracy work is a coordinate-identification issue
 rather than a new finite calculation.
+The new constant-singularity tangent bridge additionally proves that the reduced septic is the
+source-faithful directional-derivative condition at those points; it does not yet prove that the
+actual moving Kepler singular equations furnish the required local branches or §102 constancy.
 
 ## LeanCompCert trust boundary
 

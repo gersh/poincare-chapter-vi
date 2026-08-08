@@ -80,6 +80,15 @@ The strongest newly completed component is the finite algebra in §103:
   the exact affine sextic and reduced septic meet transversely at all 24 finite non-origin
   points. Lean constructs an explicit inverse for each two-gradient Jacobian, giving an
   IFT-ready nondegeneracy theorem for the algebraic `(x,y)` curve pair without a new certificate.
+- a second LeanCompCert coefficient-cube certificate now proves directly that
+  `50700 · ∑ᵢ Uᵢ²` is the certified projective sextic. After dehomogenization, Lean joins
+  this with the reduced-septic certificate and Poincaré's differentiation identity. It proves
+  that at each of the 24 finite points the sextic derivative vanishes in his explicit
+  polynomial constant-`z` direction.
+- Poincaré's displayed transcendental singularity parameter is differentiated in Lean. Its
+  logarithmic differential is proved to annihilate that same polynomial direction, and local
+  constancy along any differentiable path is proved to imply the exact `dz = 0` covector
+  equation used in §103.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input spanning
@@ -89,7 +98,8 @@ complexified Kepler equations, relate the now-proved transverse `(P,R)` Jacobian
 `(Δ,Δₜ)` coordinates (or build the moving algebraic branch directly), prove the §102
 two-coordinate factorization that makes each `z` locally constant in a kernel direction, and
 discharge the local agreement with the rotating-ellipse distance equation. The formal chain
-rule and the three-versus-two rank contradiction are closed. The
+rule, the identification of the reduced curve with the constant-`z` tangent derivative, and the
+three-versus-two rank contradiction are closed. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this
@@ -128,6 +138,9 @@ prove the rank result.
   physical endgame.
   `AffineTransversality.lean` differentiates the shape-basis identities and proves an invertible
   Jacobian for the exact sextic–septic pair at every certified finite point.
+  `SingularityParameterTangent.lean` proves the exact logarithmic differential of Poincaré's
+  `z(x,y)`, while `ReducedCurveTangent.lean` uses compiled coefficient certificates to identify
+  the reduced septic with the corresponding constant-`z` derivative at all 24 points.
   `DeformationBridge.lean` formalizes Poincaré's differential equation (2), simultaneous
   vanishing at the 24 points, and the final three-parameter versus two-coordinate contradiction.
 - `PoincareChapterVI/ClassicalLeanPool.lean`: pinned bridge to the already-merged classical result.
