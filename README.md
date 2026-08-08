@@ -229,6 +229,18 @@ The strongest newly completed component is the finite algebra in §103:
   `k'(z_D)≠0`. Lean uses the complex inverse-function theorem to make `k` itself the local
   parameter, proving unconditionally that the literal source radicand is `k+v²` and transporting
   the complete analytic numerator/Jacobian amplitude into that chart.
+- the numerator is no longer arbitrary at D. Lean constructs the selected local cubic root
+  `z^(1/3)` and formalizes Poincaré's literal §94 monomial
+  `massProduct * t^(ad-bc-1) * (z^(1/c))^(-d)`. For `a=-1,c=3` it proves this source numerator
+  analytic and nonzero, pulls it into the `(k,v)` chart, and proves the resulting leading
+  amplitude is nonzero. Its exact value contains the inverse Morse root, matching the defining
+  identity on p. 323 and making explicit the apparent error in the subsequently printed formula.
+- the §99 contour localization is now an exact path theorem. For
+  `C₀=C₀' * C₀'' * C₀'''`, Lean splits the normalized integral into the two regular-arc
+  contributions plus the middle pinched contribution. A source-facing theorem starts at the
+  literal unit-circle `Φ` and performs the same split after a checked deformation. The
+  deformation remains explicit data because it is precisely the global admissibility/sheet
+  obligation that Poincaré only sketches.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

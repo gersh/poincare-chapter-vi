@@ -7,6 +7,7 @@ Authors: Gershon Bialer
 import Mathlib.Analysis.Fourier.AddCircle
 import PoincareChapterVI.ChapterVIContour
 import PoincareChapterVI.ChapterVIPhi
+import PoincareChapterVI.ChapterVICycleDecomposition
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra
@@ -38,6 +39,7 @@ import PoincareChapterVI.ChapterVIParametricMorse
 import PoincareChapterVI.ChapterVIMorseAmplitude
 import PoincareChapterVI.ChapterVICriticalParameter
 import PoincareChapterVI.ChapterVIDTransversality
+import PoincareChapterVI.ChapterVIPrincipalIntegrand
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 
 /-!
@@ -187,9 +189,13 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   the canonical pointwise affine path homotopy is constructed and proved to remain inside the
   domain; `C²` extensions of the two paths automatically give the required `C²` homotopy. A direct
   theorem applies this to the prepared inverse square root, including the arbitrary unit-root
-  germ. What remains is to place Poincaré's
-  actual admissible collision cycle and local model in such a deformation domain and verify their
-  path regularity. The predicates below state the corresponding restricted-problem inputs.
+  germ. `ChapterVICycleDecomposition.lean` formalizes Poincaré's exact split
+  `C₀=C₀' * C₀'' * C₀'''` and, after a checked deformation from the literal unit circle, proves
+  that `Phi` is the sum of the two regular-arc terms and the middle pinch term.
+  `ChapterVIPrincipalIntegrand.lean` constructs D's local cubic root of `z`, defines the actual
+  §94 monomial numerator, and proves its Morse-chart leading amplitude is nonzero. What remains
+  is to construct the global source-sheet deformation supplied as a premise to the split theorem,
+  place its middle arc in the local root chart, and prove the two regular-arc terms analytic.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling
