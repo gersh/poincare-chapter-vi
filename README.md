@@ -287,8 +287,9 @@ The strongest newly completed component is the finite algebra in §103:
   holomorphic and unramified at D, composes it with the prepared Morse map, and constructs the
   canonical local inverse from the straight `v` segment back to the actual global `u` coordinate.
   Near D, the reconstructed `(z,t)` point is proved equal to `chapterVIDMorseSourcePoint`; this
-  removes the former endpoint-only identification. The remaining global work is the compatible
-  square-root sheet and regularity/finite-limit control on the two outer arcs.
+  removes the former endpoint-only identification. The compiled polar cover below now supplies
+  compatible square-root sheets on the two outer-arc rectangles. The remaining global work is to
+  join those sheets to the full deforming three-arc family and its regularity/finite-limit data.
 - `ChapterVISquareRootSheet.lean` proves the general sheet theorem needed for those arcs: any
   continuous nonzero complex radicand on a simply connected parameter rectangle has a continuous
   square root with a prescribed base value. It also defines the precise LeanCompCert-facing
@@ -331,13 +332,32 @@ The strongest newly completed component is the finite algebra in §103:
   root-coordinate radicand. A fixed-point feasibility scan finds a passing 20-bit mesh with 28
   cubically clustered radial cells and 32 quadratically clustered angular cells; the scan only
   chooses the mesh, while LeanCompCert must independently check the generated operations.
+- `ChapterVIDRadialClusteredCompiledGrid.lean` and
+  `ChapterVIDOuterArcUnitClusteredCompiledGrid.lean` turn that nonuniform mesh into exact
+  continuum covers. Their generated dyadic tables and root/unit traces are checked in Lean's
+  kernel; the generators remain outside the trust base.
+- `ChapterVIDOuterArcPolarCompiledGrid.lean` combines the two axes into 1,792 interval cells. For
+  every point of either outer-arc rectangle, Lean selects a cell, interprets its checked
+  signed-integer operations, and proves the literal radicand has positive real part. It then
+  proves nonvanishing and constructs the compatible global continuous square-root sheet.
+- The large finite sweep is split into 56 radial-row artifacts of 13,824 integer claims each.
+  `ChapterVIDOuterArcPolarAdmissibility.lean` kernel-checks every shard's 64-bit no-overflow
+  conditions and exposes `CompiledRunVerdict`: the only remaining premise is that every
+  reproducible CompCert artifact returned zero. `lake exe chapter-vi-polar-cert reference`
+  performs the fast reference sweep; `emit SIDE INDEX OUTPUT.c` emits one self-checking restricted
+  C shard; `check-shard SIDE INDEX` checks one shard; and `check-native` runs the full cached
+  CompCert workflow when `ccomp` is installed.
+  As LeanCompCert's trust model requires, a successful external run is an observation rather than
+  a kernel proof of `Returns`; using it to construct `CompiledRunVerdict` requires an explicit
+  attested or otherwise named run-admission boundary. The analytic and interval theorems remain
+  conditional on that transparent premise and introduce no native-evaluation axiom themselves.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
   `cos`.
-- The exploratory scan suggests that the real part is separated from zero on both rectangles,
-  but that floating-point observation is not a theorem. The formal interface records the exact
-  compiled obligation: positive sample bounds plus the continuum cover and Lipschitz estimate.
+- The exploratory scan was used only to choose the clustered mesh. The formal result uses
+  interval enclosures on entire cells, so it needs neither floating-point trust nor a separate
+  global Lipschitz estimate.
 - Before compilation, Lean proves an exact sparse normal form for the literal radicand. Its two
   first-body Laurent coordinates are squared binomials, and the circular second-body coordinates
   are `y` and `y⁻¹`; the resulting checker expression needs only rational complex arithmetic and
@@ -354,10 +374,10 @@ The strongest newly completed component is the finite algebra in §103:
   from the machine calculation: on the coarse radius annulus, Mathlib's exponential remainder
   theorem encloses it by `1+x` plus an explicit norm error. The compiled sweep therefore performs
   only signed fixed-point arithmetic and checked outward widening.
-- `ChapterVILeanCompCertBatch.lean` concatenates all multiplication and positive-reciprocal
-  conditions in a campaign. One compiled zero-failure verdict reconstructs every individual
-  interval certificate; the full grid therefore needs one auditable run rather than an artifact
-  per arithmetic operation.
+- `ChapterVILeanCompCertBatch.lean` concatenates multiplication, positive-reciprocal, positivity,
+  and explicit comparison conditions in a campaign. One zero-failure shard verdict reconstructs
+  every individual interval certificate in that row; the full grid uses 56 bounded-size artifacts
+  rather than one artifact per arithmetic operation.
 - `ChapterVIUnitSquareGrid.lean` proves that the exact rational `(n+2) × (n+2)` sample grid covers
   `I × I` within product distance `1/(n+1)`. It also packages a checked grid table and a Lipschitz
   estimate into the positive-real-part cover consumed by the square-root theorem.

@@ -24,18 +24,24 @@ open ChapterVILeanCompCertIntervalBridge
 inductive DyadicOperation (precision : ℕ)
   | mul (x y output : ChapterVISignedDyadicInterval precision)
   | positiveReciprocal (input output : ChapterVISignedDyadicInterval precision)
+  | positiveLower (input : ChapterVISignedDyadicInterval precision)
+  | rawClaim (claim : Claim)
 
 namespace DyadicOperation
 
 def claims {precision : ℕ} : DyadicOperation precision → List Claim
   | .mul x y output => mulClaims x y output
   | .positiveReciprocal input output => positiveReciprocalClaims input output
+  | .positiveLower input => [productClaim 1 1 input.lower 1]
+  | .rawClaim claim => [claim]
 
 /-- Mathematical meaning reconstructed after the corresponding claims pass. -/
 def Sound {precision : ℕ} : DyadicOperation precision → Prop
   | .mul x y output => ChapterVISignedDyadicInterval.MulCertificate x y output
   | .positiveReciprocal input output =>
       ChapterVISignedDyadicInterval.PositiveReciprocalCertificate input output
+  | .positiveLower input => 0 < input.lower
+  | .rawClaim claim => claim.Holds
 
 theorem sound_of_allHold {precision : ℕ} (operation : DyadicOperation precision)
     (hall : ∀ claim ∈ operation.claims, claim.Holds) : operation.Sound := by
@@ -43,6 +49,11 @@ theorem sound_of_allHold {precision : ℕ} (operation : DyadicOperation precisio
   | mul x y output => exact mulCertificate_of_allHold x y output hall
   | positiveReciprocal input output =>
       exact positiveReciprocalCertificate_of_allHold input output hall
+  | positiveLower input =>
+      have h := hall (productClaim 1 1 input.lower 1) (by simp [claims])
+      simp only [productClaim_holds_iff, mul_one] at h
+      exact Int.zero_lt_one.trans_le h
+  | rawClaim claim => exact hall claim (by simp [claims])
 
 end DyadicOperation
 

@@ -19,3 +19,7 @@ rev = "2e5c2609a7caca149208d736288cdffff7871b70"
 
 [[lean_lib]]
 name = "PoincareChapterVI"
+
+[[lean_exe]]
+name = "chapter-vi-polar-cert"
+root = "PoincareChapterVI.PolarCertificateMain"

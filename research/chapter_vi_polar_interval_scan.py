@@ -79,6 +79,16 @@ class Fixed:
         upper = self.integer_nth_root_floor(upper_target, n)
         if upper**n < upper_target:
             upper += 1
+        def rounded_power(point: int) -> Interval:
+            value = (point, point)
+            square = self.mul(value, value)
+            cube = self.mul(square, value)
+            return cube if n == 3 else self.mul(cube, cube)
+
+        while rounded_power(lower)[1] > x[0]:
+            lower -= 1
+        while rounded_power(upper)[0] < x[1]:
+            upper += 1
         return lower, upper
 
     def cmul(self, x: Rectangle, y: Rectangle) -> Rectangle:
@@ -113,7 +123,7 @@ class Fixed:
         return (z[0][0] - error, z[0][1] + error), (z[1][0] - error, z[1][1] + error)
 
 
-def radial_cell(fx: Fixed, i: int, cells: int, power: int) -> tuple[Interval, Interval]:
+def radial_data(fx: Fixed, i: int, cells: int, power: int) -> dict[str, Interval]:
     def node(j: int) -> Fraction:
         return 1 - Fraction(cells - min(j, cells), cells) ** power
 
@@ -130,7 +140,12 @@ def radial_cell(fx: Fixed, i: int, cells: int, power: int) -> tuple[Interval, In
     q6 = fx.root(q, 6)
     correction_factor = fx.add(fx.one, fx.mul(s, fx.sub(correction, fx.one)))
     radius = fx.mul(q6, correction_factor)
-    return zeta, radius
+    return {"input": s, "qCubeRoot": zeta, "qSixthRoot": q6, "radius": radius}
+
+
+def radial_cell(fx: Fixed, i: int, cells: int, power: int) -> tuple[Interval, Interval]:
+    data = radial_data(fx, i, cells, power)
+    return data["qCubeRoot"], data["radius"]
 
 
 def unit_cell(fx: Fixed, side: int, i: int, cells: int, power: int,
