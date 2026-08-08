@@ -47,7 +47,7 @@ transcription of the 1892 text.
 | §95 | Candidate singularities arise when moving singularities of the integrand obstruct contour deformation | No source-level analytic theorem | A parameterized contour-deformation theorem for multivalued algebraic integrands; modern language suggests vanishing cycles and Picard–Lefschetz theory |
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
-| §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` proves the parameter-dependent complex-amplitude log limit; `ChapterVIComplexBranch.lean` works jointly in parameter and contour coordinate, constructs an open common slit-plane chart around any cycle family whose factor values lie there, and supplies the holomorphic inverse square-root branch | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, verify the slit-plane hypotheses on the actual moving cycle, transport that cycle, and control the nonlocal remainder |
+| §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` proves the parameter-dependent complex-amplitude log limit and exactly translates the moving interval `[h(k)-L,h(k)+L]` to the symmetric model; `ChapterVIComplexBranch.lean` constructs the joint open slit-plane chart and holomorphic inverse square-root branch | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, verify the slit-plane hypotheses on the actual moving cycle, transport its non-affine/complex part, and control the nonlocal remainder |
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarbouxTransfer.lean` proves scalar Cauchy-product coefficients, derives coefficients from a function-level varying-log germ, constructs `G(z)=G(z₀)+(1-z/z₀)H(z)` by holomorphic divided difference, and applies a weighted-convolution estimate; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral and larger-disk analyticity of `G`, uniformly in the orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, prevents root-label permutation, and reaches the compiled §103 contradiction | Derive the two-coordinate coefficient germ, its finite singular enumeration, common radius, and regular-factor analyticity from the Chapter V uniform-integral relation and the actual contour integral |
@@ -126,7 +126,8 @@ The source-facing files added after the standalone-project commit are deliberate
   coefficient under a continuous Lipschitz amplitude. Its source-facing theorem accepts a
   parameter-dependent amplitude in any complete real normed space, including `ℂ`: the varying
   part is uniformly bounded and inverse `-log k` times the weighted integral tends to the limiting
-  center value.
+  center value. A further theorem performs the exact moving-center substitution from
+  `[h(k)-L,h(k)+L]` and obtains the amplitude's limit at `h(k)`.
 - `ChapterVIComplexBranch.lean`: a compatible holomorphic square-root branch for a prepared
   product `quadratic * unit` on any domain mapped factorwise into `Complex.slitPlane`, including
   pointwise square correctness, nonvanishing, and holomorphicity of the inverse branch used by the
@@ -260,7 +261,8 @@ parameter-dependent amplitudes with a uniform contour-coordinate Lipschitz estim
 branch algebra is now formalized on a joint common slit-plane chart, and continuity constructs the
 open chart once factorwise slit-plane values on the cycle are known. The missing theorem must
 verify those values for the actual complex moving cycle, transport that cycle to the symmetric
-local model, and control the remaining contour contribution.
+local model beyond the now-formalized affine center translation, and control the remaining contour
+contribution.
 
 ### 2. From a local logarithm to a coefficient theorem (§100)
 

@@ -57,6 +57,40 @@ def chapterVIParametricQuadraticPinchRemainder
     (amplitude : ℝ → ℝ → E) (k t : ℝ) : E :=
   chapterVIQuadraticPinchIntegrand k t • (amplitude k t - amplitude k 0)
 
+/-- The prepared local pinch before translating Poincaré's moving center `h(k)` to zero. -/
+def chapterVIMovingCenteredQuadraticPinchIntegrand
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (amplitude : ℝ → ℝ → E) (center : ℝ → ℝ) (k t : ℝ) : E :=
+  chapterVIQuadraticPinchIntegrand k (t - center k) • amplitude k t
+
+/-- Translation by the moving center identifies the moving local interval exactly with the fixed
+symmetric prepared pinch.  This is the affine cycle-transport step implicit in §99. -/
+theorem integral_chapterVIMovingCenteredQuadraticPinchIntegrand_eq
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    (amplitude : ℝ → ℝ → E) (center : ℝ → ℝ) (k L : ℝ) :
+    (∫ t in center k - L..center k + L,
+      chapterVIMovingCenteredQuadraticPinchIntegrand amplitude center k t) =
+    ∫ u in -L..L,
+      chapterVIParametricQuadraticPinchIntegrand
+        (fun parameter coordinate ↦ amplitude parameter (coordinate + center parameter)) k u := by
+  calc
+    (∫ t in center k - L..center k + L,
+        chapterVIMovingCenteredQuadraticPinchIntegrand amplitude center k t) =
+      ∫ t in -L + center k..L + center k,
+        chapterVIMovingCenteredQuadraticPinchIntegrand amplitude center k t := by
+      congr 1 <;> ring
+    _ = ∫ u in -L..L,
+        chapterVIMovingCenteredQuadraticPinchIntegrand amplitude center k (u + center k) := by
+      exact (intervalIntegral.integral_comp_add_right
+        (chapterVIMovingCenteredQuadraticPinchIntegrand amplitude center k) (center k)).symm
+    _ = ∫ u in -L..L,
+        chapterVIParametricQuadraticPinchIntegrand
+          (fun parameter coordinate ↦ amplitude parameter (coordinate + center parameter)) k u := by
+      apply intervalIntegral.integral_congr
+      intro u _
+      simp only [chapterVIMovingCenteredQuadraticPinchIntegrand,
+        chapterVIParametricQuadraticPinchIntegrand, add_sub_cancel_right]
+
 /-- The elementary primitive behind the logarithmic local model. -/
 theorem hasDerivAt_chapterVIQuadraticPinchPrimitive
     {k : ℝ} (hk : 0 < k) (t : ℝ) :
@@ -462,5 +496,39 @@ theorem tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
   rw [smul_add, smul_smul]
   congr 1
   rw [div_eq_mul_inv, mul_comm]
+
+/-- The logarithmic limit on Poincaré's moving centered interval.  The amplitude is allowed to be
+complex-valued (or vector-valued), the center may move arbitrarily with the parameter, and only a
+uniform Lipschitz estimate relative to that center is required. -/
+theorem tendsto_chapterVI_movingCenteredQuadraticPinch_inv_neg_log_smul
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {amplitude : ℝ → ℝ → E} {center : ℝ → ℝ} {centerValue : E} {C L : ℝ}
+    (hamplitude : ∀ k, 0 < k → Continuous (amplitude k))
+    (hcenterValue : Tendsto (fun k ↦ amplitude k (center k)) (𝓝[>] 0) (𝓝 centerValue))
+    (hC : 0 ≤ C) (hL : 0 < L)
+    (hLipschitz : ∀ k, 0 < k → ∀ t,
+      ‖amplitude k t - amplitude k (center k)‖ ≤ C * |t - center k|) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        (∫ t in center k - L..center k + L,
+          chapterVIMovingCenteredQuadraticPinchIntegrand amplitude center k t))
+      (𝓝[>] 0) (𝓝 centerValue) := by
+  let shiftedAmplitude : ℝ → ℝ → E := fun k u ↦ amplitude k (u + center k)
+  have hshiftedContinuous : ∀ k, 0 < k → Continuous (shiftedAmplitude k) := by
+    intro k hk
+    exact (hamplitude k hk).comp (continuous_id.add continuous_const)
+  have hshiftedCenter :
+      Tendsto (fun k ↦ shiftedAmplitude k 0) (𝓝[>] 0) (𝓝 centerValue) := by
+    simpa [shiftedAmplitude] using hcenterValue
+  have hshiftedLipschitz : ∀ k, 0 < k → ∀ u,
+      ‖shiftedAmplitude k u - shiftedAmplitude k 0‖ ≤ C * |u| := by
+    intro k hk u
+    simpa [shiftedAmplitude] using hLipschitz k hk (u + center k)
+  have hfixed :=
+    tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul
+      hshiftedContinuous hshiftedCenter hC hL hshiftedLipschitz
+  apply hfixed.congr'
+  filter_upwards with k
+  rw [integral_chapterVIMovingCenteredQuadraticPinchIntegrand_eq]
 
 end PoincareChapterVI

@@ -133,6 +133,9 @@ The strongest newly completed component is the finite algebra in §103:
   varying-amplitude integral, and proves that the integral divided by `-log k` converges to that
   value. A stronger parameter-dependent theorem works in any complete real normed space, hence
   for complex amplitudes, and allows the center value to vary while converging at the pinch. The
+  moving-center theorem exactly transports the affine local cycle
+  `[h(k)-L,h(k)+L]` to the symmetric model and identifies the leading coefficient with the
+  amplitude at that moving center. The
   prepared-factor module also constructs a compatible holomorphic complex square-root product and
   inverse whenever the quadratic and unit factors remain in a common slit-plane chart. It works
   on a joint parameter-contour domain such as `ℂ × ℂ`; continuity automatically constructs an open

@@ -114,7 +114,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   pinch; its varying part has a uniformly bounded integral. The vector-valued parameter-dependent
   theorem `tendsto_chapterVI_parametricQuadraticPinch_inv_neg_log_smul` applies in particular to
   complex amplitudes, permits the center value to vary continuously with the pinch parameter, and
-  uses one uniform Lipschitz bound. `ChapterVIComplexBranch.lean` constructs a compatible
+  uses one uniform Lipschitz bound. The moving-center theorem exactly translates the interval
+  `[h(k)-L,h(k)+L]` to the symmetric model and recovers the amplitude at the moving collision.
+  `ChapterVIComplexBranch.lean` constructs a compatible
   holomorphic square-root product and its inverse on any domain where the prepared quadratic and
   unit factors lie in the complex slit plane. This construction is joint in the parameter and
   contour coordinate, and continuity automatically promotes slit-plane values on an entire cycle
