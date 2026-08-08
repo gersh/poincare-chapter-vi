@@ -134,9 +134,11 @@ The strongest newly completed component is the finite algebra in §103:
   value. A stronger parameter-dependent theorem works in any complete real normed space, hence
   for complex amplitudes, and allows the center value to vary while converging at the pinch. The
   prepared-factor module also constructs a compatible holomorphic complex square-root product and
-  inverse whenever the quadratic and unit factors remain in a common slit-plane chart. The
-  still-open transport is proving that Poincaré's complex moving cycle lies in such a chart and
-  carrying it to the controlled symmetric model.
+  inverse whenever the quadratic and unit factors remain in a common slit-plane chart. It works
+  on a joint parameter-contour domain such as `ℂ × ℂ`; continuity automatically constructs an open
+  common chart from slit-plane values along the whole cycle family. The still-open transport is
+  verifying those values for Poincaré's actual moving cycle and carrying that cycle to the
+  controlled symmetric model.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

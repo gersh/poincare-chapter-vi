@@ -116,9 +116,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   complex amplitudes, permits the center value to vary continuously with the pinch parameter, and
   uses one uniform Lipschitz bound. `ChapterVIComplexBranch.lean` constructs a compatible
   holomorphic square-root product and its inverse on any domain where the prepared quadratic and
-  unit factors lie in the complex slit plane. Identifying the actual convergent analytic germ with
-  the formal series and transporting Poincaré's cycle into such a common branch domain remain
-  open. The predicates below state the corresponding restricted-problem inputs.
+  unit factors lie in the complex slit plane. This construction is joint in the parameter and
+  contour coordinate, and continuity automatically promotes slit-plane values on an entire cycle
+  family to an open common branch chart containing it. Identifying the actual convergent analytic
+  germ with the formal series and proving the source cycle's factor values lie in one such chart
+  remain open. The predicates below state the corresponding restricted-problem inputs.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling
