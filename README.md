@@ -364,6 +364,11 @@ The strongest newly completed component is the finite algebra in §103:
   positive-real endpoint, eliminating the two arbitrary outer signs. Compatibility with the
   middle Morse chart remains; the chain rule and boundedness assertion for the two outer pieces
   do not.
+- `ChapterVIPrincipalIntegrand.lean` now normalizes its local `z^(1/3)` inverse germ at the same
+  positive real cube root used by the global root-coordinate path. Lean proves equality at D and
+  eventual equality along the whole parameter path near D. Consequently the outer curve-integral
+  theorem for the literal `chapterVIDPrincipalPhiIntegrand` needs only collision-square-root
+  compatibility; the formerly separate cubic-root branch hypothesis is discharged automatically.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

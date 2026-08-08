@@ -500,6 +500,28 @@ theorem integral_eq_curveIntegral
   rw [← hnumerator, hroot]
   ring
 
+/-- With the local cubic-root germ now normalized to the global positive root, its compatibility
+hypothesis disappears automatically near D.  Only compatibility of the collision square-root
+sheet remains. -/
+theorem eventually_integral_eq_principal_curveIntegral
+    (massProduct : ℂ) (b d : ℤ) (side : ChapterVIDOuterArcSide)
+    (sheet : ChapterVIContinuousSquareRootSheet (chapterVIDOuterArcRadicand side))
+    (sourceRoot : ℂ × ℂ → ℂ)
+    (hsourceRoot : ∀ s : I, ∀ τ : I,
+      sourceRoot (chapterVIDCommonParameterRootPath s ^ 3, sourcePath side s τ) =
+        sheet.root (s, τ)) :
+    ∀ᶠ s in nhds (1 : I),
+      integral massProduct b d side sheet s =
+        ∫ᶜ t in sourcePath side s,
+          chapterVIComplexScalarOneForm
+            (chapterVIDPrincipalPhiIntegrand massProduct b d sourceRoot
+              (chapterVIDCommonParameterRootPath s ^ 3)) t := by
+  filter_upwards [eventually_chapterVIDZRoot_commonParameterRootPath] with s hs
+  apply integral_eq_curveIntegral massProduct b d side sheet
+    chapterVIDZRoot sourceRoot s
+  · simpa only [zpow_ofNat] using hs
+  · exact hsourceRoot s
+
 /-- The entire outer-quarter integral is continuous up to and including Poincare's collision
 parameter. -/
 theorem continuous_integral_of_run

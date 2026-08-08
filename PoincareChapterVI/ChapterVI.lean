@@ -256,9 +256,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   integral under named branch-agreement hypotheses, and proves that the resulting normalized sum
   has a finite limit at D. Because the certificate places both outer radicands in the positive
   real half-plane, it also selects the canonical principal square root and proves the two outer
-  sheets agree at their common positive-real endpoint. Matching this canonical outer sheet to the
-  middle Morse sheet and identifying the resulting three-piece cycle with the continued source
-  contour remain.
+  sheets agree at their common positive-real endpoint. The local `z^(1/3)` germ is likewise now
+  normalized to the global positive-real parameter lift, and Lean proves they agree on an entire
+  neighborhood of D. Thus only the collision square-root sheet must be matched to the middle
+  Morse sheet before identifying the resulting three-piece cycle with the continued source
+  contour.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

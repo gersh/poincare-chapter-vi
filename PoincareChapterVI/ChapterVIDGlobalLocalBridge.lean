@@ -12,10 +12,9 @@ import PoincareChapterVI.ChapterVIJointPreparation
 
 The §97 admissibility argument is most transparent in `u=x^(1/3)`, whereas §§99–100 return to
 the original contour variable `t`.  This file proves that the explicit endpoint of the global
-`u`-path maps to the same source point D as the local analytic germ.  The arbitrary cubic lift
-chosen by the local construction differs from the explicit global lift by a cube root of unity,
-so the two descriptions are related by the expected deck transformation rather than by an
-unstated sheet choice.
+`u`-path maps to the same source point D as the local analytic germ.  The `z^(1/3)` choice is now
+normalized directly to the global positive-real lift; the separate cubic deck transformation
+below concerns Poincare's contour variable `t`.
 -/
 
 noncomputable section
@@ -24,26 +23,6 @@ open Complex Real
 open scoped Topology unitInterval
 
 namespace PoincareChapterVI
-
-/-- The source `z` coordinate at D is exactly the real critical parameter used by the global
-branch calculation. -/
-theorem chapterVIDZBase_eq_criticalParameter :
-    chapterVIDZBase = (chapterVIDCriticalParameterModulus : ℂ) := by
-  have hsource := chapterVI_singularityParameter_eq_keplerExponential_zpow
-    (-1) 3 chapterVIDEccentricity 0 chapterVIDX chapterVIDY
-  have hcurve := chapterVID_singularityParameter_curveThree_eq_smooth
-    chapterVIDRoot_lt_zero
-  rw [chapterVIDCurveThreeY_at_root] at hcurve
-  unfold chapterVIDZBase chapterVIContourBase chapterVIMeanToContourMap
-  change chapterVIKeplerExponential chapterVIDEccentricity chapterVIDX ^ (-1 : ℤ) *
-      chapterVIKeplerExponential 0 chapterVIDY ^ (3 : ℤ) = _
-  rw [← hsource]
-  have hscale : -chapterVIDEccentricity / 2 = (-100 / 10001 : ℂ) := by
-    norm_num [chapterVIDEccentricity]
-  norm_num only [Int.cast_negSucc, Int.cast_ofNat, neg_mul, one_mul, mul_zero,
-    zero_div]
-  rw [hscale]
-  simpa [chapterVIDX, chapterVIDCriticalParameterModulus] using hcurve
 
 /-- The original `t` coordinate obtained from the endpoint of the explicit global `u` path. -/
 noncomputable def chapterVIDGlobalTBase : ℂ :=

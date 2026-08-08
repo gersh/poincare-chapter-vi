@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import PoincareChapterVI.ChapterVIDTransversality
 import PoincareChapterVI.ChapterVICycleDecomposition
+import PoincareChapterVI.ChapterVIDRootCoordinates
 
 /-!
 # The principal §94 integrand at Poincaré's point D
@@ -66,17 +67,47 @@ theorem chapterVIDZBase_ne_zero : chapterVIDZBase ≠ 0 := by
       (chapterVIKeplerExponential_ne_zero chapterVIDEccentricity chapterVIDX_ne_zero))
     (zpow_ne_zero _ (chapterVIKeplerExponential_ne_zero 0 chapterVIDY_ne_zero))
 
-/-- Choose the determination of `z_D^(1/3)` through which the local §94 integrand is continued. -/
-theorem exists_chapterVIDZRootBase : ∃ root : ℂ, root ^ 3 = chapterVIDZBase :=
-  IsAlgClosed.exists_pow_nat_eq chapterVIDZBase (by norm_num)
+/-- The source `z` coordinate at D is exactly the positive real critical parameter used by the
+global root-coordinate path.  Placing this theorem before the local root choice lets the local
+germ use the same determination as the global continuation. -/
+theorem chapterVIDZBase_eq_criticalParameter :
+    chapterVIDZBase = (chapterVIDCriticalParameterModulus : ℂ) := by
+  have hsource := chapterVI_singularityParameter_eq_keplerExponential_zpow
+    (-1) 3 chapterVIDEccentricity 0 chapterVIDX chapterVIDY
+  have hcurve := chapterVID_singularityParameter_curveThree_eq_smooth
+    chapterVIDRoot_lt_zero
+  rw [chapterVIDCurveThreeY_at_root] at hcurve
+  unfold chapterVIDZBase chapterVIContourBase chapterVIMeanToContourMap
+  change chapterVIKeplerExponential chapterVIDEccentricity chapterVIDX ^ (-1 : ℤ) *
+      chapterVIKeplerExponential 0 chapterVIDY ^ (3 : ℤ) = _
+  rw [← hsource]
+  have hscale : -chapterVIDEccentricity / 2 = (-100 / 10001 : ℂ) := by
+    norm_num [chapterVIDEccentricity]
+  norm_num only [Int.cast_negSucc, Int.cast_ofNat, neg_mul, one_mul, mul_zero,
+    zero_div]
+  rw [hscale]
+  simpa [chapterVIDX, chapterVIDCriticalParameterModulus] using hcurve
 
+/-- The local determination of `z_D^(1/3)` is the positive real root selected by the global
+parameter path, rather than an arbitrary algebraic cube root. -/
 noncomputable def chapterVIDZRootBase : ℂ :=
-  Classical.choose exists_chapterVIDZRootBase
+  chapterVIPositiveRealCubicLift chapterVIDCriticalParameterModulus
 
 @[simp]
 theorem chapterVIDZRootBase_pow : chapterVIDZRootBase ^ (3 : ℤ) = chapterVIDZBase := by
-  unfold chapterVIDZRootBase
-  simpa only [zpow_ofNat] using Classical.choose_spec exists_chapterVIDZRootBase
+  rw [zpow_ofNat, chapterVIDZRootBase,
+    chapterVIPositiveRealCubicLift_pow chapterVIDCriticalParameterModulus_pos.le,
+    chapterVIDZBase_eq_criticalParameter]
+
+/-- The canonical base is, in particular, a cube root of the source parameter. -/
+theorem exists_chapterVIDZRootBase : ∃ root : ℂ, root ^ 3 = chapterVIDZBase := by
+  exact ⟨chapterVIDZRootBase, by simpa only [zpow_ofNat] using chapterVIDZRootBase_pow⟩
+
+/-- The local and global cubic-root choices agree exactly at D. -/
+theorem chapterVIDZRootBase_eq_commonParameterRootPath_one :
+    chapterVIDZRootBase = chapterVIDCommonParameterRootPath 1 := by
+  unfold chapterVIDZRootBase chapterVIDCommonParameterRootPath
+  simp [Path.segment, AffineMap.lineMap_apply]
 
 theorem chapterVIDZRootBase_ne_zero : chapterVIDZRootBase ≠ 0 := by
   intro hzero
@@ -109,6 +140,21 @@ theorem eventually_chapterVIDZRoot_pow :
   rw [← chapterVIDZRootBase_pow]
   exact eventually_zpow_chapterVIPowerLocalInverse 3 chapterVIDZRootBase
     chapterVIDZRootBase_ne_zero (by norm_num)
+
+/-- Near D, the local analytic cubic-root germ is literally the restriction of the global
+positive-real root path. -/
+theorem eventually_chapterVIDZRoot_commonParameterRootPath :
+    (fun s : unitInterval ↦
+      chapterVIDZRoot (chapterVIDCommonParameterRootPath s ^ (3 : ℤ))) =ᶠ[
+      nhds (1 : unitInterval)] chapterVIDCommonParameterRootPath := by
+  have hlocal := eventually_chapterVIPowerLocalInverse_zpow
+    3 chapterVIDZRootBase chapterVIDZRootBase_ne_zero (by norm_num)
+  have htend : Tendsto chapterVIDCommonParameterRootPath (nhds (1 : unitInterval))
+      (nhds chapterVIDZRootBase) := by
+    rw [chapterVIDZRootBase_eq_commonParameterRootPath_one]
+    exact chapterVIDCommonParameterRootPath.continuous.continuousAt
+  unfold chapterVIDZRoot
+  convert hlocal.comp_tendsto htend using 1 <;> rfl
 
 /-- The literal numerator in the principal §94 integrand, specialized to D's ray direction
 `(a,c)=(-1,3)` while retaining the finite offsets `(b,d)`. -/
