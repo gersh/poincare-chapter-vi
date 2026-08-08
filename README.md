@@ -217,6 +217,12 @@ The strongest newly completed component is the finite algebra in §103:
   critical value `ψ(z,h(z))`; it is not replaced by zero. This supplies a convergent
   parameter-dependent quadratic normal form through a documented holomorphic coordinate change,
   without pretending that formal Weierstrass preparation alone proves convergence.
+- the change of integration differential is now included as well. The inverse fiber coordinate
+  has a jointly analytic Jacobian `∂u/∂v`, its value at D is the proved nonzero number `S(D,0)⁻¹`,
+  and an arbitrary analytic source numerator pulls back to an analytic amplitude
+  `θ(z,v)=a(z,t(z,v))∂u/∂v`. Lean proves the exact pointwise one-form identity
+  `a(z,t) dt/root(ψ) = θ(z,v) dv/root(k(z)+v²)` with the compatible local square-root sheet kept
+  explicit.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
