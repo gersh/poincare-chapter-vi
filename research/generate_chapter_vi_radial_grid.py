@@ -84,8 +84,10 @@ def root_trace(input_interval: tuple[int, int], n: int):
 
 
 ONE = (S, S)
-QD = (floor_fraction(Fraction(3, 4000) * S), ceil_fraction(Fraction(11, 10000) * S))
-XABS = (floor_fraction(Fraction(26, 1000) * S), ceil_fraction(Fraction(27, 1000) * S))
+QD = (floor_fraction(Fraction(8734, 10_000_000) * S),
+      ceil_fraction(Fraction(8736, 10_000_000) * S))
+XABS = (floor_fraction(Fraction(26_865_395, 1_000_000_000) * S),
+        ceil_fraction(Fraction(26_865_396, 1_000_000_000) * S))
 QD6, QD6_LO, QD6_HI = root_trace(QD, 6)
 RD, RD_LO, RD_HI = root_trace(XABS, 3)
 QD6_INV = reciprocal(QD6)
@@ -243,23 +245,25 @@ theorem operations_returns_zero :
   decide +kernel
 
 theorem qD_contains : qD.Contains chapterVIDCriticalParameterModulus := by
-  obtain ⟨hlower, hupper⟩ := chapterVIDCriticalParameterModulus_bounds
+  obtain ⟨hlower, hupper⟩ := chapterVIDCriticalParameterModulus_tight_bounds
   constructor
   · exact (by norm_num [qD, ChapterVISignedDyadicInterval.toRealInterval,
       ChapterVISignedDyadicInterval.scale] :
-        ((qD.lower : ℝ) / ChapterVISignedDyadicInterval.scale 20) ≤ 3 / 4000).trans hlower
+        ((qD.lower : ℝ) / ChapterVISignedDyadicInterval.scale 20) ≤ 8734 / 10000000).trans hlower
   · exact hupper.trans (by norm_num [qD, ChapterVISignedDyadicInterval.toRealInterval,
       ChapterVISignedDyadicInterval.scale] :
-        (11 / 10000 : ℝ) ≤ (qD.upper : ℝ) / ChapterVISignedDyadicInterval.scale 20)
+        (8736 / 10000000 : ℝ) ≤ (qD.upper : ℝ) / ChapterVISignedDyadicInterval.scale 20)
 
 theorem xAbs_contains : xAbs.Contains (-chapterVIDRoot) := by
   constructor
   · change (xAbs.lower : ℝ) / ChapterVISignedDyadicInterval.scale 20 ≤ -chapterVIDRoot
     exact (by norm_num [xAbs, ChapterVISignedDyadicInterval.scale] :
-      (xAbs.lower : ℝ) / ChapterVISignedDyadicInterval.scale 20 ≤ 26 / 1000).trans
-        (by linarith [chapterVIDRoot_mem.2])
+      (xAbs.lower : ℝ) / ChapterVISignedDyadicInterval.scale 20 ≤
+        26865395 / 1000000000).trans
+        (by linarith [chapterVIDRoot_fine_mem.2])
   · change -chapterVIDRoot ≤ (xAbs.upper : ℝ) / ChapterVISignedDyadicInterval.scale 20
-    exact (by linarith [chapterVIDRoot_mem.1] : -chapterVIDRoot ≤ 27 / 1000).trans
+    exact (by linarith [chapterVIDRoot_fine_mem.1] :
+      -chapterVIDRoot ≤ 26865396 / 1000000000).trans
       (by norm_num [xAbs, ChapterVISignedDyadicInterval.scale])
 
 theorem correction_contains :

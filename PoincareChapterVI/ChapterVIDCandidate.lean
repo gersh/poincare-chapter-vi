@@ -46,6 +46,14 @@ theorem chapterVID_endpoint_certificate :
       chapterVIDScaledEval (-26) 1000 < 0 := by
   verified_decide
 
+/-- A second compiled sign check narrows D to an interval of width `10⁻⁹`.  The wider
+`[-27/1000,-26/1000]` bracket remains useful for qualitative estimates; this one is used only to
+keep the generated outer-arc intervals sharp near the collision endpoint. -/
+theorem chapterVID_fine_endpoint_certificate :
+    0 < chapterVIDScaledEval (-26865396) 1000000000 ∧
+      chapterVIDScaledEval (-26865395) 1000000000 < 0 := by
+  verified_decide
+
 /-- Cleared form of Poincaré's equation (7) at the concrete parameters. -/
 def chapterVIDPolynomial (x : ℝ) : ℝ :=
   2500 * x ^ 3 + 500025 * x ^ 2 + 12501 * x - 25
@@ -145,6 +153,42 @@ theorem chapterVIDRoot_unique
     (hroot : chapterVIDPolynomial x = 0) :
     x = chapterVIDRoot :=
   (Classical.choose_spec existsUnique_chapterVIDRoot).2 x ⟨hx, hroot⟩
+
+theorem chapterVIDPolynomial_fine_left_pos :
+    0 < chapterVIDPolynomial (-26865396 / 1000000000) := by
+  have hcert : (0 : ℝ) <
+      (chapterVIDScaledEval (-26865396) 1000000000 : ℤ) := by
+    exact_mod_cast chapterVID_fine_endpoint_certificate.1
+  have hs := chapterVID_scaled_eval_sound (-26865396) 1000000000 (by norm_num)
+  norm_num only [Int.cast_ofNat] at hs
+  nlinarith
+
+theorem chapterVIDPolynomial_fine_right_neg :
+    chapterVIDPolynomial (-26865395 / 1000000000) < 0 := by
+  have hcert : ((chapterVIDScaledEval (-26865395) 1000000000 : ℤ) : ℝ) < 0 := by
+    exact_mod_cast chapterVID_fine_endpoint_certificate.2
+  have hs := chapterVID_scaled_eval_sound (-26865395) 1000000000 (by norm_num)
+  norm_num only [Int.cast_ofNat] at hs
+  nlinarith
+
+theorem chapterVIDRoot_fine_mem :
+    chapterVIDRoot ∈
+      Set.Icc (-26865396 / 1000000000) (-26865395 / 1000000000) := by
+  constructor
+  · by_contra hnot
+    have hrootLt : chapterVIDRoot < -26865396 / 1000000000 := lt_of_not_ge hnot
+    have hleftMem : (-26865396 / 1000000000 : ℝ) ∈
+        Set.Icc (-27 / 1000) (-26 / 1000) := by norm_num
+    have hstrict := chapterVIDPolynomial_strictAntiOn chapterVIDRoot_mem hleftMem hrootLt
+    rw [chapterVIDRoot_isRoot] at hstrict
+    linarith [chapterVIDPolynomial_fine_left_pos]
+  · by_contra hnot
+    have hrightLt : (-26865395 / 1000000000 : ℝ) < chapterVIDRoot := lt_of_not_ge hnot
+    have hrightMem : (-26865395 / 1000000000 : ℝ) ∈
+        Set.Icc (-27 / 1000) (-26 / 1000) := by norm_num
+    have hstrict := chapterVIDPolynomial_strictAntiOn hrightMem chapterVIDRoot_mem hrightLt
+    rw [chapterVIDRoot_isRoot] at hstrict
+    linarith [chapterVIDPolynomial_fine_right_neg]
 
 /-- The cleared cubic is exactly Poincaré's equation (7) for the chosen parameters. -/
 theorem chapterVIDPolynomial_eq_secondKindSeven (x : ℝ) :

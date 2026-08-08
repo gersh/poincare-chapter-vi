@@ -118,6 +118,130 @@ theorem chapterVIDPositiveBranchExp_bounds
         rw [div_le_iff₀ (by linarith : 0 < 1 - chapterVIDPositiveBranchExponent a)]
         nlinarith
 
+/-! ## Sharp endpoint bounds for the final radial cells -/
+
+theorem chapterVIDPositiveBranchOrdinate_tight_bounds
+    {a : ℝ} (ha : a ∈
+      Set.Icc (26865395 / 1000000000 : ℝ) (26865396 / 1000000000 : ℝ)) :
+    (2529129 / 100000000 : ℝ) ≤ chapterVIDPositiveBranchOrdinate a ∧
+      chapterVIDPositiveBranchOrdinate a ≤ (2529130 / 100000000 : ℝ) := by
+  have ha0 : 0 < a := by linarith [ha.1]
+  have hden : 0 < 2 * (1 + (1 / 100 : ℝ) ^ 2) * a := by positivity
+  unfold chapterVIDPositiveBranchOrdinate
+  constructor
+  · rw [le_div_iff₀ hden]
+    have hsquareLower : 0 ≤
+        (a - 26865395 / 1000000000) * (a + 26865395 / 1000000000) :=
+      mul_nonneg (by linarith [ha.1]) (by linarith [ha.1])
+    nlinarith [ha.1, ha.2, hsquareLower]
+  · rw [div_le_iff₀ hden]
+    have hsquareUpper : 0 ≤
+        (26865396 / 1000000000 - a) * (26865396 / 1000000000 + a) :=
+      mul_nonneg (by linarith [ha.2]) (by linarith [ha.1])
+    nlinarith [ha.1, ha.2, hsquareUpper]
+
+theorem chapterVIDPositiveBranchRationalFactor_tight_bounds
+    {a : ℝ} (ha : a ∈
+      Set.Icc (26865395 / 1000000000 : ℝ) (26865396 / 1000000000 : ℝ)) :
+    (6021708 / 10000000000 : ℝ) ≤ chapterVIDPositiveBranchOrdinate a ^ 3 / a ∧
+      chapterVIDPositiveBranchOrdinate a ^ 3 / a ≤
+        (6021716 / 10000000000 : ℝ) := by
+  have ha0 : 0 < a := by linarith [ha.1]
+  obtain ⟨hbLower, hbUpper⟩ := chapterVIDPositiveBranchOrdinate_tight_bounds ha
+  have hb0 : 0 ≤ chapterVIDPositiveBranchOrdinate a := by positivity
+  constructor
+  · rw [le_div_iff₀ ha0]
+    have hcube : (2529129 / 100000000 : ℝ) ^ 3 ≤
+        chapterVIDPositiveBranchOrdinate a ^ 3 :=
+      pow_le_pow_left₀ (by norm_num) hbLower 3
+    nlinarith [ha.2]
+  · rw [div_le_iff₀ ha0]
+    have hcube : chapterVIDPositiveBranchOrdinate a ^ 3 ≤
+        (2529130 / 100000000 : ℝ) ^ 3 :=
+      pow_le_pow_left₀ hb0 hbUpper 3
+    nlinarith [ha.1]
+
+theorem chapterVIDPositiveBranchExponent_tight_bounds
+    {a : ℝ} (ha : a ∈
+      Set.Icc (26865395 / 1000000000 : ℝ) (26865396 / 1000000000 : ℝ)) :
+    (3719201 / 10000000 : ℝ) ≤ chapterVIDPositiveBranchExponent a ∧
+      chapterVIDPositiveBranchExponent a ≤ (3719203 / 10000000 : ℝ) := by
+  have ha0 : 0 < a := by linarith [ha.1]
+  have hk : (0 : ℝ) < 100 / 10001 := by norm_num
+  unfold chapterVIDPositiveBranchExponent
+  constructor
+  · rw [show a⁻¹ = 1 / a by simp]
+    rw [show (100 / 10001 : ℝ) * (1 / a - a) =
+      (1 / a - a) * (100 / 10001) by ring]
+    rw [← div_le_iff₀ hk, le_sub_iff_add_le, le_div_iff₀ ha0]
+    nlinarith [ha.2, sq_nonneg a]
+  · rw [show a⁻¹ = 1 / a by simp]
+    rw [show (100 / 10001 : ℝ) * (1 / a - a) =
+      (1 / a - a) * (100 / 10001) by ring]
+    rw [← le_div_iff₀ hk, sub_le_iff_le_add, div_le_iff₀ ha0]
+    nlinarith [ha.1, sq_nonneg a]
+
+theorem chapterVIDPositiveBranchExp_tight_bounds
+    {a : ℝ} (ha : a ∈
+      Set.Icc (26865395 / 1000000000 : ℝ) (26865396 / 1000000000 : ℝ)) :
+    (1450517 / 1000000 : ℝ) ≤ Real.exp (chapterVIDPositiveBranchExponent a) ∧
+      Real.exp (chapterVIDPositiveBranchExponent a) ≤ (1450518 / 1000000 : ℝ) := by
+  obtain ⟨hElo, hEhi⟩ := chapterVIDPositiveBranchExponent_tight_bounds ha
+  constructor
+  · calc
+      (1450517 / 1000000 : ℝ) ≤
+          ∑ m ∈ Finset.range 10,
+            (3719201 / 10000000 : ℝ) ^ m / m.factorial := by
+        norm_num [Finset.sum_range_succ, Nat.factorial]
+      _ ≤ Real.exp (3719201 / 10000000) :=
+        Real.sum_le_exp_of_nonneg (by norm_num) 10
+      _ ≤ Real.exp (chapterVIDPositiveBranchExponent a) :=
+        Real.exp_le_exp.mpr hElo
+  · calc
+      Real.exp (chapterVIDPositiveBranchExponent a) ≤
+          Real.exp (3719203 / 10000000) := Real.exp_le_exp.mpr hEhi
+      _ ≤ (∑ m ∈ Finset.range 10,
+            (3719203 / 10000000 : ℝ) ^ m / m.factorial) +
+          (3719203 / 10000000 : ℝ) ^ 10 * ((10 : ℕ) + 1) /
+            (Nat.factorial 10 * 10) :=
+        Real.exp_bound' (x := (3719203 / 10000000 : ℝ)) (n := 10)
+          (by norm_num) (by norm_num) (by norm_num)
+      _ ≤ (1450518 / 1000000 : ℝ) := by
+        norm_num [Finset.sum_range_succ, Nat.factorial]
+
+/-- The endpoint modulus is known to two ten-millionths, sufficient to keep the final root cells
+sharp without treating a floating-point approximation as an axiom. -/
+theorem chapterVIDCriticalParameterModulus_tight_bounds :
+    (8734 / 10000000 : ℝ) ≤ chapterVIDCriticalParameterModulus ∧
+      chapterVIDCriticalParameterModulus ≤ (8736 / 10000000 : ℝ) := by
+  have ha : -chapterVIDRoot ∈ Set.Icc
+      (26865395 / 1000000000 : ℝ) (26865396 / 1000000000 : ℝ) := by
+    constructor <;> linarith [chapterVIDRoot_fine_mem.1, chapterVIDRoot_fine_mem.2]
+  obtain ⟨hfactorLower, hfactorUpper⟩ :=
+    chapterVIDPositiveBranchRationalFactor_tight_bounds ha
+  obtain ⟨hexpLower, hexpUpper⟩ := chapterVIDPositiveBranchExp_tight_bounds ha
+  rw [chapterVIDCriticalParameterModulus,
+    show chapterVIDRoot = -(-chapterVIDRoot) by ring,
+    chapterVIDCurveThreeSmoothParameter_neg]
+  have hfactorNonneg : 0 ≤
+      chapterVIDPositiveBranchOrdinate (-chapterVIDRoot) ^ 3 / -chapterVIDRoot :=
+    (show (0 : ℝ) ≤ 6021708 / 10000000000 by norm_num).trans hfactorLower
+  have hexpNonneg : 0 ≤ Real.exp (chapterVIDPositiveBranchExponent (-chapterVIDRoot)) :=
+    Real.exp_nonneg _
+  constructor
+  · calc
+      (8734 / 10000000 : ℝ) ≤
+          (6021708 / 10000000000) * (1450517 / 1000000) := by norm_num
+      _ ≤ chapterVIDPositiveBranchOrdinate (-chapterVIDRoot) ^ 3 / -chapterVIDRoot *
+          Real.exp (chapterVIDPositiveBranchExponent (-chapterVIDRoot)) :=
+        mul_le_mul hfactorLower hexpLower (by norm_num) hfactorNonneg
+  · calc
+      chapterVIDPositiveBranchOrdinate (-chapterVIDRoot) ^ 3 / -chapterVIDRoot *
+          Real.exp (chapterVIDPositiveBranchExponent (-chapterVIDRoot)) ≤
+          (6021716 / 10000000000) * (1450518 / 1000000) :=
+        mul_le_mul hfactorUpper hexpUpper hexpNonneg (by norm_num)
+      _ ≤ (8736 / 10000000 : ℝ) := by norm_num
+
 /-- Coarse but rigorous dyadic-friendly bounds for the endpoint source modulus `q_D`. -/
 theorem chapterVIDCriticalParameterModulus_bounds :
     (3 / 4000 : ℝ) ≤ chapterVIDCriticalParameterModulus ∧

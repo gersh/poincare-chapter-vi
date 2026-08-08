@@ -311,8 +311,10 @@ The strongest newly completed component is the finite algebra in §103:
   the cubes or sixth powers of dyadic endpoints, and a kernel proof turns those inequalities into
   root intervals.
 - `ChapterVIDCriticalParameterInterval.lean` propagates the compiled isolation of the algebraic D
-  root through the endpoint source modulus. The sole real exponential is enclosed using the
-  rigorous inequalities `1+E <= exp(E) <= 1/(1-E)` on its certified rational range.
+  root through the endpoint source modulus. A second compiled sign check narrows the root to a
+  width of `10^-9`; a kernel-checked ten-term exponential estimate then encloses `q_D` tightly
+  enough for the collision-end radial cells. Coarser qualitative bounds still use the elementary
+  inequalities `1+E <= exp(E) <= 1/(1-E)`.
 - `ChapterVIDRadialTrace.lean` and `ChapterVIDRadialCompiledGrid.lean` complete the radial input
   dimension: 17 cells at 20-bit precision and 233 primitive operations are flattened into one
   zero-returning compiled verdict. Every radial parameter now has certified enclosures for the
