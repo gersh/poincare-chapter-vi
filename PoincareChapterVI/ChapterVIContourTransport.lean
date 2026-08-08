@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.MeasureTheory.Integral.CurveIntegral.Poincare
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import PoincareChapterVI.ChapterVIComplexBranch
 
 /-!
@@ -214,6 +215,24 @@ theorem ChapterVISmoothContourDeformation.scalar_curveIntegral_eq
     (∫ᶜ z in initial, chapterVIComplexScalarOneForm f z) =
       ∫ᶜ z in final, chapterVIComplexScalarOneForm f z :=
   deformation.curveIntegral_eq
+
+/-- Fundamental theorem for a complex scalar one-form on a straight contour segment.  This is
+the exact integration step used in §100 once the prepared inverse branch has been identified as
+the derivative of a logarithmic primitive. -/
+theorem chapterVI_curveIntegral_segment_eq_sub_of_primitive
+    {f primitive : ℂ → ℂ} {start direction : ℂ}
+    (hcont : ContinuousOn
+      (fun t : ℝ ↦ f (start + t • direction)) (Icc 0 1))
+    (hderiv : ∀ t ∈ Icc (0 : ℝ) 1,
+      HasDerivAt primitive (f (start + t • direction))
+        (start + t • direction)) :
+    (∫ᶜ z in Path.segment start (start + direction),
+      chapterVIComplexScalarOneForm f z) =
+      primitive (start + direction) - primitive start := by
+  rw [curveIntegral_segment]
+  have hfundamental :=
+    intervalIntegral.integral_unitInterval_deriv_eq_sub hcont hderiv
+  simpa [chapterVIComplexScalarOneForm_apply, AffineMap.lineMap_apply, add_comm] using hfundamental
 
 /-- A holomorphic scalar integrand has equal contour integrals along any two paths connected by
 a checked `C²` homotopy relative to their endpoints inside its domain. -/

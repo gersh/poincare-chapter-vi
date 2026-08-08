@@ -204,6 +204,11 @@ The strongest newly completed component is the finite algebra in §103:
   directly to the actual centered radicand. Its unit and automatically selected unit root agree
   as germs with the singular-fiber choices; on the sheet `sqrt(u²)=u`, the prepared inverse branch
   therefore has the previously constructed primitive `A(0) log u + Q(u)`.
+  Lean now also integrates this identity along every straight local arc contained in the prepared
+  chart and selected sheet, obtaining exactly
+  `A(0)(log u₁-log u₀)+Q(u₁)-Q(u₀)` with `A(0)≠0`. Thus the remaining §100 gap is placement of
+  Poincaré's continued source cycle and control of its complementary, nonlocal arcs—not the
+  fundamental-theorem-of-calculus passage from the prepared branch to its logarithm.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

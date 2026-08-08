@@ -204,6 +204,60 @@ theorem exists_chapterVIDCenteredPreparedLogPrimitive :
     have hbranchEq := hbranchBall huBranch hsqrt
     exact (hlogDeriv u ⟨huRadius, hu.2⟩).congr_deriv hbranchEq.symm
 
+/-- Exact §100 local-arc formula on the selected sheet.  Every straight segment that remains in
+the prepared branch chart, in the local slit-plane ball, and on the sheet `sqrt (u²)=u` integrates
+to the endpoint jump of Poincaré's logarithmic primitive.  In particular the logarithmic
+coefficient is the already-proved nonzero value `chapterVIDCenteredFiberAmplitude 0`. -/
+theorem exists_chapterVIDCenteredPreparedLogSegmentIntegral :
+    ∃ radius : ℝ, 0 < radius ∧
+      ∃ regularPrimitive : ℂ → ℂ,
+        regularPrimitive 0 = 0 ∧
+        ∀ {start direction : ℂ},
+          (∀ t ∈ Set.Icc (0 : ℝ) 1,
+            let u := start + t • direction
+            u ∈ Metric.ball (0 : ℂ) radius ∩ Complex.slitPlane ∧
+              Complex.sqrt (u ^ 2) = u ∧
+              u ∈ chapterVIDCenteredConvergentPreparedGerm.sliceBranchDomain
+                chapterVIDZBase) →
+          (∫ᶜ u in Path.segment start (start + direction),
+            chapterVIComplexScalarOneForm
+              (chapterVIDCenteredConvergentPreparedGerm.sliceInverseSquareRoot
+                chapterVIDZBase) u) =
+            chapterVIDCenteredFiberAmplitude 0 *
+                (Complex.log (start + direction) - Complex.log start) +
+              (regularPrimitive (start + direction) - regularPrimitive start) := by
+  obtain ⟨radius, hradius, regularPrimitive, hregularZero,
+      hregularDeriv, hlogDeriv⟩ :=
+    exists_chapterVIDCenteredPreparedLogPrimitive
+  refine ⟨radius, hradius, regularPrimitive, hregularZero, ?_⟩
+  intro start direction hsegment
+  let inverseBranch : ℂ → ℂ :=
+    chapterVIDCenteredConvergentPreparedGerm.sliceInverseSquareRoot chapterVIDZBase
+  let logPrimitive : ℂ → ℂ := fun u ↦
+    chapterVIDCenteredFiberAmplitude 0 * Complex.log u + regularPrimitive u
+  have hinverseContinuous : ContinuousOn inverseBranch
+      (chapterVIDCenteredConvergentPreparedGerm.sliceBranchDomain chapterVIDZBase) :=
+    (chapterVIDCenteredConvergentPreparedGerm
+      |>.differentiableOn_sliceInverseSquareRoot chapterVIDZBase).continuousOn
+  have hcont : ContinuousOn
+      (fun t : ℝ ↦ inverseBranch (start + t • direction)) (Set.Icc 0 1) := by
+    exact hinverseContinuous.comp (by fun_prop) fun t ht ↦ (hsegment t ht).2.2
+  have hderiv : ∀ t ∈ Set.Icc (0 : ℝ) 1,
+      HasDerivAt logPrimitive (inverseBranch (start + t • direction))
+        (start + t • direction) := by
+    intro t ht
+    obtain ⟨hu, hsqrt, hbranch⟩ := hsegment t ht
+    simpa only [logPrimitive, inverseBranch,
+      ChapterVIConvergentPreparedGerm.sliceInverseSquareRoot] using
+      hlogDeriv (start + t • direction) hu hsqrt
+  have hintegral := chapterVI_curveIntegral_segment_eq_sub_of_primitive hcont hderiv
+  change
+    (∫ᶜ u in Path.segment start (start + direction),
+      chapterVIComplexScalarOneForm inverseBranch u) = _
+  rw [hintegral]
+  dsimp only [logPrimitive]
+  ring
+
 /-- The generic prepared inverse branch is holomorphic on its natural local two-variable chart. -/
 theorem differentiableOn_chapterVIDCenteredPreparedInverseSquareRoot :
     DifferentiableOn ℂ chapterVIDCenteredConvergentPreparedGerm.inverseSquareRoot
