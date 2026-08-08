@@ -122,7 +122,9 @@ The strongest newly completed component is the finite algebra in §103:
 - a second, source-faithful route writes `G(z)=G(z₀)+(1-z/z₀)H(z)`. Lean proves the exact
   first-vanishing logarithmic coefficients, an `ℓ¹ * c₀` weighted convolution theorem, and the
   required first-moment summability from analyticity of `H` on a disk larger than the boundary
-  circle. Thus this route no longer postulates a Tannery majorant separately.
+  circle. Mathlib's holomorphic divided difference now constructs `H` and its scalar power series
+  automatically whenever `G` is analytic beyond `z₀`. Thus this route no longer postulates either
+  a Tannery majorant or the removable factorization separately.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
@@ -130,12 +132,12 @@ concrete moving algebraic branches, physical derivative identification, formal c
 identification of the reduced curve with the constant-`z` tangent derivative, and the
 three-versus-two rank contradiction are now established. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
-including the regular-factor decomposition and larger-disk analyticity for a varying analytic
-log amplitude, and
+including larger-disk analyticity and the coefficient identity for a varying analytic log
+amplitude, and
 to derive the coefficient family and common radius from the Chapter V uniform-integral relation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly
 from a regular factor analytic beyond the boundary circle. The remaining reduction must derive
-that regular-factor statement uniformly from the contour germ and combine it with the contour
+that larger-disk amplitude statement uniformly from the contour germ and combine it with the contour
 remainder. Once that source-level estimate and the
 two-coordinate coefficient germ are supplied, coefficient extraction, normalization,
 equal-modulus separation, and the §103 contradiction are formalized. The

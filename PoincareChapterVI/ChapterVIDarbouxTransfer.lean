@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.Analytic.OfScalars
+import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Analysis.SpecificLimits.Normed
 import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
@@ -30,6 +31,14 @@ open Filter
 open scoped BigOperators NNReal Topology
 
 namespace PoincareChapterVI
+
+/-- In one complex variable every formal multilinear series is determined by its scalar
+coefficients. -/
+theorem formalMultilinearSeries_eq_ofScalars_coeff
+    (series : FormalMultilinearSeries ℂ ℂ ℂ) :
+    series = FormalMultilinearSeries.ofScalars ℂ series.coeff := by
+  ext degree
+  simp [FormalMultilinearSeries.apply_eq_prod_smul_coeff]
 
 /-- Darboux normalization of the coefficient of `z^(index + 1)` at a positive real radius. -/
 def chapterVINormalizedCoefficient (radius : ℝ≥0) (coefficient : ℕ → ℂ)
@@ -477,6 +486,67 @@ theorem summable_radiusScaledCoefficient_and_moment
       _ ≤ (index : ℝ) * (constant * ratio ^ index) :=
         mul_le_mul_of_nonneg_left (hbound index) (Nat.cast_nonneg index)
       _ = constant * ((index : ℝ) * ratio ^ index) := by ring
+
+/-- A genuinely analytic amplitude automatically has Poincaré's regular-factor decomposition.
+The divided difference `dslope` fills in the removable value at the boundary point, and an
+intermediate disk preserves a radius strictly larger than the singularity circle. -/
+theorem exists_regularAmplitudeFactorization_of_analytic
+    {radius analyticRadius : ℝ≥0} {singularity : ℂ}
+    (hsingularity : singularity ≠ 0) (hnorm : ‖singularity‖ = radius)
+    (hradii : radius < analyticRadius) (amplitude : ℂ → ℂ)
+    (amplitudeSeries : FormalMultilinearSeries ℂ ℂ ℂ)
+    (hamplitude : HasFPowerSeriesOnBall amplitude amplitudeSeries 0 analyticRadius) :
+    ∃ (regularRadius : ℝ≥0) (regularCoefficient : ℕ → ℂ) (regular : ℂ → ℂ),
+      radius < regularRadius ∧
+      HasFPowerSeriesOnBall regular
+        (FormalMultilinearSeries.ofScalars ℂ regularCoefficient) 0 regularRadius ∧
+      ∀ z, amplitude z = amplitude singularity +
+        (1 - z * singularity⁻¹) * regular z := by
+  obtain ⟨regularRadius, hradiusRegular, hregularAnalytic⟩ := exists_between hradii
+  let regular : ℂ → ℂ := fun z ↦ -singularity * dslope amplitude singularity z
+  have hsingularityMem : singularity ∈ Metric.ball (0 : ℂ) analyticRadius := by
+    rw [Metric.mem_ball, dist_zero_right, hnorm]
+    exact hradii
+  have hballNhd : Metric.ball (0 : ℂ) analyticRadius ∈ nhds singularity :=
+    Metric.isOpen_ball.mem_nhds hsingularityMem
+  have hamplitudeDifferentiable : DifferentiableOn ℂ amplitude
+      (Metric.ball (0 : ℂ) analyticRadius) :=
+    by simpa only [Metric.eball_coe] using hamplitude.analyticOnNhd.differentiableOn
+  have hregularDifferentiable : DifferentiableOn ℂ regular
+      (Metric.ball (0 : ℂ) analyticRadius) := by
+    exact ((Complex.differentiableOn_dslope hballNhd).mpr hamplitudeDifferentiable).const_mul
+      (-singularity)
+  have hregularRadiusPos : 0 < regularRadius :=
+    radius.coe_nonneg.trans_lt hradiusRegular
+  have hregularPowerSeries :=
+    (hregularDifferentiable.mono
+      (Metric.closedBall_subset_ball hregularAnalytic)).hasFPowerSeriesOnBall
+        hregularRadiusPos
+  let regularSeries : FormalMultilinearSeries ℂ ℂ ℂ :=
+    cauchyPowerSeries regular 0 regularRadius
+  let regularCoefficient : ℕ → ℂ := regularSeries.coeff
+  refine ⟨regularRadius, regularCoefficient, regular, hradiusRegular, ?_, ?_⟩
+  · change HasFPowerSeriesOnBall regular
+      (FormalMultilinearSeries.ofScalars ℂ regularSeries.coeff) 0 regularRadius
+    rw [← formalMultilinearSeries_eq_ofScalars_coeff regularSeries]
+    exact hregularPowerSeries
+  · intro z
+    have hslope := sub_smul_dslope amplitude singularity z
+    simp only [smul_eq_mul] at hslope
+    have hinverse : singularity⁻¹ * singularity = 1 :=
+      inv_mul_cancel₀ hsingularity
+    have halgebra : (1 - z * singularity⁻¹) * (-singularity) =
+        z - singularity := by
+      calc
+        (1 - z * singularity⁻¹) * (-singularity) =
+            -singularity + z * (singularity⁻¹ * singularity) := by ring
+        _ = z - singularity := by rw [hinverse]; ring
+    calc
+      amplitude z = amplitude singularity + (z - singularity) *
+          dslope amplitude singularity z := by rw [hslope]; ring
+      _ = amplitude singularity + (1 - z * singularity⁻¹) * regular z := by
+        unfold regular
+        rw [← mul_assoc, halgebra]
 
 /-- A regular analytic amplitude multiplying `(1-zλ) log(1-zλ)` is Darboux-subleading whenever
 its radius-scaled Taylor coefficients have a summable first moment.  This is the coefficient

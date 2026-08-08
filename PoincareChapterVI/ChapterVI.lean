@@ -100,8 +100,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   summable uniform coefficient bound. More source-faithfully, factoring a varying amplitude as
   `G(z₀) + (1-z/z₀)H(z)` reduces its tail to convolution with an exact `O(1/n²)` kernel; Lean
   derives the required weighted summability directly when `H` is analytic on a disk larger than
-  the boundary circle. Establishing this larger-disk factorization for the actual contour germ,
-  uniformly in the orbital parameters, remains open.
+  the boundary circle. The holomorphic divided difference `dslope` now constructs `H` and its
+  scalar power series automatically from any amplitude analytic beyond the boundary point.
+  Establishing that larger-disk analyticity for the actual contour amplitude, uniformly in the
+  orbital parameters, remains open.
   `tendsto_chapterVI_quadraticPinch_sub_log` evaluates
   the real symmetric prepared
   quadratic model and proves its exact logarithmic asymptotic. Identifying the actual convergent
