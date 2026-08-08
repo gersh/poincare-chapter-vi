@@ -5,6 +5,8 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.Analysis.Complex.Polynomial.Basic
+import Mathlib.FieldTheory.IsAlgClosed.AlgebraicClosure
 import PoincareChapterVI.ChapterVIDCandidate
 import PoincareChapterVI.ChapterVIWindingObstruction
 
@@ -28,8 +30,90 @@ certificate.
 noncomputable section
 
 open Real
+open scoped Topology unitInterval
 
 namespace PoincareChapterVI
+
+/-! ## The `x^(1/3)` contour coordinate -/
+
+/-- Any cubic lift has norm below one exactly when its `x` coordinate does.  This is the precise
+bridge from Poincaré's real figure in the `x`-plane to his integration contour in the
+`x^(1/c)`-plane for `c=3`. -/
+theorem chapterVI_norm_cubicLift_lt_one_iff
+    {lift : ℂ} {x : ℝ} (hlift : lift ^ 3 = (x : ℂ)) :
+    ‖lift‖ < 1 ↔ |x| < 1 := by
+  have hnorm : ‖lift‖ ^ 3 = |x| := by
+    rw [← norm_pow, hlift, Complex.norm_real, Real.norm_eq_abs]
+  calc
+    ‖lift‖ < 1 ↔ ‖lift‖ ^ 3 < 1 :=
+      (pow_lt_one_iff_of_nonneg (norm_nonneg lift) (by norm_num)).symm
+    _ ↔ |x| < 1 := by rw [hnorm]
+
+theorem chapterVI_one_lt_norm_cubicLift_iff
+    {lift : ℂ} {x : ℝ} (hlift : lift ^ 3 = (x : ℂ)) :
+    1 < ‖lift‖ ↔ 1 < |x| := by
+  have hnorm : ‖lift‖ ^ 3 = |x| := by
+    rw [← norm_pow, hlift, Complex.norm_real, Real.norm_eq_abs]
+  calc
+    1 < ‖lift‖ ↔ 1 < ‖lift‖ ^ 3 :=
+      (one_lt_pow_iff_of_nonneg (norm_nonneg lift) (by norm_num)).symm
+    _ ↔ 1 < |x| := by rw [hnorm]
+
+/-- A fixed cubic lift, used only to state a concrete source-facing corollary.  Sheet-sensitive
+arguments retain the equation `lift^3=x` explicitly and do not rely on any principal-root cut. -/
+noncomputable def chapterVIChosenCubicLift (x : ℂ) : ℂ :=
+  Classical.choose (IsAlgClosed.exists_pow_nat_eq x (show 0 < 3 by norm_num))
+
+@[simp]
+theorem chapterVIChosenCubicLift_pow (x : ℂ) :
+    chapterVIChosenCubicLift x ^ 3 = x :=
+  Classical.choose_spec (IsAlgClosed.exists_pow_nat_eq x (show 0 < 3 by norm_num))
+
+/-- A continuous cubic-root branch on the negative real axis.  It differs from Poincaré's
+argument-`π/3` choice by a fixed cube root of unity, which has no effect on inside/outside winding
+data. -/
+noncomputable def chapterVINegativeRealCubicLift (x : ℝ) : ℂ :=
+  -(max (-x) 0 ^ ((3 : ℝ)⁻¹) : ℝ)
+
+theorem continuous_chapterVINegativeRealCubicLift :
+    Continuous chapterVINegativeRealCubicLift := by
+  unfold chapterVINegativeRealCubicLift
+  fun_prop (disch := norm_num)
+
+@[simp]
+theorem chapterVINegativeRealCubicLift_pow
+    {x : ℝ} (hx : x ≤ 0) :
+    chapterVINegativeRealCubicLift x ^ 3 = (x : ℂ) := by
+  have hnonneg : 0 ≤ -x := neg_nonneg.mpr hx
+  have hrpow : ((-x) ^ ((3 : ℝ)⁻¹)) ^ (3 : ℕ) = -x :=
+    Real.rpow_inv_natCast_pow hnonneg (by norm_num)
+  have hreal : (-((-x) ^ ((3 : ℝ)⁻¹))) ^ (3 : ℕ) = x := by
+    calc
+      (-((-x) ^ ((3 : ℝ)⁻¹))) ^ (3 : ℕ) =
+          -(((-x) ^ ((3 : ℝ)⁻¹)) ^ (3 : ℕ)) := by ring
+      _ = -(-x) := by rw [hrpow]
+      _ = x := by ring
+  unfold chapterVINegativeRealCubicLift
+  rw [max_eq_left hnonneg]
+  exact_mod_cast hreal
+
+/-- The affine path descending across a real closed interval, bundled in that interval. -/
+def chapterVIDescendingIccPath (a b : ℝ) (hab : a ≤ b) :
+    Path (⟨b, ⟨hab, le_rfl⟩⟩ : Set.Icc a b)
+      (⟨a, ⟨le_rfl, hab⟩⟩ : Set.Icc a b) where
+  toFun s := ⟨AffineMap.lineMap b a (s : ℝ), by
+    have hs0 := s.property.1
+    have hs1 := s.property.2
+    constructor <;>
+      simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul] <;>
+        nlinarith⟩
+  continuous_toFun := by fun_prop
+  source' := by
+    apply Subtype.ext
+    simp [AffineMap.lineMap_apply]
+  target' := by
+    apply Subtype.ext
+    simp [AffineMap.lineMap_apply]
 
 /-- Poincaré's collision curve (3), specialized to the concrete D parameters. -/
 def chapterVIDCurveThreeY (x : ℝ) : ℝ :=
@@ -79,6 +163,54 @@ theorem chapterVID_curveThree_curveFour_negative_intersections (x : ℝ) :
       (x + 100) * (100 * x + 1) *
         (100 * x ^ 2 - 30003 * x + 100) / 100000000 := by
   ring
+
+/-! ## Identification with Poincaré's source equations -/
+
+/-- Every nonzero point of the concrete curve (3), not just D, satisfies Poincaré's cleared
+collision equation.  This is the algebraic link needed to interpret the branch paths below as
+paths of singularities of the source integrand. -/
+theorem chapterVID_curveThree_collisionEquation
+    {x : ℝ} (hx : x ≠ 0) :
+    chapterVIPlanarCollisionEquationThree chapterVIDEccentricity chapterVIDComplement
+      2 (x : ℂ) (chapterVIDCurveThreeY x : ℂ) = 0 := by
+  have h := chapterVI_planarCollisionEquationThree_halfAngle
+    (1 / 100 : ℂ) chapterVIDEccentricity chapterVIDComplement 2
+    (x : ℂ) (chapterVIDCurveThreeY x : ℂ)
+    chapterVID_halfAngle_sine chapterVID_halfAngle_cosine
+  have hxcomplex : (x : ℂ) ≠ 0 := by exact_mod_cast hx
+  have hcurve :
+      ((x : ℂ) - 1 / 100) ^ 2 -
+        2 * (1 + (1 / 100 : ℂ) ^ 2) * (x : ℂ) *
+          (chapterVIDCurveThreeY x : ℂ) = 0 := by
+    unfold chapterVIDCurveThreeY
+    push_cast
+    field_simp [hxcomplex]
+    ring
+  rw [hcurve, mul_zero] at h
+  exact (mul_eq_zero.mp h).resolve_left (by norm_num)
+
+/-- Along the negative real curve (3), the literal source factor `H = ξ-βη` vanishes.
+The hypotheses also discharge the denominators introduced by Poincaré's planar coordinates. -/
+theorem chapterVID_curveThree_collisionFactorPlus
+    {x : ℝ} (hx : x < 0) :
+    chapterVIPlanarCollisionFactorPlus chapterVIDEccentricity chapterVIDComplement
+      0 1 2 (x : ℂ) (chapterVIDCurveThreeY x : ℂ) = 0 := by
+  have hx0 : x ≠ 0 := ne_of_lt hx
+  have hxcomplex : (x : ℂ) ≠ 0 := by exact_mod_cast hx0
+  have hy : chapterVIDCurveThreeY x < 0 := by
+    have hnumerator : 0 < (x - 1 / 100) ^ 2 :=
+      sq_pos_of_ne_zero (by nlinarith)
+    have hdenominator : 2 * (1 + (1 / 100 : ℝ) ^ 2) * x < 0 :=
+      mul_neg_of_pos_of_neg (by norm_num) hx
+    exact div_neg_of_pos_of_neg hnumerator hdenominator
+  have hycomplex : (chapterVIDCurveThreeY x : ℂ) ≠ 0 := by
+    exact_mod_cast (ne_of_lt hy)
+  have hclear := chapterVI_planarCollisionFactorPlus_eq_cleared
+    chapterVIDEccentricity chapterVIDComplement 0 1 2 hxcomplex hycomplex
+  rw [chapterVI_planarCollisionEquationThreeGeneral_secondCircular] at hclear
+  rw [chapterVID_curveThree_collisionEquation hx0, mul_zero] at hclear
+  exact (mul_eq_zero.mp hclear).resolve_left
+    (mul_ne_zero (mul_ne_zero (by norm_num) hxcomplex) hycomplex)
 
 /-! ## Monotonicity from D toward B' -/
 
@@ -151,6 +283,61 @@ theorem chapterVIDCurveThreeLogDerivative_neg
   have hdenom : 10001 * x ^ 2 * (100 * x - 1) < 0 :=
     mul_neg_of_pos_of_neg (mul_pos (by norm_num) hx2) hlinear
   exact div_neg_of_pos_of_neg (mul_pos (by norm_num) hp) hdenom
+
+/-! The other real branch from D through B toward P. -/
+
+theorem chapterVIDPolynomial_deriv_neg_D_to_turn
+    {x : ℝ} (hx : x ∈ Set.Icc chapterVIDRoot (-13 / 1000)) :
+    deriv chapterVIDPolynomial x < 0 := by
+  rw [(hasDerivAt_chapterVIDPolynomial x).deriv]
+  have hxleft : -27 / 1000 ≤ x := chapterVIDRoot_mem.1.trans hx.1
+  have hsquare : x ^ 2 ≤ (27 / 1000 : ℝ) ^ 2 := by
+    nlinarith [mul_nonneg (by linarith : 0 ≤ x + 27 / 1000)
+      (by linarith [hx.2] : 0 ≤ 27 / 1000 - x)]
+  nlinarith [hx.2]
+
+theorem chapterVIDPolynomial_strictAntiOn_D_to_turn :
+    StrictAntiOn chapterVIDPolynomial (Set.Icc chapterVIDRoot (-13 / 1000)) := by
+  apply strictAntiOn_of_deriv_neg (convex_Icc _ _)
+  · exact continuous_chapterVIDPolynomial.continuousOn
+  · intro x hx
+    exact chapterVIDPolynomial_deriv_neg_D_to_turn (interior_subset hx)
+
+/-- No second root of D's cubic occurs between D and the BP endpoint. -/
+theorem chapterVIDPolynomial_neg_right_of_D
+    {x : ℝ} (hxD : chapterVIDRoot < x) (hxright : x ≤ -1 / 1000) :
+    chapterVIDPolynomial x < 0 := by
+  by_cases hxturn : x ≤ -13 / 1000
+  · have hxmem : x ∈ Set.Icc chapterVIDRoot (-13 / 1000) := ⟨hxD.le, hxturn⟩
+    have hDmem : chapterVIDRoot ∈ Set.Icc chapterVIDRoot (-13 / 1000) := by
+      constructor
+      · rfl
+      · nlinarith [chapterVIDRoot_mem.2]
+    have hstrict := chapterVIDPolynomial_strictAntiOn_D_to_turn hDmem hxmem hxD
+    rw [chapterVIDRoot_isRoot] at hstrict
+    linarith
+  · have hxturn' : -13 / 1000 < x := lt_of_not_ge hxturn
+    have hxneg : x < 0 := lt_of_le_of_lt hxright (by norm_num)
+    have hproduct : (x + 13 / 1000) * (x + 1 / 1000) ≤ 0 :=
+      mul_nonpos_of_nonneg_of_nonpos (by linarith) (by linarith)
+    have hcubic : x ^ 3 ≤ 0 := by
+      calc
+        x ^ 3 = x * x ^ 2 := by ring
+        _ ≤ 0 := mul_nonpos_of_nonpos_of_nonneg hxneg.le (sq_nonneg x)
+    unfold chapterVIDPolynomial
+    nlinarith
+
+theorem chapterVIDCurveThreeLogDerivative_pos
+    {x : ℝ} (hxD : chapterVIDRoot < x) (hxright : x ≤ -1 / 1000) :
+    0 < chapterVIDCurveThreeLogDerivative x := by
+  have hxneg : x < 0 := lt_of_le_of_lt hxright (by norm_num)
+  have hp := chapterVIDPolynomial_neg_right_of_D hxD hxright
+  unfold chapterVIDCurveThreeLogDerivative
+  have hx2 : 0 < x ^ 2 := sq_pos_of_ne_zero (ne_of_lt hxneg)
+  have hlinear : 100 * x - 1 < 0 := by nlinarith
+  have hdenom : 10001 * x ^ 2 * (100 * x - 1) < 0 :=
+    mul_neg_of_pos_of_neg (mul_pos (by norm_num) hx2) hlinear
+  exact div_pos_of_neg_of_neg (mul_neg_of_pos_of_neg (by norm_num) hp) hdenom
 
 /-! ## Calculus of the branch modulus -/
 
@@ -249,6 +436,20 @@ theorem chapterVIDCurveThreeSmoothParameter_pos
   unfold chapterVIDCurveThreeSmoothParameter
   exact mul_pos (div_pos (pow_pos (neg_pos.mpr hy) _) (neg_pos.mpr hx)) (Real.exp_pos _)
 
+/-- On the negative curve (3), Poincaré's complex parameter `z` is the positive real number
+used above to synchronize the two branches.  Thus the common real parameter is not an auxiliary
+reparameterization: it is the source expression with `a=-1`, `c=3`, and the §97 scales. -/
+theorem chapterVID_singularityParameter_curveThree_eq_smooth
+    {x : ℝ} (hx : x < 0) :
+    chapterVISingularityParameter (-1) 3 (-100 / 10001) 0
+        (x : ℂ) (chapterVIDCurveThreeY x : ℂ) =
+      (chapterVIDCurveThreeSmoothParameter x : ℂ) := by
+  have hx0 : x ≠ 0 := ne_of_lt hx
+  unfold chapterVISingularityParameter chapterVIDCurveThreeSmoothParameter
+  simp only [zpow_neg_one, zpow_ofNat, zero_mul, add_zero]
+  push_cast
+  field_simp [hx0]
+
 theorem continuousOn_chapterVIDCurveThreeSmoothParameter_BPrime_to_negOne :
     ContinuousOn chapterVIDCurveThreeSmoothParameter (Set.Icc (-100) (-1)) := by
   apply continuousOn_of_forall_continuousAt
@@ -276,6 +477,59 @@ theorem chapterVIDCurveThreeSmoothParameter_strictAntiOn_BPrime_to_negOne :
         have := chapterVIDRoot_mem.1
         norm_num at this ⊢
         linarith)))
+
+theorem continuousOn_chapterVIDCurveThreeSmoothParameter_BPrime_to_D :
+    ContinuousOn chapterVIDCurveThreeSmoothParameter
+      (Set.Icc (-100) chapterVIDRoot) := by
+  apply continuousOn_of_forall_continuousAt
+  intro x hx
+  have hxneg : x < 0 := hx.2.trans_lt chapterVIDRoot_lt_zero
+  have hx0 : x ≠ 0 := ne_of_lt hxneg
+  have hdenominator : 2 * (1 + (1 / 100 : ℝ) ^ 2) * x ≠ 0 := by
+    exact mul_ne_zero (by norm_num) hx0
+  unfold chapterVIDCurveThreeSmoothParameter chapterVIDCurveThreeY
+  fun_prop (disch := simp [hx0])
+
+theorem chapterVIDCurveThreeSmoothParameter_strictAntiOn_BPrime_to_D :
+    StrictAntiOn chapterVIDCurveThreeSmoothParameter
+      (Set.Icc (-100) chapterVIDRoot) := by
+  apply strictAntiOn_of_deriv_neg (convex_Icc _ _)
+    continuousOn_chapterVIDCurveThreeSmoothParameter_BPrime_to_D
+  intro x hx
+  rw [interior_Icc] at hx
+  have hxneg : x < 0 := hx.2.trans chapterVIDRoot_lt_zero
+  rw [deriv_chapterVIDCurveThreeSmoothParameter hxneg]
+  exact mul_neg_of_pos_of_neg
+    (chapterVIDCurveThreeSmoothParameter_pos hxneg)
+    (chapterVIDCurveThreeLogDerivative_neg hx.1.le hx.2)
+
+theorem continuousOn_chapterVIDCurveThreeSmoothParameter_D_to_P :
+    ContinuousOn chapterVIDCurveThreeSmoothParameter
+      (Set.Icc chapterVIDRoot (-1 / 1000)) := by
+  apply continuousOn_of_forall_continuousAt
+  intro x hx
+  have hxneg : x < 0 := lt_of_le_of_lt hx.2 (by norm_num)
+  have hx0 : x ≠ 0 := ne_of_lt hxneg
+  have hdenominator : 2 * (1 + (1 / 100 : ℝ) ^ 2) * x ≠ 0 := by
+    exact mul_ne_zero (by norm_num) hx0
+  unfold chapterVIDCurveThreeSmoothParameter chapterVIDCurveThreeY
+  fun_prop (disch := simp [hx0])
+
+/-- Along the whole selected inside branch D→B→P, the parameter modulus increases strictly.
+This supplies the branch-invertibility needed to synchronize the two poles by the same external
+`|z|` parameter. -/
+theorem chapterVIDCurveThreeSmoothParameter_strictMonoOn_D_to_P :
+    StrictMonoOn chapterVIDCurveThreeSmoothParameter
+      (Set.Icc chapterVIDRoot (-1 / 1000)) := by
+  apply strictMonoOn_of_deriv_pos (convex_Icc _ _)
+    continuousOn_chapterVIDCurveThreeSmoothParameter_D_to_P
+  intro x hx
+  rw [interior_Icc] at hx
+  have hxneg : x < 0 := hx.2.trans (by norm_num)
+  rw [deriv_chapterVIDCurveThreeSmoothParameter hxneg]
+  exact mul_pos
+    (chapterVIDCurveThreeSmoothParameter_pos hxneg)
+    (chapterVIDCurveThreeLogDerivative_pos hx.1 hx.2.le)
 
 theorem chapterVIDCurveThreeSmoothParameter_neg_hundred_gt_one :
     1 < chapterVIDCurveThreeSmoothParameter (-100) := by
@@ -488,5 +742,460 @@ theorem chapterVID_admissibility_terminal_configuration :
     linarith [hxBD.1]
   · rw [abs_of_neg (hxDB.2.trans (by norm_num))]
     simpa using neg_lt_neg hxDB.2
+
+/-! ## Source-facing cubic lifts and the genuine-pinch obstruction -/
+
+/-- A selected BP endpoint.  Its defining interval and `|z|=1` equation are exported below. -/
+noncomputable def chapterVIDInsideEndpointX : ℝ :=
+  Classical.choose exists_chapterVIDCurveThree_unit_parameter_inside
+
+theorem chapterVIDInsideEndpointX_mem :
+    chapterVIDInsideEndpointX ∈ Set.Ioo (-1 / 100) (-1 / 1000) :=
+  (Classical.choose_spec exists_chapterVIDCurveThree_unit_parameter_inside).1
+
+theorem chapterVIDInsideEndpointX_parameter :
+    chapterVIDCurveThreeParameterModulus chapterVIDInsideEndpointX = 1 :=
+  (Classical.choose_spec exists_chapterVIDCurveThree_unit_parameter_inside).2
+
+def chapterVIDCriticalParameterModulus : ℝ :=
+  chapterVIDCurveThreeSmoothParameter chapterVIDRoot
+
+theorem chapterVIDRoot_lt_insideEndpointX :
+    chapterVIDRoot < chapterVIDInsideEndpointX := by
+  linarith [chapterVIDRoot_mem.2, chapterVIDInsideEndpointX_mem.1]
+
+theorem chapterVIDInsideEndpointX_le_P :
+    chapterVIDInsideEndpointX ≤ -1 / 1000 := chapterVIDInsideEndpointX_mem.2.le
+
+theorem chapterVIDInsideEndpointX_smoothParameter :
+    chapterVIDCurveThreeSmoothParameter chapterVIDInsideEndpointX = 1 := by
+  rw [chapterVIDCurveThreeSmoothParameter_eq_modulus
+    (chapterVIDInsideEndpointX_mem.2.trans (by norm_num))]
+  exact chapterVIDInsideEndpointX_parameter
+
+theorem chapterVIDCriticalParameterModulus_lt_one :
+    chapterVIDCriticalParameterModulus < 1 := by
+  unfold chapterVIDCriticalParameterModulus
+  rw [← chapterVIDInsideEndpointX_smoothParameter]
+  exact chapterVIDCurveThreeSmoothParameter_strictMonoOn_D_to_P
+    ⟨le_rfl, chapterVIDRoot_mem.2.trans
+      (by norm_num : (-26 / 1000 : ℝ) ≤ -1 / 1000)⟩
+    ⟨chapterVIDRoot_lt_insideEndpointX.le, chapterVIDInsideEndpointX_le_P⟩
+    chapterVIDRoot_lt_insideEndpointX
+
+theorem chapterVIDInsideBranch_parameter_image :
+    chapterVIDCurveThreeSmoothParameter ''
+        Set.Icc chapterVIDRoot chapterVIDInsideEndpointX =
+      Set.Icc chapterVIDCriticalParameterModulus 1 := by
+  have hcontinuous := continuousOn_chapterVIDCurveThreeSmoothParameter_D_to_P.mono
+    (Set.Icc_subset_Icc_right chapterVIDInsideEndpointX_le_P)
+  have hmono :=
+    (chapterVIDCurveThreeSmoothParameter_strictMonoOn_D_to_P.mono
+      (Set.Icc_subset_Icc_right chapterVIDInsideEndpointX_le_P)).monotoneOn
+  rw [hcontinuous.image_Icc_of_monotoneOn chapterVIDRoot_lt_insideEndpointX.le hmono]
+  simp only [chapterVIDCriticalParameterModulus,
+    chapterVIDInsideEndpointX_smoothParameter]
+
+/-- The selected inside branch, parameterized order-isomorphically by the common modulus `|z|`. -/
+noncomputable def chapterVIDInsideBranchOrderIso :
+    Set.Icc chapterVIDRoot chapterVIDInsideEndpointX ≃o
+      Set.Icc chapterVIDCriticalParameterModulus 1 :=
+  (chapterVIDCurveThreeSmoothParameter_strictMonoOn_D_to_P.mono
+      (Set.Icc_subset_Icc_right chapterVIDInsideEndpointX_le_P)).orderIso
+      chapterVIDCurveThreeSmoothParameter
+      (Set.Icc chapterVIDRoot chapterVIDInsideEndpointX) |>.trans
+    (OrderIso.setCongr _ _ chapterVIDInsideBranch_parameter_image)
+
+@[simp]
+theorem chapterVIDInsideBranchOrderIso_apply
+    (x : Set.Icc chapterVIDRoot chapterVIDInsideEndpointX) :
+    (chapterVIDInsideBranchOrderIso x : ℝ) =
+      chapterVIDCurveThreeSmoothParameter x := rfl
+
+def chapterVIDInsideEndpointSubtype :
+    Set.Icc chapterVIDRoot chapterVIDInsideEndpointX :=
+  ⟨chapterVIDInsideEndpointX, ⟨chapterVIDRoot_lt_insideEndpointX.le, le_rfl⟩⟩
+
+def chapterVIDCollisionInsideSubtype :
+    Set.Icc chapterVIDRoot chapterVIDInsideEndpointX :=
+  ⟨chapterVIDRoot, ⟨le_rfl, chapterVIDRoot_lt_insideEndpointX.le⟩⟩
+
+def chapterVIDOneParameterSubtype :
+    Set.Icc chapterVIDCriticalParameterModulus 1 :=
+  ⟨1, ⟨chapterVIDCriticalParameterModulus_lt_one.le, le_rfl⟩⟩
+
+def chapterVIDCriticalParameterSubtype :
+    Set.Icc chapterVIDCriticalParameterModulus 1 :=
+  ⟨chapterVIDCriticalParameterModulus,
+    ⟨le_rfl, chapterVIDCriticalParameterModulus_lt_one.le⟩⟩
+
+theorem chapterVIDInsideBranchOrderIso_symm_one :
+    chapterVIDInsideBranchOrderIso.symm chapterVIDOneParameterSubtype =
+      chapterVIDInsideEndpointSubtype := by
+  apply chapterVIDInsideBranchOrderIso.injective
+  rw [chapterVIDInsideBranchOrderIso.apply_symm_apply]
+  apply Subtype.ext
+  exact chapterVIDInsideEndpointX_smoothParameter.symm
+
+theorem chapterVIDInsideBranchOrderIso_symm_critical :
+    chapterVIDInsideBranchOrderIso.symm chapterVIDCriticalParameterSubtype =
+      chapterVIDCollisionInsideSubtype := by
+  apply chapterVIDInsideBranchOrderIso.injective
+  rw [chapterVIDInsideBranchOrderIso.apply_symm_apply]
+  rfl
+
+/-- The inside singular point followed continuously from its `|z|=1` endpoint back to D, with
+the external modulus as its path parameter. -/
+noncomputable def chapterVIDInsideXSubtypePath :
+    Path chapterVIDInsideEndpointSubtype chapterVIDCollisionInsideSubtype :=
+  ((chapterVIDescendingIccPath chapterVIDCriticalParameterModulus 1
+      chapterVIDCriticalParameterModulus_lt_one.le).map
+      chapterVIDInsideBranchOrderIso.symm.continuous).cast
+    chapterVIDInsideBranchOrderIso_symm_one.symm
+    chapterVIDInsideBranchOrderIso_symm_critical.symm
+
+noncomputable def chapterVIDInsideXPath :
+    Path chapterVIDInsideEndpointX chapterVIDRoot :=
+  chapterVIDInsideXSubtypePath.map continuous_subtype_val
+
+/-- The selected exterior endpoint on DB'. -/
+noncomputable def chapterVIDOutsideEndpointX : ℝ :=
+  Classical.choose existsUnique_chapterVIDCurveThree_unit_parameter_outside
+
+theorem chapterVIDOutsideEndpointX_mem :
+    chapterVIDOutsideEndpointX ∈ Set.Ioo (-100) (-1) :=
+  (Classical.choose_spec existsUnique_chapterVIDCurveThree_unit_parameter_outside).1.1
+
+theorem chapterVIDOutsideEndpointX_parameter :
+    chapterVIDCurveThreeParameterModulus chapterVIDOutsideEndpointX = 1 :=
+  (Classical.choose_spec existsUnique_chapterVIDCurveThree_unit_parameter_outside).1.2
+
+theorem chapterVIDOutsideEndpointX_le_root :
+    chapterVIDOutsideEndpointX ≤ chapterVIDRoot := by
+  linarith [chapterVIDOutsideEndpointX_mem.2, chapterVIDRoot_mem.1]
+
+theorem chapterVIDOutsideEndpointX_ge_BPrime :
+    -100 ≤ chapterVIDOutsideEndpointX := chapterVIDOutsideEndpointX_mem.1.le
+
+theorem chapterVIDOutsideEndpointX_smoothParameter :
+    chapterVIDCurveThreeSmoothParameter chapterVIDOutsideEndpointX = 1 := by
+  rw [chapterVIDCurveThreeSmoothParameter_eq_modulus
+    (chapterVIDOutsideEndpointX_mem.2.trans (by norm_num))]
+  exact chapterVIDOutsideEndpointX_parameter
+
+def chapterVIDOutsideNegativeParameter (x : ℝ) : ℝ :=
+  -chapterVIDCurveThreeSmoothParameter x
+
+theorem continuousOn_chapterVIDOutsideNegativeParameter :
+    ContinuousOn chapterVIDOutsideNegativeParameter
+      (Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot) := by
+  exact (continuousOn_chapterVIDCurveThreeSmoothParameter_BPrime_to_D.mono
+    (Set.Icc_subset_Icc chapterVIDOutsideEndpointX_ge_BPrime le_rfl)).neg
+
+theorem chapterVIDOutsideNegativeParameter_strictMonoOn :
+    StrictMonoOn chapterVIDOutsideNegativeParameter
+      (Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot) := by
+  intro x hx y hy hxy
+  exact neg_lt_neg
+    (chapterVIDCurveThreeSmoothParameter_strictAntiOn_BPrime_to_D
+      (Set.Icc_subset_Icc chapterVIDOutsideEndpointX_ge_BPrime le_rfl hx)
+      (Set.Icc_subset_Icc chapterVIDOutsideEndpointX_ge_BPrime le_rfl hy) hxy)
+
+theorem chapterVIDOutsideNegativeParameter_image :
+    chapterVIDOutsideNegativeParameter ''
+        Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot =
+      Set.Icc (-1) (-chapterVIDCriticalParameterModulus) := by
+  rw [continuousOn_chapterVIDOutsideNegativeParameter.image_Icc_of_monotoneOn
+    chapterVIDOutsideEndpointX_le_root
+    chapterVIDOutsideNegativeParameter_strictMonoOn.monotoneOn]
+  simp [chapterVIDOutsideNegativeParameter, chapterVIDOutsideEndpointX_smoothParameter,
+    chapterVIDCriticalParameterModulus]
+
+noncomputable def chapterVIDOutsideBranchOrderIso :
+    Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot ≃o
+      Set.Icc (-1) (-chapterVIDCriticalParameterModulus) :=
+  chapterVIDOutsideNegativeParameter_strictMonoOn.orderIso
+      chapterVIDOutsideNegativeParameter
+      (Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot) |>.trans
+    (OrderIso.setCongr _ _ chapterVIDOutsideNegativeParameter_image)
+
+@[simp]
+theorem chapterVIDOutsideBranchOrderIso_apply
+    (x : Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot) :
+    (chapterVIDOutsideBranchOrderIso x : ℝ) =
+      chapterVIDOutsideNegativeParameter x := rfl
+
+def chapterVIDOutsideEndpointSubtype :
+    Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot :=
+  ⟨chapterVIDOutsideEndpointX, ⟨le_rfl, chapterVIDOutsideEndpointX_le_root⟩⟩
+
+def chapterVIDCollisionOutsideSubtype :
+    Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot :=
+  ⟨chapterVIDRoot, ⟨chapterVIDOutsideEndpointX_le_root, le_rfl⟩⟩
+
+def chapterVIDNegativeOneParameterSubtype :
+    Set.Icc (-1) (-chapterVIDCriticalParameterModulus) :=
+  ⟨-1, ⟨le_rfl, neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le⟩⟩
+
+def chapterVIDNegativeCriticalParameterSubtype :
+    Set.Icc (-1) (-chapterVIDCriticalParameterModulus) :=
+  ⟨-chapterVIDCriticalParameterModulus,
+    ⟨neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le, le_rfl⟩⟩
+
+theorem chapterVIDOutsideBranchOrderIso_symm_negOne :
+    chapterVIDOutsideBranchOrderIso.symm chapterVIDNegativeOneParameterSubtype =
+      chapterVIDOutsideEndpointSubtype := by
+  apply chapterVIDOutsideBranchOrderIso.injective
+  rw [chapterVIDOutsideBranchOrderIso.apply_symm_apply]
+  apply Subtype.ext
+  change (-1 : ℝ) = -chapterVIDCurveThreeSmoothParameter chapterVIDOutsideEndpointX
+  rw [chapterVIDOutsideEndpointX_smoothParameter]
+
+theorem chapterVIDOutsideBranchOrderIso_symm_negCritical :
+    chapterVIDOutsideBranchOrderIso.symm chapterVIDNegativeCriticalParameterSubtype =
+      chapterVIDCollisionOutsideSubtype := by
+  apply chapterVIDOutsideBranchOrderIso.injective
+  rw [chapterVIDOutsideBranchOrderIso.apply_symm_apply]
+  rfl
+
+noncomputable def chapterVIDOutsideXSubtypePath :
+    Path chapterVIDOutsideEndpointSubtype chapterVIDCollisionOutsideSubtype :=
+  (((chapterVIDescendingIccPath (-1) (-chapterVIDCriticalParameterModulus)
+      (neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le)).symm.map
+      chapterVIDOutsideBranchOrderIso.symm.continuous).cast
+    chapterVIDOutsideBranchOrderIso_symm_negOne.symm
+    chapterVIDOutsideBranchOrderIso_symm_negCritical.symm)
+
+noncomputable def chapterVIDOutsideXPath :
+    Path chapterVIDOutsideEndpointX chapterVIDRoot :=
+  chapterVIDOutsideXSubtypePath.map continuous_subtype_val
+
+theorem chapterVIDInsideXPath_parameter (s : I) :
+    chapterVIDCurveThreeSmoothParameter (chapterVIDInsideXPath s) =
+      AffineMap.lineMap 1 chapterVIDCriticalParameterModulus (s : ℝ) := by
+  change chapterVIDCurveThreeSmoothParameter
+      (chapterVIDInsideBranchOrderIso.symm
+        ((chapterVIDescendingIccPath chapterVIDCriticalParameterModulus 1
+          chapterVIDCriticalParameterModulus_lt_one.le) s)) = _
+  have h := chapterVIDInsideBranchOrderIso.apply_symm_apply
+    ((chapterVIDescendingIccPath chapterVIDCriticalParameterModulus 1
+      chapterVIDCriticalParameterModulus_lt_one.le) s)
+  exact congrArg Subtype.val h
+
+theorem chapterVIDOutsideXPath_negativeParameter (s : I) :
+    chapterVIDOutsideNegativeParameter (chapterVIDOutsideXPath s) =
+      AffineMap.lineMap (-1) (-chapterVIDCriticalParameterModulus) (s : ℝ) := by
+  change chapterVIDOutsideNegativeParameter
+      (chapterVIDOutsideBranchOrderIso.symm
+        ((chapterVIDescendingIccPath (-1) (-chapterVIDCriticalParameterModulus)
+          (neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le)).symm s)) = _
+  have h := chapterVIDOutsideBranchOrderIso.apply_symm_apply
+    ((chapterVIDescendingIccPath (-1) (-chapterVIDCriticalParameterModulus)
+      (neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le)).symm s)
+  calc
+    chapterVIDOutsideNegativeParameter
+        (chapterVIDOutsideBranchOrderIso.symm
+          ((chapterVIDescendingIccPath (-1) (-chapterVIDCriticalParameterModulus)
+            (neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le)).symm s)) =
+      (chapterVIDOutsideBranchOrderIso
+        (chapterVIDOutsideBranchOrderIso.symm
+          ((chapterVIDescendingIccPath (-1) (-chapterVIDCriticalParameterModulus)
+            (neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le)).symm s)) : ℝ) := rfl
+    _ = ((chapterVIDescendingIccPath (-1) (-chapterVIDCriticalParameterModulus)
+          (neg_le_neg chapterVIDCriticalParameterModulus_lt_one.le)).symm s : ℝ) :=
+      congrArg Subtype.val h
+    _ = AffineMap.lineMap (-1) (-chapterVIDCriticalParameterModulus) (s : ℝ) := by
+      simp [chapterVIDescendingIccPath, Path.symm_apply, AffineMap.lineMap_apply,
+        smul_eq_mul]
+      ring
+
+/-- Both canonical singular paths lie over the same external parameter modulus at every time. -/
+theorem chapterVIDPolePaths_parameter_synchronized (s : I) :
+    chapterVIDCurveThreeSmoothParameter (chapterVIDInsideXPath s) =
+      chapterVIDCurveThreeSmoothParameter (chapterVIDOutsideXPath s) := by
+  rw [chapterVIDInsideXPath_parameter s]
+  have houtside := chapterVIDOutsideXPath_negativeParameter s
+  unfold chapterVIDOutsideNegativeParameter at houtside
+  simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul] at houtside ⊢
+  nlinarith
+
+theorem chapterVIDInsideXPath_mem (s : I) :
+    chapterVIDInsideXPath s ∈ Set.Icc chapterVIDRoot chapterVIDInsideEndpointX := by
+  change (chapterVIDInsideXSubtypePath s).1 ∈ _
+  exact (chapterVIDInsideXSubtypePath s).2
+
+theorem chapterVIDOutsideXPath_mem (s : I) :
+    chapterVIDOutsideXPath s ∈ Set.Icc chapterVIDOutsideEndpointX chapterVIDRoot := by
+  change (chapterVIDOutsideXSubtypePath s).1 ∈ _
+  exact (chapterVIDOutsideXSubtypePath s).2
+
+/-- The three selected points in Poincaré's actual `x^(1/3)` contour coordinate. -/
+noncomputable def chapterVIDInsideEndpointLift : ℂ :=
+  chapterVINegativeRealCubicLift chapterVIDInsideEndpointX
+
+noncomputable def chapterVIDOutsideEndpointLift : ℂ :=
+  chapterVINegativeRealCubicLift chapterVIDOutsideEndpointX
+
+noncomputable def chapterVIDCollisionLift : ℂ :=
+  chapterVINegativeRealCubicLift chapterVIDRoot
+
+@[simp] theorem chapterVIDInsideEndpointLift_pow :
+    chapterVIDInsideEndpointLift ^ 3 = (chapterVIDInsideEndpointX : ℂ) :=
+  chapterVINegativeRealCubicLift_pow
+    (chapterVIDInsideEndpointX_mem.2.trans (by norm_num)).le
+
+@[simp] theorem chapterVIDOutsideEndpointLift_pow :
+    chapterVIDOutsideEndpointLift ^ 3 = (chapterVIDOutsideEndpointX : ℂ) :=
+  chapterVINegativeRealCubicLift_pow
+    (chapterVIDOutsideEndpointX_mem.2.trans (by norm_num)).le
+
+@[simp] theorem chapterVIDCollisionLift_pow :
+    chapterVIDCollisionLift ^ 3 = chapterVIDX :=
+  chapterVINegativeRealCubicLift_pow chapterVIDRoot_lt_zero.le
+
+theorem chapterVIDInsideEndpointLift_norm_lt_one :
+    ‖chapterVIDInsideEndpointLift‖ < 1 := by
+  rw [chapterVI_norm_cubicLift_lt_one_iff chapterVIDInsideEndpointLift_pow]
+  rw [abs_of_neg (chapterVIDInsideEndpointX_mem.2.trans (by norm_num))]
+  linarith [chapterVIDInsideEndpointX_mem.1]
+
+theorem one_lt_chapterVIDOutsideEndpointLift_norm :
+    1 < ‖chapterVIDOutsideEndpointLift‖ := by
+  rw [chapterVI_one_lt_norm_cubicLift_iff chapterVIDOutsideEndpointLift_pow]
+  rw [abs_of_neg (chapterVIDOutsideEndpointX_mem.2.trans (by norm_num))]
+  simpa using neg_lt_neg chapterVIDOutsideEndpointX_mem.2
+
+/-- Canonical synchronized pole paths in Poincaré's `x^(1/3)` coordinate. -/
+noncomputable def chapterVIDInsidePolePath :
+    Path chapterVIDInsideEndpointLift chapterVIDCollisionLift :=
+  chapterVIDInsideXPath.map continuous_chapterVINegativeRealCubicLift
+
+noncomputable def chapterVIDOutsidePolePath :
+    Path chapterVIDOutsideEndpointLift chapterVIDCollisionLift :=
+  chapterVIDOutsideXPath.map continuous_chapterVINegativeRealCubicLift
+
+@[simp]
+theorem chapterVIDInsidePolePath_pow (s : I) :
+    chapterVIDInsidePolePath s ^ 3 = (chapterVIDInsideXPath s : ℂ) := by
+  change chapterVINegativeRealCubicLift (chapterVIDInsideXPath s) ^ 3 = _
+  apply chapterVINegativeRealCubicLift_pow
+  exact (chapterVIDInsideXPath_mem s).2.trans
+    (chapterVIDInsideEndpointX_mem.2.le.trans (by norm_num))
+
+@[simp]
+theorem chapterVIDOutsidePolePath_pow (s : I) :
+    chapterVIDOutsidePolePath s ^ 3 = (chapterVIDOutsideXPath s : ℂ) := by
+  change chapterVINegativeRealCubicLift (chapterVIDOutsideXPath s) ^ 3 = _
+  apply chapterVINegativeRealCubicLift_pow
+  exact (chapterVIDOutsideXPath_mem s).2.trans chapterVIDRoot_lt_zero.le
+
+theorem chapterVIDInsideXPath_neg (s : I) : chapterVIDInsideXPath s < 0 :=
+  (chapterVIDInsideXPath_mem s).2.trans_lt
+    (chapterVIDInsideEndpointX_mem.2.trans (by norm_num))
+
+theorem chapterVIDOutsideXPath_neg (s : I) : chapterVIDOutsideXPath s < 0 :=
+  (chapterVIDOutsideXPath_mem s).2.trans_lt chapterVIDRoot_lt_zero
+
+/-- The inside cubic-lift path is pointwise a zero of Poincaré's literal source collision
+factor after descending from the `x^(1/3)` coordinate to `x`. -/
+theorem chapterVIDInsidePolePath_sourceCollision (s : I) :
+    chapterVIPlanarCollisionFactorPlus chapterVIDEccentricity chapterVIDComplement
+      0 1 2 (chapterVIDInsidePolePath s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDInsideXPath s) : ℂ) = 0 := by
+  rw [chapterVIDInsidePolePath_pow]
+  exact chapterVID_curveThree_collisionFactorPlus (chapterVIDInsideXPath_neg s)
+
+/-- The exterior cubic-lift path is the second pointwise zero of the same source factor. -/
+theorem chapterVIDOutsidePolePath_sourceCollision (s : I) :
+    chapterVIPlanarCollisionFactorPlus chapterVIDEccentricity chapterVIDComplement
+      0 1 2 (chapterVIDOutsidePolePath s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDOutsideXPath s) : ℂ) = 0 := by
+  rw [chapterVIDOutsidePolePath_pow]
+  exact chapterVID_curveThree_collisionFactorPlus (chapterVIDOutsideXPath_neg s)
+
+/-- The common source singularity parameter followed by the two branches. -/
+noncomputable def chapterVIDCommonSingularityParameter (s : I) : ℂ :=
+  chapterVIDCurveThreeSmoothParameter (chapterVIDInsideXPath s)
+
+theorem chapterVIDInsidePolePath_sourceParameter (s : I) :
+    chapterVISingularityParameter (-1) 3 (-100 / 10001) 0
+        (chapterVIDInsidePolePath s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDInsideXPath s) : ℂ) =
+      chapterVIDCommonSingularityParameter s := by
+  rw [chapterVIDInsidePolePath_pow,
+    chapterVID_singularityParameter_curveThree_eq_smooth (chapterVIDInsideXPath_neg s)]
+  rfl
+
+theorem chapterVIDOutsidePolePath_sourceParameter (s : I) :
+    chapterVISingularityParameter (-1) 3 (-100 / 10001) 0
+        (chapterVIDOutsidePolePath s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDOutsideXPath s) : ℂ) =
+      chapterVIDCommonSingularityParameter s := by
+  rw [chapterVIDOutsidePolePath_pow,
+    chapterVID_singularityParameter_curveThree_eq_smooth (chapterVIDOutsideXPath_neg s)]
+  unfold chapterVIDCommonSingularityParameter
+  exact_mod_cast (chapterVIDPolePaths_parameter_synchronized s).symm
+
+/-- Source-faithful branch package: two cubic-lifted zeros of equation (3), synchronized by
+Poincaré's actual complex parameter and coalescing at D. -/
+structure ChapterVIDSynchronizedCollisionBranches where
+  insidePole : Path chapterVIDInsideEndpointLift chapterVIDCollisionLift
+  outsidePole : Path chapterVIDOutsideEndpointLift chapterVIDCollisionLift
+  insideCollision : ∀ s : I,
+    chapterVIPlanarCollisionFactorPlus chapterVIDEccentricity chapterVIDComplement
+      0 1 2 (insidePole s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDInsideXPath s) : ℂ) = 0
+  outsideCollision : ∀ s : I,
+    chapterVIPlanarCollisionFactorPlus chapterVIDEccentricity chapterVIDComplement
+      0 1 2 (outsidePole s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDOutsideXPath s) : ℂ) = 0
+  insideParameter : ∀ s : I,
+    chapterVISingularityParameter (-1) 3 (-100 / 10001) 0
+        (insidePole s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDInsideXPath s) : ℂ) =
+      chapterVIDCommonSingularityParameter s
+  outsideParameter : ∀ s : I,
+    chapterVISingularityParameter (-1) 3 (-100 / 10001) 0
+        (outsidePole s ^ 3)
+        (chapterVIDCurveThreeY (chapterVIDOutsideXPath s) : ℂ) =
+      chapterVIDCommonSingularityParameter s
+
+noncomputable def chapterVIDSynchronizedCollisionBranches :
+    ChapterVIDSynchronizedCollisionBranches where
+  insidePole := chapterVIDInsidePolePath
+  outsidePole := chapterVIDOutsidePolePath
+  insideCollision := chapterVIDInsidePolePath_sourceCollision
+  outsideCollision := chapterVIDOutsidePolePath_sourceCollision
+  insideParameter := chapterVIDInsidePolePath_sourceParameter
+  outsideParameter := chapterVIDOutsidePolePath_sourceParameter
+
+/-- Concrete D corollary of the moving-pole winding obstruction.  Once the two actual singular
+lifts are supplied as paths from the certified unit-parameter endpoints to D, no smooth
+continuation of Poincaré's unit contour can avoid both all the way to their collision. -/
+theorem chapterVID_not_both_movingPoleAvoidances
+    {b : ℂ} {final : Path b b}
+    (contour : ContinuousMap.Homotopy
+      (chapterVIUnitCirclePath : C(I, ℂ)) (final : C(I, ℂ)))
+    (insidePole : Path chapterVIDInsideEndpointLift chapterVIDCollisionLift)
+    (outsidePole : Path chapterVIDOutsideEndpointLift chapterVIDCollisionLift)
+    (hcontourClosed : ∀ s : I, contour (s, 0) = contour (s, 1)) :
+    ¬ (Nonempty (ChapterVIMovingPoleAvoidance contour insidePole) ∧
+      Nonempty (ChapterVIMovingPoleAvoidance contour outsidePole)) :=
+  chapterVI_not_both_movingPoleAvoidances_of_coalescence
+    contour insidePole outsidePole hcontourClosed
+    chapterVIDInsideEndpointLift_norm_lt_one
+    one_lt_chapterVIDOutsideEndpointLift_norm
+
+/-- Fully instantiated branch-tracking form: the pole paths are the inverse-monotone
+parameterizations constructed above, not additional user-supplied data. -/
+theorem chapterVID_not_both_canonicalMovingPoleAvoidances
+    {b : ℂ} {final : Path b b}
+    (contour : ContinuousMap.Homotopy
+      (chapterVIUnitCirclePath : C(I, ℂ)) (final : C(I, ℂ)))
+    (hcontourClosed : ∀ s : I, contour (s, 0) = contour (s, 1)) :
+    ¬ (Nonempty (ChapterVIMovingPoleAvoidance contour chapterVIDInsidePolePath) ∧
+      Nonempty (ChapterVIMovingPoleAvoidance contour chapterVIDOutsidePolePath)) :=
+  chapterVID_not_both_movingPoleAvoidances contour
+    chapterVIDInsidePolePath chapterVIDOutsidePolePath hcontourClosed
 
 end PoincareChapterVI

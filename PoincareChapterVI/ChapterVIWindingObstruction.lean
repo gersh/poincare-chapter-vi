@@ -33,6 +33,99 @@ def chapterVIWindingIntegral
   (2 * Real.pi * Complex.I : ℂ)⁻¹ *
     ∫ᶜ z in path, chapterVIComplexScalarOneForm (fun z ↦ (z - point)⁻¹) z
 
+/-- Translate a closed contour so that `point` becomes the origin. -/
+def chapterVITranslateClosedPath
+    {a : ℂ} (point : ℂ) (path : Path a a) :
+    Path (a - point) (a - point) :=
+  path.map (continuous_id.sub continuous_const)
+
+@[simp]
+theorem chapterVITranslateClosedPath_apply
+    {a point : ℂ} (path : Path a a) (t : I) :
+    chapterVITranslateClosedPath point path t = path t - point := by
+  rfl
+
+@[simp]
+theorem chapterVITranslateClosedPath_extend
+    {a point : ℂ} (path : Path a a) (t : ℝ) :
+    (chapterVITranslateClosedPath point path).extend t = path.extend t - point := by
+  unfold chapterVITranslateClosedPath Path.extend Path.map Path.map' Set.IccExtend
+  rfl
+
+/-- Translating both the contour and its pole does not change the winding integral. -/
+theorem chapterVIWindingIntegral_translate
+    {a point : ℂ} (path : Path a a) :
+    chapterVIWindingIntegral 0 (chapterVITranslateClosedPath point path) =
+      chapterVIWindingIntegral point path := by
+  have hextend : (chapterVITranslateClosedPath point path).extend =
+      (fun t : ℝ ↦ path.extend t - point) := by
+    funext t
+    exact chapterVITranslateClosedPath_extend path t
+  unfold chapterVIWindingIntegral
+  congr 1
+  rw [curveIntegral_def, curveIntegral_def]
+  apply intervalIntegral.integral_congr
+  intro t _
+  simp only [curveIntegralFun_def, chapterVITranslateClosedPath_extend,
+    chapterVIComplexScalarOneForm_apply, sub_zero]
+  rw [hextend]
+  rw [derivWithin_sub_const]
+
+/-- Translate a contour homotopy by a moving pole.  At every homotopy time `s`, the pole
+`pole s` is moved to the origin. -/
+def chapterVITranslateContourHomotopy
+    {a b initialPoint finalPoint : ℂ}
+    {initial : Path a a} {final : Path b b}
+    (contour : ContinuousMap.Homotopy (initial : C(I, ℂ)) (final : C(I, ℂ)))
+    (pole : Path initialPoint finalPoint) :
+    ContinuousMap.Homotopy
+      (chapterVITranslateClosedPath initialPoint initial : C(I, ℂ))
+      (chapterVITranslateClosedPath finalPoint final : C(I, ℂ)) where
+  toFun st := contour st - pole st.1
+  continuous_toFun := by fun_prop
+  map_zero_left t := by
+    simp [chapterVITranslateClosedPath_apply]
+  map_one_left t := by
+    simp [chapterVITranslateClosedPath_apply]
+
+@[simp]
+theorem chapterVITranslateContourHomotopy_apply
+    {a b initialPoint finalPoint : ℂ}
+    {initial : Path a a} {final : Path b b}
+    (contour : ContinuousMap.Homotopy (initial : C(I, ℂ)) (final : C(I, ℂ)))
+    (pole : Path initialPoint finalPoint) (s t : I) :
+    chapterVITranslateContourHomotopy contour pole (s, t) =
+      contour (s, t) - pole s := rfl
+
+theorem chapterVITranslateContourHomotopy_closed
+    {a b initialPoint finalPoint : ℂ}
+    {initial : Path a a} {final : Path b b}
+    {contour : ContinuousMap.Homotopy (initial : C(I, ℂ)) (final : C(I, ℂ))}
+    (pole : Path initialPoint finalPoint)
+    (hclosed : ∀ s : I, contour (s, 0) = contour (s, 1)) :
+    ∀ s : I,
+      chapterVITranslateContourHomotopy contour pole (s, 0) =
+        chapterVITranslateContourHomotopy contour pole (s, 1) := by
+  intro s
+  simp only [chapterVITranslateContourHomotopy_apply]
+  rw [hclosed]
+
+/-- Checked data saying that a moving closed contour avoids one moving pole.  Translation by the
+pole reduces the assertion to a fixed origin avoided by a smooth closed homotopy. -/
+structure ChapterVIMovingPoleAvoidance
+    {a b initialPoint finalPoint : ℂ}
+    {initial : Path a a} {final : Path b b}
+    (contour : ContinuousMap.Homotopy (initial : C(I, ℂ)) (final : C(I, ℂ)))
+    (pole : Path initialPoint finalPoint) where
+  domain : Set ℂ
+  mapsInterior : ∀ s ∈ Ioo (0 : I) 1, ∀ t ∈ Ioo (0 : I) 1,
+    chapterVITranslateContourHomotopy contour pole (s, t) ∈ domain
+  zero_not_mem_closure : (0 : ℂ) ∉ closure domain
+  contDiff_translatedHomotopy : ContDiffOn ℝ 2
+    (fun st : ℝ × ℝ ↦ Set.IccExtend zero_le_one
+      ((chapterVITranslateContourHomotopy contour pole).extend st.1) st.2)
+    (Icc 0 1)
+
 /-- The positively oriented unit circle has normalized winding integral one about every point
 strictly inside it. -/
 theorem chapterVIWindingIntegral_unitCircle_eq_one
@@ -174,5 +267,44 @@ theorem chapterVI_no_smooth_contour_avoiding_coalescing_poles
   rw [hinside] at hiInvariant
   rw [houtside] at hoInvariant
   exact one_ne_zero (hiInvariant.trans hoInvariant.symm)
+
+/-- Source-facing moving-pole form of the pinch obstruction.  A single contour begins as the
+positively oriented unit circle.  One singular point begins strictly inside, another strictly
+outside, and both follow paths to the same collision point.  It is impossible for the contour to
+admit checked smooth pole-avoiding transports for both paths.
+
+Unlike `chapterVI_no_smooth_contour_avoiding_coalescing_poles`, this theorem constructs the two
+translated homotopies itself from the actual contour homotopy and pole paths. -/
+theorem chapterVI_not_both_movingPoleAvoidances_of_coalescence
+    {b insidePoint outsidePoint collisionPoint : ℂ}
+    {final : Path b b}
+    (contour : ContinuousMap.Homotopy
+      (chapterVIUnitCirclePath : C(I, ℂ)) (final : C(I, ℂ)))
+    (insidePole : Path insidePoint collisionPoint)
+    (outsidePole : Path outsidePoint collisionPoint)
+    (hcontourClosed : ∀ s : I, contour (s, 0) = contour (s, 1))
+    (hinside : ‖insidePoint‖ < 1)
+    (houtside : 1 < ‖outsidePoint‖) :
+    ¬ (Nonempty (ChapterVIMovingPoleAvoidance contour insidePole) ∧
+      Nonempty (ChapterVIMovingPoleAvoidance contour outsidePole)) := by
+  rintro ⟨⟨insideAvoidance⟩, ⟨outsideAvoidance⟩⟩
+  have hiWinding : chapterVIWindingIntegral 0
+      (chapterVITranslateClosedPath insidePoint chapterVIUnitCirclePath) = 1 := by
+    rw [chapterVIWindingIntegral_translate]
+    exact chapterVIWindingIntegral_unitCircle_eq_one hinside
+  have hoWinding : chapterVIWindingIntegral 0
+      (chapterVITranslateClosedPath outsidePoint chapterVIUnitCirclePath) = 0 := by
+    rw [chapterVIWindingIntegral_translate]
+    exact chapterVIWindingIntegral_unitCircle_eq_zero houtside
+  apply chapterVI_no_smooth_contour_avoiding_coalescing_poles hiWinding hoWinding
+  exact ⟨insideAvoidance.domain, outsideAvoidance.domain,
+    chapterVITranslateContourHomotopy contour insidePole,
+    chapterVITranslateContourHomotopy contour outsidePole,
+    chapterVITranslateContourHomotopy_closed insidePole hcontourClosed,
+    insideAvoidance.mapsInterior, insideAvoidance.zero_not_mem_closure,
+    insideAvoidance.contDiff_translatedHomotopy,
+    chapterVITranslateContourHomotopy_closed outsidePole hcontourClosed,
+    outsideAvoidance.mapsInterior, outsideAvoidance.zero_not_mem_closure,
+    outsideAvoidance.contDiff_translatedHomotopy⟩
 
 end PoincareChapterVI
