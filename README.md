@@ -164,6 +164,12 @@ The strongest newly completed component is the finite algebra in §103:
   automatically. A
   LeanCompCert certificate may discharge large finite coefficient comparisons used in this
   construction, but no fixed finite jet is treated as convergence or equality of analytic germs.
+- the exact source radicand at D now has an analytic moving fiber-critical center. Lean derives
+  invertibility of the critical equation from the certified nonzero second fiber derivative and
+  applies the complex implicit function theorem, yielding both the analytic center and the
+  neighborhood-valid equation `∂ₜψ(z,h(z))=0`. This closes the translation-to-the-critical-point
+  step before convergent preparation; it does not infer Weierstrass convergence from a finite
+  certificate.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

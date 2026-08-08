@@ -22,6 +22,7 @@ import PoincareChapterVI.ChapterVISourceCoordinates
 import PoincareChapterVI.ChapterVIDoubleZero
 import PoincareChapterVI.ChapterVIDCandidate
 import PoincareChapterVI.ChapterVIDFiberDerivative
+import PoincareChapterVI.ChapterVIAnalyticCriticalCenter
 import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
@@ -94,7 +95,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   resonant coefficients do not vanish. `exists_chapterVI_weierstrassNormalForm` applies
   Weierstrass preparation to a bivariate formal series whose parameter specialization has order
   two and obtains Poincaré's exact `((t - h)² + k) ψ₁` factorization, with `ψ₁` a unit and `h`,
-  `k` vanishing at the singular parameter. `hasSum_chapterVILogSingularityCoefficient` verifies the
+  `k` vanishing at the singular parameter. Before that formal preparation step,
+  `exists_chapterVID_analyticCriticalCenter` applies the complex implicit function theorem to the
+  exact convergent source radicand and constructs Poincaré's analytic moving fiber-critical center
+  through D. `hasSum_chapterVILogSingularityCoefficient` verifies the
   logarithmic Taylor expansion used in §100, and
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a
   little-oh remainder to Poincaré's leading Darboux model.
