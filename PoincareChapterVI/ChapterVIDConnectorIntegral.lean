@@ -27,13 +27,41 @@ open scoped unitInterval
 
 namespace PoincareChapterVI
 
-/-- The complete finite-certificate input for one connector rectangle. -/
+/-- Exactly the analytic information extracted from a finite nonvanishing certificate. Keeping
+continuity separate from nonvanishing lets a compiled interval grid certify only the latter;
+continuity remains an ordinary Lean theorem about the explicit analytic formula. -/
+structure ChapterVIDContinuousNonzeroWitness
+    {A : Type*} [TopologicalSpace A] (f : A → ℂ) where
+  continuous : Continuous f
+  ne_zero : ∀ x, f x ≠ 0
+
+/-- A point-sample finite cover produces the more economical downstream witness. -/
+theorem ChapterVIDContinuousNonzeroWitness.ofFiniteCover
+    {A : Type*} [PseudoMetricSpace A] {f : A → ℂ}
+    (certificate : ChapterVIFiniteNonvanishingCover f) :
+    ChapterVIDContinuousNonzeroWitness f where
+  continuous := certificate.lipschitz.continuous
+  ne_zero := certificate.ne_zero
+
+/-- The complete certificate input for one connector rectangle. Its two witnesses may
+come either from the original point-sample/Lipschitz covers or from compiled interval-cell grids. -/
 structure ChapterVIDConnectorCompiledCertificate
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
     (side : ChapterVIDOuterArcSide) where
-  coordinate : ChapterVIFiniteNonvanishingCover (model.rectanglePoint side)
-  radicand : ChapterVIDConnectorNonvanishingCertificate model side
+  coordinate : ChapterVIDContinuousNonzeroWitness (model.rectanglePoint side)
+  radicand : ChapterVIDContinuousNonzeroWitness (model.rectangleRadicand side)
+
+/-- Backward-compatible constructor from the original pair of point-sample finite covers. -/
+theorem ChapterVIDConnectorCompiledCertificate.ofFiniteCovers
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide}
+    (coordinate : ChapterVIFiniteNonvanishingCover (model.rectanglePoint side))
+    (radicand : ChapterVIDConnectorNonvanishingCertificate model side) :
+    ChapterVIDConnectorCompiledCertificate model side where
+  coordinate := ChapterVIDContinuousNonzeroWitness.ofFiniteCover coordinate
+  radicand := ChapterVIDContinuousNonzeroWitness.ofFiniteCover radicand
 
 namespace ChapterVIDPrincipalConnectorModel
 
@@ -250,8 +278,8 @@ theorem ChapterVIDConnectorCompiledCertificate.exists_squareRootSheet
       exact (path_connected_basis point.1).prod (path_connected_basis point.2)
     · intro _ sets hsets
       exact hsets.1.2.prod hsets.2.2
-  exact certificate.radicand.exists_continuousSquareRootSheet
-    certificate.radicand.lipschitz.continuous base baseRoot hbaseRoot
+  exact exists_chapterVIContinuousSquareRootSheet _ certificate.radicand.continuous
+    certificate.radicand.ne_zero base baseRoot hbaseRoot
 
 /-- Along the seam with the local Morse segment, any connector sheet is globally either the
 positive local sheet or its negative. The sign is constant; no pointwise branch ambiguity
@@ -305,7 +333,7 @@ theorem continuous_rectanglePointReal_of_certificate
     {side : ChapterVIDOuterArcSide}
     (certificate : ChapterVIDConnectorCompiledCertificate model side) :
     Continuous (model.rectanglePointReal side) :=
-  certificate.coordinate.lipschitz.continuous.comp
+  certificate.coordinate.continuous.comp
     (continuous_fst.prodMk
       (continuous_chapterVIConnectorClamp.comp continuous_snd))
 
@@ -434,7 +462,7 @@ theorem continuous_connectorRectangleSource_of_certificate
     {side : ChapterVIDOuterArcSide}
     (certificate : ChapterVIDConnectorCompiledCertificate model side) :
     Continuous (model.connectorRectangleSource side) :=
-  certificate.coordinate.lipschitz.continuous.comp
+  certificate.coordinate.continuous.comp
     (continuous_id.prodMk continuous_const)
 
 theorem continuous_connectorRectangleTarget_of_certificate
@@ -443,7 +471,7 @@ theorem continuous_connectorRectangleTarget_of_certificate
     {side : ChapterVIDOuterArcSide}
     (certificate : ChapterVIDConnectorCompiledCertificate model side) :
     Continuous (model.connectorRectangleTarget side) :=
-  certificate.coordinate.lipschitz.continuous.comp
+  certificate.coordinate.continuous.comp
     (continuous_id.prodMk continuous_const)
 
 /-- The actual normalized connector integral, including Poincare's exact coordinate-change
@@ -470,8 +498,8 @@ theorem exists_sheet_tendsto_connectorIntegral_of_certificate
         (𝓝 (1 : I))
         (𝓝 (model.connectorIntegral side sheet 1)) := by
   simpa only [connectorIntegral] using
-    exists_sheet_tendsto_chapterVIConnectorIntegral
-      certificate.radicand.lipschitz.continuous certificate.radicand
+    exists_sheet_tendsto_chapterVIConnectorIntegral_of_ne_zero
+      certificate.radicand.continuous certificate.radicand.ne_zero
       (model.connectorTransformedNumerator side)
       (model.continuous_connectorTransformedNumerator_of_certificate certificate)
       (model.connectorRectangleSource side) (model.connectorRectangleTarget side)

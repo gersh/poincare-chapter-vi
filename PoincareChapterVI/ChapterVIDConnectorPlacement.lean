@@ -220,6 +220,67 @@ theorem CertifiedConnectorPair.tendsto_full_inv_neg_log_smul
   exact ChapterVIDCompiledPrincipalThreeArcPlacement.tendsto_full_inv_neg_log_smul
     (pair.toCompiledPrincipalThreeArcPlacement fullContribution decomposition)
 
+/-- The normalized formal sum of the compiled outer quarters, the two certificate-selected
+connectors, and the positive local Morse segment. It becomes the analytic contribution of one
+five-piece source-sheet contour once the two connector sheets are proved to meet that positive
+local sheet; that seam compatibility is intentionally not hidden in this definition. -/
+def CertifiedConnectorPair.fivePieceContribution
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (pair : CertifiedConnectorPair run model) (k : ℝ) : ℂ :=
+  (ChapterVIDOuterArcRegularity.principalRegularContribution
+      run massProduct b d (chapterVIDCriticalToGlobalParameter k) +
+    pair.connectorContribution k) +
+  chapterVIDPrincipalLocalPhiContribution massProduct b d model.rootModel.L k
+
+/-- The canonical five-term sum satisfies the global placement interface by definition. Thus no
+separate algebraic decomposition hypothesis is needed; identifying the sum with one seamless
+source contour remains a geometric theorem. -/
+def CertifiedConnectorPair.toFivePiecePlacement
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (pair : CertifiedConnectorPair run model) :
+    ChapterVIDCompiledPrincipalThreeArcPlacement
+      run massProduct b d model.rootModel.toChapterVIDPrincipalLocalSourceModel :=
+  pair.toCompiledPrincipalThreeArcPlacement pair.fivePieceContribution
+    (Filter.Eventually.of_forall fun _ ↦ rfl)
+
+/-- Conditional only on the connector certificates, the canonical five-term sum has Poincare's
+explicit nonzero logarithmic leading term. To call this the continued source contour one must
+still prove local-seam compatibility and deformation from the original unit circle. -/
+theorem CertifiedConnectorPair.tendsto_fivePiece_inv_neg_log_smul
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (pair : CertifiedConnectorPair run model) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ • pair.fivePieceContribution k)
+      (𝓝[>] 0)
+      (𝓝 ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+        chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
+  pair.toFivePiecePlacement.tendsto_full_inv_neg_log_smul
+
+/-- End-to-end certified-connector statement: nonvanishing witnesses for the coordinate and
+radicand on each side, together with the already compiled outer run, produce a five-piece
+contribution with the exact logarithmic asymptotic. -/
+theorem exists_fivePieceContribution_tendsto_of_compiledCertificates
+    (run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (initialCertificate : ChapterVIDConnectorCompiledCertificate model .initial)
+    (finalCertificate : ChapterVIDConnectorCompiledCertificate model .final) :
+    ∃ pair : CertifiedConnectorPair run model,
+      Tendsto
+        (fun k : ℝ ↦ (-Real.log k)⁻¹ • pair.fivePieceContribution k)
+        (𝓝[>] 0)
+        (𝓝 ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+          chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) := by
+  obtain ⟨pair⟩ := exists_certifiedConnectorPair run model
+    initialCertificate finalCertificate
+  exact ⟨pair, pair.tendsto_fivePiece_inv_neg_log_smul⟩
+
 end ChapterVIDPrincipalConnectorModel
 
 end PoincareChapterVI

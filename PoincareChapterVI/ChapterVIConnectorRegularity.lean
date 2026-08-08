@@ -146,11 +146,12 @@ theorem tendsto_chapterVIConnectorIntegral
   (continuous_chapterVIConnectorIntegral numerator sheet source target
     hnumerator hsource htarget hrad).continuousAt
 
-/-- A finite nonvanishing certificate supplies a square-root sheet for an affine connector and
-makes its normalized integral continuous on the whole collision-parameter interval. -/
-theorem exists_sheet_continuous_chapterVIConnectorIntegral
+/-- Pointwise nonvanishing supplies a square-root sheet for an affine connector and makes its
+normalized integral continuous on the whole collision-parameter interval. This is the semantic
+interface used by both point-sample covers and compiled interval-cell grids. -/
+theorem exists_sheet_continuous_chapterVIConnectorIntegral_of_ne_zero
     {radicand : I × I → ℂ} (hradicand : Continuous radicand)
-    (certificate : ChapterVIFiniteNonvanishingCover radicand)
+    (hrad : ∀ point, radicand point ≠ 0)
     (numerator : I × ℝ → ℂ) (hnumerator : Continuous numerator)
     (source target : I → ℂ) (hsource : Continuous source)
     (htarget : Continuous target) :
@@ -174,8 +175,8 @@ theorem exists_sheet_continuous_chapterVIConnectorIntegral
   let base : I × I := (0, 0)
   obtain ⟨baseRoot, hbaseRoot⟩ :=
     IsAlgClosed.exists_pow_nat_eq (radicand base) (by norm_num : 0 < (2 : ℕ))
-  obtain ⟨sheet, _⟩ := certificate.exists_continuousSquareRootSheet
-    hradicand base baseRoot hbaseRoot
+  obtain ⟨sheet, _⟩ := exists_chapterVIContinuousSquareRootSheet
+    radicand hradicand hrad base baseRoot hbaseRoot
   refine ⟨sheet, ?_⟩
   unfold chapterVIConnectorIntegral
   apply continuous_const.mul
@@ -187,7 +188,35 @@ theorem exists_sheet_continuous_chapterVIConnectorIntegral
   · exact continuous_chapterVIConnectorSheetRoot sheet
   · exact (continuous_chapterVIAffineConnectorVelocity hsource htarget).comp
       continuous_fst
-  · exact fun s t ↦ chapterVIConnectorSheetRoot_ne_zero certificate sheet (s, t)
+  · exact fun _ _ ↦ sheet.root_ne_zero (hrad _)
+
+/-- A finite point-sample cover is one source of the pointwise nonvanishing input. -/
+theorem exists_sheet_continuous_chapterVIConnectorIntegral
+    {radicand : I × I → ℂ} (hradicand : Continuous radicand)
+    (certificate : ChapterVIFiniteNonvanishingCover radicand)
+    (numerator : I × ℝ → ℂ) (hnumerator : Continuous numerator)
+    (source target : I → ℂ) (hsource : Continuous source)
+    (htarget : Continuous target) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet radicand,
+      Continuous (chapterVIConnectorIntegral numerator sheet source target) :=
+  exists_sheet_continuous_chapterVIConnectorIntegral_of_ne_zero hradicand
+    certificate.ne_zero numerator hnumerator source target hsource htarget
+
+/-- Pointwise-nonvanishing form of the finite connector endpoint theorem. -/
+theorem exists_sheet_tendsto_chapterVIConnectorIntegral_of_ne_zero
+    {radicand : I × I → ℂ} (hradicand : Continuous radicand)
+    (hrad : ∀ point, radicand point ≠ 0)
+    (numerator : I × ℝ → ℂ) (hnumerator : Continuous numerator)
+    (source target : I → ℂ) (hsource : Continuous source)
+    (htarget : Continuous target) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet radicand,
+      Tendsto (chapterVIConnectorIntegral numerator sheet source target)
+        (nhds (1 : I))
+        (nhds (chapterVIConnectorIntegral numerator sheet source target 1)) := by
+  obtain ⟨sheet, hcontinuous⟩ :=
+    exists_sheet_continuous_chapterVIConnectorIntegral_of_ne_zero hradicand hrad
+      numerator hnumerator source target hsource htarget
+  exact ⟨sheet, hcontinuous.continuousAt⟩
 
 /-- In particular, every certificate-backed connector contribution has a finite endpoint limit
 at the collision parameter. -/
@@ -201,9 +230,7 @@ theorem exists_sheet_tendsto_chapterVIConnectorIntegral
       Tendsto (chapterVIConnectorIntegral numerator sheet source target)
         (nhds (1 : I))
         (nhds (chapterVIConnectorIntegral numerator sheet source target 1)) := by
-  obtain ⟨sheet, hcontinuous⟩ :=
-    exists_sheet_continuous_chapterVIConnectorIntegral hradicand certificate
-      numerator hnumerator source target hsource htarget
-  exact ⟨sheet, hcontinuous.continuousAt⟩
+  exact exists_sheet_tendsto_chapterVIConnectorIntegral_of_ne_zero hradicand
+    certificate.ne_zero numerator hnumerator source target hsource htarget
 
 end PoincareChapterVI

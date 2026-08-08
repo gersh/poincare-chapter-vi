@@ -420,12 +420,26 @@ The strongest newly completed component is the finite algebra in §103:
   agrees along its entire local seam with either the positive Morse root or its negative, with
   one constant sign. Two certificate-selected connectors are now assembled into the exact
   connector contribution expected by the global placement package, and their finite collision
-  limit is derived rather than postulated. Producing the two concrete compiled covers per side
+  limit is derived rather than postulated. The canonical formal sum of those four regular pieces
+  and the positive local Morse piece now has the exact nonzero logarithmic asymptotic without a
+  separate algebraic decomposition hypothesis. It is not yet claimed to be one seamless contour:
+  the remaining geometric task is to prove the two local seam signs are compatible and identify
+  the resulting sum with the continuation of the original unit-circle integral. Producing the
+  two concrete compiled grids per side
   and proving that the two seam signs give one compatible middle continuation are the remaining
   connector tasks. The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
   sheet along the full shared boundary.
+- `ChapterVILeanCompCertNonzeroGrid.lean` provides the reusable compiled boundary for those four
+  grids. Each complex output cell may exclude zero through positive or negative real or imaginary
+  part, and one zero-failure LeanCompCert batch reconstructs continuum nonvanishing after the
+  Lean-proved cover and interval-containment bridges are applied.
+  `ChapterVIDConnectorCompiledGrid.lean` specializes this to the coordinate and radicand on each
+  D connector and feeds successful runs directly to the five-piece logarithmic theorem. The
+  outstanding certificate-generation issue is now explicit: because the local Morse inverse is
+  noncomputable, its dyadic cell enclosures must be justified by an interval-Newton or comparable
+  analytic bound in Lean; compiled code is not allowed to evaluate that inverse opaquely.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
