@@ -18,9 +18,12 @@ This resolves compiled-result ingestion and removes the old fixed-cutoff premise
 scale-dependent endpoint issue: 30 endpoint-adjacent cells still contain the double zero because
 the Morse length is selected noncomputably. The obstruction is now checked symbolically as well:
 the literal first-factor derivative at the collapsed D endpoint is exactly zero, by reduction to
-the certified cubic equation defining D. A sound compiled completion therefore needs either a
-second-order scale-normalized trace or a constructive quantitative Morse witness; a receipt alone
-cannot supply that missing analytic relation.
+the certified cubic equation defining D. The exact second derivative and its differentiation
+theorem are now formalized too. A compiled width-`10⁻¹²` root isolation check, followed by exact
+reduction modulo the cubic, proves that its real part is strictly negative. A sound compiled
+completion therefore needs to retain this second-order scale-normalized data or supply a
+constructive quantitative Morse witness; a receipt alone cannot supply the missing analytic
+relation.
 
 This note separates three questions that are easy to conflate:
 

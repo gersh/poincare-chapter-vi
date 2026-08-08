@@ -533,8 +533,12 @@ The strongest newly completed component is the finite algebra in §103:
   `chapterVIDRootCoordinateCollisionFactorPlusDerivative_base`: the first derivative is exactly
   zero at the collapsed D endpoint, with the final polynomial cancellation reduced to the
   certified cubic equation for `chapterVIDRoot`. Thus higher precision alone cannot produce a
-  uniform first-derivative margin; the terminal artifact must retain second-order/Morse-scale
-  data.
+  uniform first-derivative margin. The literal second derivative is now formalized as well.
+  A new LeanCompCert sign check isolates the algebraic root to width `10⁻¹²`; Lean reduces the
+  second derivative to a rational function modulo Poincaré's cubic and proves that its real part
+  is strictly negative. Thus the double zero now has a certified orientation, while the terminal
+  artifact must still retain that second-order/Morse-scale data instead of discarding it in an
+  absolute endpoint box.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

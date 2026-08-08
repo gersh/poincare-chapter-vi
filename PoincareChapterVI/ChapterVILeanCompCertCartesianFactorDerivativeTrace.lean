@@ -34,6 +34,83 @@ def chapterVIDRootCoordinateCollisionFactorPlusDerivative (ζ u : ℂ) : ℂ :=
     2 * chapterVIDRootSecondAnomaly ζ u * u⁻¹ +
     (200 / 10001) * chapterVIDRootSecondAnomaly ζ u * (u⁻¹ ^ 4 + u ^ 2)
 
+/-- Logarithmic derivative of the transformed second anomaly with respect to the root
+coordinate. -/
+def chapterVIDRootSecondAnomalyLogDerivative (u : ℂ) : ℂ :=
+  u⁻¹ - (100 / 10001) * (u⁻¹ ^ 4 + u ^ 2)
+
+/-- Exact second derivative of the vanishing collision factor with respect to `u`.  The
+factorization through the anomaly's logarithmic derivative is also the arithmetic layout used by
+the forthcoming second-order terminal trace. -/
+def chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative (ζ u : ℂ) : ℂ :=
+  (1 / 10001) * (60000 * u + 12 * u⁻¹ ^ 5) -
+    2 * (chapterVIDRootSecondAnomaly ζ u *
+        chapterVIDRootSecondAnomalyLogDerivative u * u⁻¹ -
+      chapterVIDRootSecondAnomaly ζ u * u⁻¹ ^ 2) +
+    (200 / 10001) *
+      (chapterVIDRootSecondAnomaly ζ u *
+          chapterVIDRootSecondAnomalyLogDerivative u * (u⁻¹ ^ 4 + u ^ 2) +
+        chapterVIDRootSecondAnomaly ζ u * (-4 * u⁻¹ ^ 5 + 2 * u))
+
+/-- The named logarithmic derivative differentiates the literal transformed second anomaly. -/
+theorem hasDerivAt_chapterVIDRootSecondAnomaly
+    {ζ u : ℂ} (hu : u ≠ 0) :
+    HasDerivAt (chapterVIDRootSecondAnomaly ζ)
+      (chapterVIDRootSecondAnomaly ζ u *
+        chapterVIDRootSecondAnomalyLogDerivative u) u := by
+  have hinv := (hasDerivAt_id u).inv hu
+  have hinv3 := hinv.pow 3
+  have hu3 := (hasDerivAt_id u).pow 3
+  have hargument := (hinv3.sub hu3).const_mul (100 / 30003 : ℂ)
+  have hexponential := hargument.cexp
+  have hcoordinate := (hasDerivAt_id u).mul hexponential
+  have hy := (hasDerivAt_const u ζ).mul hcoordinate
+  have hderivative : HasDerivAt _
+      (chapterVIDRootSecondAnomaly ζ u *
+        chapterVIDRootSecondAnomalyLogDerivative u) u :=
+    hy.congr_deriv (by
+      unfold chapterVIDRootSecondAnomaly chapterVIDRootToOriginalContour
+        chapterVIDRootExponentialArgument chapterVIDRootSecondAnomalyLogDerivative
+      simp only [id_eq, Pi.inv_apply, Pi.pow_apply, Pi.sub_apply, Pi.add_apply,
+        Pi.mul_apply, one_mul, zero_mul, zero_add, Nat.cast_ofNat]
+      simp only [inv_pow]
+      field_simp [hu]
+      ring)
+  apply hderivative.congr_of_eventuallyEq
+  filter_upwards [] with w
+  simp [chapterVIDRootSecondAnomaly, chapterVIDRootToOriginalContour,
+    chapterVIDRootExponentialArgument]
+
+/-- The displayed second derivative differentiates the first-derivative formula. -/
+theorem hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlusDerivative
+    {ζ u : ℂ} (hu : u ≠ 0) :
+    HasDerivAt (chapterVIDRootCoordinateCollisionFactorPlusDerivative ζ)
+      (chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative ζ u) u := by
+  have hid := hasDerivAt_id u
+  have hinv := hid.inv hu
+  have hy := hasDerivAt_chapterVIDRootSecondAnomaly (ζ := ζ) hu
+  have hlaurent := (hasDerivAt_const u (1 / 10001 : ℂ)).mul
+    ((((hasDerivAt_const u (30000 : ℂ)).mul (hid.pow 2)).sub
+      ((hasDerivAt_const u (3 : ℂ)).mul (hinv.pow 4))))
+  have hmiddle := (hasDerivAt_const u (2 : ℂ)).mul (hy.mul hinv)
+  have hlast := (hasDerivAt_const u (200 / 10001 : ℂ)).mul
+    (hy.mul ((hinv.pow 4).add (hid.pow 2)))
+  have h := hlaurent.sub hmiddle |>.add hlast
+  have hderivative : HasDerivAt _
+      (chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative ζ u) u :=
+    h.congr_deriv (by
+      unfold chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+        chapterVIDRootSecondAnomalyLogDerivative
+      simp only [id_eq, Pi.inv_apply, Pi.pow_apply, Pi.sub_apply, Pi.add_apply,
+        Pi.mul_apply, one_mul, zero_mul, zero_add, Nat.cast_ofNat]
+      simp only [inv_pow]
+      field_simp [hu]
+      ring)
+  apply hderivative.congr_of_eventuallyEq
+  filter_upwards [] with w
+  simp [chapterVIDRootCoordinateCollisionFactorPlusDerivative]
+  ring
+
 private def chapterVIDRootCoordinateCollisionFactorPlusFormula (ζ u : ℂ) : ℂ :=
   (1 / 10001) * (10000 * u ^ 3 + u⁻¹ ^ 3 - 200) -
     2 * chapterVIDRootSecondAnomaly ζ u
@@ -108,6 +185,106 @@ theorem chapterVIDRootCoordinateCollisionFactorPlusDerivative_base :
   unfold chapterVIDPolynomial at hroot
   push_cast at hroot
   linear_combination ((800 : ℂ) * chapterVIDRoot - 8) * hroot
+
+/-- Exact algebraic reduction of the second derivative at `D`.  All transcendental terms have
+disappeared: Poincaré's equation (7) reduces the result to a rational function of its isolated
+algebraic root. -/
+theorem chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative_base_formula :
+    chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+      chapterVIDZRootBase chapterVIDCollisionLift =
+      chapterVIDCollisionLift *
+        (-18 * (33327498249925 * (chapterVIDRoot : ℂ) ^ 2 +
+          833324982499 * (chapterVIDRoot : ℂ) - 1666499975) /
+          (2500500025 * (chapterVIDRoot : ℂ) ^ 4)) := by
+  unfold chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+    chapterVIDRootSecondAnomalyLogDerivative
+  rw [chapterVIDRootSecondAnomaly_base]
+  have hu : chapterVIDCollisionLift ≠ 0 := chapterVIDCollisionLift_ne_zero
+  have hx : (chapterVIDRoot : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (ne_of_lt chapterVIDRoot_lt_zero)
+  have hu3 : chapterVIDCollisionLift ^ 3 = (chapterVIDRoot : ℂ) := by
+    simpa only [chapterVIDX] using chapterVIDCollisionLift_pow
+  have hu6 : chapterVIDCollisionLift ^ 6 = (chapterVIDRoot : ℂ) ^ 2 := by
+    calc
+      chapterVIDCollisionLift ^ 6 = (chapterVIDCollisionLift ^ 3) ^ 2 := by ring
+      _ = (chapterVIDRoot : ℂ) ^ 2 := by rw [hu3]
+  have hu9 : chapterVIDCollisionLift ^ 9 = (chapterVIDRoot : ℂ) ^ 3 := by
+    calc
+      chapterVIDCollisionLift ^ 9 = (chapterVIDCollisionLift ^ 3) ^ 3 := by ring
+      _ = (chapterVIDRoot : ℂ) ^ 3 := by rw [hu3]
+  have hu12 : chapterVIDCollisionLift ^ 12 = (chapterVIDRoot : ℂ) ^ 4 := by
+    calc
+      chapterVIDCollisionLift ^ 12 = (chapterVIDCollisionLift ^ 3) ^ 4 := by ring
+      _ = (chapterVIDRoot : ℂ) ^ 4 := by rw [hu3]
+  have hroot : (chapterVIDPolynomial chapterVIDRoot : ℂ) = 0 := by
+    exact_mod_cast chapterVIDRoot_isRoot
+  unfold chapterVIDY chapterVIDX
+  field_simp [hu, hx]
+  ring_nf
+  rw [hu3, hu6, hu9, hu12]
+  field_simp [hx]
+  unfold chapterVIDPolynomial at hroot
+  push_cast at hroot
+  linear_combination
+    (-200040002000000 * (chapterVIDRoot : ℂ) ^ 3 +
+      120038004000140000 * (chapterVIDRoot : ℂ) ^ 2 -
+      12005000760050001200 * (chapterVIDRoot : ℂ) +
+      2400479965984798699964) * hroot
+
+/-- The small quadratic numerator controlling the second derivative is negative.  The only
+finite input is the compiled `10⁻¹²` isolation certificate for the root of equation (7). -/
+theorem chapterVIDRoot_secondDerivativeQuadratic_neg :
+    33327498249925 * chapterVIDRoot ^ 2 +
+      833324982499 * chapterVIDRoot - 1666499975 < 0 := by
+  have hleft := chapterVIDRoot_ultrafine_mem.1
+  have hright := chapterVIDRoot_ultrafine_mem.2
+  have hsquare : chapterVIDRoot ^ 2 ≤
+      (-26865395705 / 1000000000000 : ℝ) ^ 2 := by
+    have hproduct : 0 ≤
+        (chapterVIDRoot - (-26865395705 / 1000000000000 : ℝ)) *
+          (-chapterVIDRoot - (-26865395705 / 1000000000000 : ℝ)) :=
+      mul_nonneg (by linarith) (by linarith [chapterVIDRoot_lt_zero])
+    nlinarith
+  nlinarith
+
+/-- The double zero has the orientation required by Poincaré's terminal local argument. -/
+theorem chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative_base_re_neg :
+    (chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+      chapterVIDZRootBase chapterVIDCollisionLift).re < 0 := by
+  rw [chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative_base_formula,
+    chapterVIDCollisionLift_eq_neg_norm]
+  have hq := chapterVIDRoot_secondDerivativeQuadratic_neg
+  have hx2 : 0 < chapterVIDRoot ^ 2 := sq_pos_of_ne_zero chapterVIDRoot_lt_zero.ne
+  have hx4 : 0 < chapterVIDRoot ^ 4 := by
+    nlinarith [mul_pos hx2 hx2]
+  have hnorm : 0 < ‖chapterVIDCollisionLift‖ :=
+    norm_pos_iff.mpr chapterVIDCollisionLift_ne_zero
+  have hscalar :
+      (-18 * (33327498249925 * (chapterVIDRoot : ℂ) ^ 2 +
+          833324982499 * (chapterVIDRoot : ℂ) - 1666499975) /
+          (2500500025 * (chapterVIDRoot : ℂ) ^ 4)) =
+        ((-18 * (33327498249925 * chapterVIDRoot ^ 2 +
+          833324982499 * chapterVIDRoot - 1666499975) /
+          (2500500025 * chapterVIDRoot ^ 4) : ℝ) : ℂ) := by
+    push_cast
+    rfl
+  rw [hscalar]
+  simp only [Complex.mul_re, Complex.neg_re, Complex.ofReal_re, Complex.ofReal_im]
+  have hpositive : 0 <
+      -18 * (33327498249925 * chapterVIDRoot ^ 2 +
+        833324982499 * chapterVIDRoot - 1666499975) /
+        (2500500025 * chapterVIDRoot ^ 4) :=
+    div_pos (mul_pos_of_neg_of_neg (by norm_num) hq)
+      (mul_pos (by norm_num) hx4)
+  nlinarith [mul_pos hnorm hpositive]
+
+theorem chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative_base_ne_zero :
+    chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+      chapterVIDZRootBase chapterVIDCollisionLift ≠ 0 := by
+  intro hzero
+  have hre := congrArg Complex.re hzero
+  simp only [Complex.zero_re] at hre
+  linarith [chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative_base_re_neg]
 
 /-- Imaginary part of the first collision factor along an affine line in root coordinates. -/
 def chapterVIDRootCoordinateCollisionFactorPlusLineImag
