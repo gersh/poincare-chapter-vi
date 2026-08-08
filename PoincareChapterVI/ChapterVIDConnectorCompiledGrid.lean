@@ -284,6 +284,40 @@ def Cell.operations
     ChapterVILeanCompCertNonzeroGrid.separationOperation
       cell.trace.factorMinus cell.minusSeparation]
 
+/-- Reconstruct the two literal collision-factor enclosures separately.  This is the sharp
+interface used by branch transport; multiplying the rectangles first loses the conjugate-like
+dependency between the factors. -/
+theorem Cell.factors_contain_of_allSound
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    (cell : Cell model side precision)
+    (hcoordinate : ∀ operation ∈ cell.coordinateOperations, operation.Sound)
+    (hall : ∀ operation ∈ cell.trace.operations, operation.Sound)
+    (point : I × I) (hregion : point ∈ cell.region) :
+    cell.trace.factorPlus.Contains (model.rectangleFactorPlus side point) ∧
+      cell.trace.factorMinus.Contains (model.rectangleFactorMinus side point) := by
+  let ζ := model.connectorParameterRoot point.1
+  let u := model.rectanglePoint side point
+  have hζ : cell.zeta.Contains ζ := cell.zeta_contains point hregion
+  have hu : cell.coordinate.Contains u :=
+    cell.coordinate_contains_of_allSound hcoordinate point hregion
+  have hζne : ζ ≠ 0 := model.connectorParameterRoot_ne_zero point.1
+  have hune : u ≠ 0 := model.rectanglePoint_ne_zero side point
+  have hanomalies := cell.trace.anomalies_contain_of_allSound hall hζ hu
+    cell.exponentialCoefficient_contains hζne hune
+  have hfactors := cell.trace.factors_contain_sparse_of_allSound hall hu
+    cell.inverse10001_contains hanomalies.1 hanomalies.2
+  constructor
+  · rw [show model.rectangleFactorPlus side point =
+        chapterVIDRootCoordinateCollisionFactorPlus ζ u by rfl,
+      chapterVIDRootCoordinateCollisionFactorPlus_eq_polarCertificateFormula hζne hune]
+    exact hfactors.1
+  · rw [show model.rectangleFactorMinus side point =
+        chapterVIDRootCoordinateCollisionFactorMinus ζ u by rfl,
+      chapterVIDRootCoordinateCollisionFactorMinus_eq_polarCertificateFormula hζne hune]
+    exact hfactors.2
+
 /-- Kernel-side semantic reconstruction for one checked connector cell.  The surrounding grid
 only has to supply soundness of the operations and membership of the point in this cell. -/
 theorem Cell.radicand_ne_zero_of_allSound

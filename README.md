@@ -485,14 +485,27 @@ The strongest newly completed component is the finite algebra in §103:
   `lake exe chapter-vi-connector-cert reference-coarse 1024` runs the reference proposal/checking
   path on the proved narrow boxes. Its expected nonzero result currently has zero rejected cells,
   261 endpoint-adjacent unseparated cells, and zero failed integer claims across both connectors.
-  The same run reports branch-cut intersections for the coarse product rectangles. Thus the
-  compiled seam interface is proved, but a passing artifact still needs tighter one-dimensional
-  enclosures or factor-wise branch transport; the current diagnostic is not silently treated as
-  a successful run. More sharply, the two factor traces show zero nonpositive-real-cut
-  intersections for the minus factor and exactly the same 261 endpoint cells for the plus factor
-  as the nonvanishing failure count. This isolates the next route: use principal roots of the two
-  factors on the compiled bulk and join the plus factor through the analytic Morse collar. This
-  is a regression witness for the cutoff-matching obligation, not a completed certificate.
+  The same run reports branch-cut intersections for the coarse product rectangles. More sharply,
+  the two factor traces show zero nonpositive-real-cut intersections for the minus factor and
+  exactly the same 261 endpoint cells for the plus factor as the nonvanishing failure count.
+
+  `ChapterVIDConnectorSeamCompiledGrid.lean` now implements the resulting factor-wise route.
+  A one-cell `FactorLocalAnchorRunVerdict` asks LeanCompCert only for positivity of the companion
+  factor at the true endpoint. Lean derives positivity of the first factor from the exact positive
+  Morse product, then continuity supplies a right-half-plane endpoint collar. `FactorBulkData`
+  checks both literal collision factors separately on the remaining one-dimensional mesh.
+  Successful batches construct a continuous square-root sheet, prove its outer and local signs,
+  upgrade the connector pair to `SeamCompatibleCertifiedConnectorPair`, and feed the result to
+  Poincare's five-piece logarithmic limit theorem. No product rectangle or global symbolic branch
+  normalization is used.
+
+  `lake exe chapter-vi-connector-cert reference-factor-bulk 1024 261` exercises that exact
+  arithmetic layout. It checks 1,526 bulk cells plus both endpoint anchors with zero rejected
+  traces, zero unresolved factor boxes, and zero failed signed-integer claims. This is a passing
+  reference computation, not yet a kernel term instantiating `FactorBulkData`: the concrete
+  cutoff `261 / 1024` must still be proved to lie inside the continuity collar (or replaced by a
+  computably justified smaller cutoff). That quantitative cutoff-matching statement is now the
+  only endpoint-specific bridge between the generated table and the factor-bulk theorem.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or

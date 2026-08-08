@@ -153,6 +153,52 @@ def chapterVIDRootCoordinateCollisionFactorPlus (ζ u : ℂ) : ℂ :=
   chapterVIPlanarCollisionFactorPlus chapterVIDEccentricity chapterVIDComplement
     0 1 2 (u ^ 3) (chapterVIDRootSecondAnomaly ζ u)
 
+/-- Poincaré's companion collision factor in the changed `(ζ,u)` coordinate. -/
+def chapterVIDRootCoordinateCollisionFactorMinus (ζ u : ℂ) : ℂ :=
+  chapterVIPlanarCollisionFactorMinus chapterVIDEccentricity chapterVIDComplement
+    0 1 2 (u ^ 3) (chapterVIDRootSecondAnomaly ζ u)
+
+/-- The first changed-coordinate collision factor is continuous wherever both root coordinates
+are nonzero. -/
+theorem continuousAt_chapterVIDRootCoordinateCollisionFactorPlus
+    {point : ℂ × ℂ} (hζ : point.1 ≠ 0) (hu : point.2 ≠ 0) :
+    ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootCoordinateCollisionFactorPlus p.1 p.2) point := by
+  have ht : ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootToOriginalContour p.2) point :=
+    (analyticAt_chapterVIDRootToOriginalContour hu).continuousAt.comp_of_eq
+      continuousAt_snd rfl
+  have hy : ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootSecondAnomaly p.1 p.2) point := by
+    unfold chapterVIDRootSecondAnomaly
+    exact continuousAt_fst.mul ht
+  have hyne : chapterVIDRootSecondAnomaly point.1 point.2 ≠ 0 :=
+    mul_ne_zero hζ (chapterVIDRootToOriginalContour_ne_zero hu)
+  unfold chapterVIDRootCoordinateCollisionFactorPlus
+    chapterVIPlanarCollisionFactorPlus chapterVIPlanarKeplerLaurentPlus
+    chapterVIPlanarDistanceFactorPlus
+  fun_prop (disch := simp_all)
+
+/-- The companion changed-coordinate collision factor has the same continuity domain. -/
+theorem continuousAt_chapterVIDRootCoordinateCollisionFactorMinus
+    {point : ℂ × ℂ} (hζ : point.1 ≠ 0) (hu : point.2 ≠ 0) :
+    ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootCoordinateCollisionFactorMinus p.1 p.2) point := by
+  have ht : ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootToOriginalContour p.2) point :=
+    (analyticAt_chapterVIDRootToOriginalContour hu).continuousAt.comp_of_eq
+      continuousAt_snd rfl
+  have hy : ContinuousAt
+      (fun p : ℂ × ℂ ↦ chapterVIDRootSecondAnomaly p.1 p.2) point := by
+    unfold chapterVIDRootSecondAnomaly
+    exact continuousAt_fst.mul ht
+  have hyne : chapterVIDRootSecondAnomaly point.1 point.2 ≠ 0 :=
+    mul_ne_zero hζ (chapterVIDRootToOriginalContour_ne_zero hu)
+  unfold chapterVIDRootCoordinateCollisionFactorMinus
+    chapterVIPlanarCollisionFactorMinus chapterVIPlanarKeplerLaurentMinus
+    chapterVIPlanarDistanceFactorMinus
+  fun_prop (disch := simp_all)
+
 /-- The literal planar source radicand in Poincaré's changed `(ζ,u)` coordinate. -/
 def chapterVIDRootCoordinateRadicand (ζ u : ℂ) : ℂ :=
   chapterVIPlanarSourceRadicand chapterVIDEccentricity chapterVIDComplement
@@ -204,8 +250,7 @@ theorem continuous_chapterVIDRootCoordinateRadicand_comp
 theorem chapterVIDRootCoordinateRadicand_eq_factors (ζ u : ℂ) :
     chapterVIDRootCoordinateRadicand ζ u =
       chapterVIDRootCoordinateCollisionFactorPlus ζ u *
-        chapterVIPlanarCollisionFactorMinus chapterVIDEccentricity chapterVIDComplement
-          0 1 2 (u ^ 3) (chapterVIDRootSecondAnomaly ζ u) := by
+        chapterVIDRootCoordinateCollisionFactorMinus ζ u := by
   rfl
 
 /-- Sparse normal form used by the compiled outer-arc certificate.  The first body's two
@@ -226,6 +271,38 @@ theorem chapterVIDRootCoordinateRadicand_eq_certificateFormula
     chapterVIPlanarKeplerLaurentPlus chapterVIPlanarKeplerLaurentMinus
     chapterVIPlanarDistanceFactorPlus chapterVIPlanarDistanceFactorMinus
     chapterVIDEccentricity chapterVIDComplement
+  field_simp [hu, hy]
+  ring
+
+/-- Dependency-preserving sparse form of the first collision factor. -/
+theorem chapterVIDRootCoordinateCollisionFactorPlus_eq_polarCertificateFormula
+    {ζ u : ℂ} (hζ : ζ ≠ 0) (hu : u ≠ 0) :
+    chapterVIDRootCoordinateCollisionFactorPlus ζ u =
+      (((1 / 10001 : ℝ) : ℂ) *
+          ((10000 : ℂ) * u ^ 3 + (u ^ 3)⁻¹ - 200) -
+        2 * chapterVIDRootSecondAnomaly ζ u) := by
+  have hy : chapterVIDRootSecondAnomaly ζ u ≠ 0 :=
+    mul_ne_zero hζ (chapterVIDRootToOriginalContour_ne_zero hu)
+  rw [show (((1 / 10001 : ℝ) : ℂ)) = (1 / 10001 : ℂ) by norm_num]
+  unfold chapterVIDRootCoordinateCollisionFactorPlus
+    chapterVIPlanarCollisionFactorPlus chapterVIPlanarKeplerLaurentPlus
+    chapterVIPlanarDistanceFactorPlus chapterVIDEccentricity chapterVIDComplement
+  field_simp [hu, hy]
+  ring
+
+/-- Dependency-preserving sparse form of the companion collision factor. -/
+theorem chapterVIDRootCoordinateCollisionFactorMinus_eq_polarCertificateFormula
+    {ζ u : ℂ} (hζ : ζ ≠ 0) (hu : u ≠ 0) :
+    chapterVIDRootCoordinateCollisionFactorMinus ζ u =
+      (((1 / 10001 : ℝ) : ℂ) *
+          (u ^ 3 + 10000 * (u ^ 3)⁻¹ - 200) -
+        2 * (chapterVIDRootSecondAnomaly ζ u)⁻¹) := by
+  have hy : chapterVIDRootSecondAnomaly ζ u ≠ 0 :=
+    mul_ne_zero hζ (chapterVIDRootToOriginalContour_ne_zero hu)
+  rw [show (((1 / 10001 : ℝ) : ℂ)) = (1 / 10001 : ℂ) by norm_num]
+  unfold chapterVIDRootCoordinateCollisionFactorMinus
+    chapterVIPlanarCollisionFactorMinus chapterVIPlanarKeplerLaurentMinus
+    chapterVIPlanarDistanceFactorMinus chapterVIDEccentricity chapterVIDComplement
   field_simp [hu, hy]
   ring
 

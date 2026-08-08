@@ -1,4 +1,4 @@
-import PoincareChapterVI.ChapterVIDConnectorCompiledGrid
+import PoincareChapterVI.ChapterVIDConnectorSeamCompiledGrid
 
 /-!
 # Reference runner for the Chapter VI connector certificates
@@ -57,6 +57,15 @@ def testTargetRectangle (side : ChapterVIDOuterArcSide) (outer localBox : Rectan
 def separation? (rectangle : Rectangle) : Option ChapterVIComplexZeroSeparation :=
   if 0 < rectangle.real.lower then some .realPositive
   else if rectangle.real.upper < 0 then some .realNegative
+  else if 0 < rectangle.imag.lower then some .imagPositive
+  else if rectangle.imag.upper < 0 then some .imagNegative
+  else none
+
+/-- Separation suitable for the principal square-root slit plane.  A negative-real rectangle is
+accepted only through a strict imaginary sign, never merely because it avoids zero. -/
+def slitSeparation? (rectangle : Rectangle) :
+    Option ChapterVIDConnectorSeamCompiledGrid.SlitPlaneSeparation :=
+  if 0 < rectangle.real.lower then some .realPositive
   else if 0 < rectangle.imag.lower then some .imagPositive
   else if rectangle.imag.upper < 0 then some .imagNegative
   else none
@@ -160,6 +169,83 @@ def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle)
   pure (if stats.argumentRejected = 0 && stats.unseparated = 0 &&
       stats.failedClaims = 0 then 0 else 1)
 
+def inLocalCollar (side : ChapterVIDOuterArcSide)
+    (cells collarCells index : Nat) : Bool :=
+  match side with
+  | .initial => cells - collarCells ≤ index
+  | .final => index < collarCells
+
+/-- Reference implementation of the scalable route used by `FactorBulkData`: skip a declared
+endpoint collar, check the two factors independently on every remaining cell, and check the
+companion factor at the exact endpoint as the collar anchor. -/
+def runFactorBulkReference (cells collarCells : Nat) : IO UInt32 := do
+  if cells = 0 || cells ≤ collarCells then
+    IO.eprintln "error: require 0 < CELLS and COLLAR-CELLS < CELLS"
+    return 1
+  let mut stats : Stats := {}
+  for side in [.initial, .final] do
+    let outer := outerRectangle side
+    let source := testSourceRectangle side outer
+      ChapterVIDConnectorInputBounds.localEndpointRectangle
+    let target := testTargetRectangle side outer
+      ChapterVIDConnectorInputBounds.localEndpointRectangle
+    for index in List.range cells do
+      if !inLocalCollar side cells collarCells index then
+        stats := { stats with total := stats.total + 1 }
+        let parameter := parameterInterval cells index
+        let coordinateTrace := ChapterVILeanCompCertProposals.lineMapTrace source target parameter
+        match ChapterVILeanCompCertProposals.cartesianRadicandTrace?
+            zetaRectangle coordinateTrace.output
+            ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient
+            ChapterVIDOuterArcPolarCompiledGrid.inverse10001 with
+        | none =>
+            stats := { stats with argumentRejected := stats.argumentRejected + 1 }
+        | some trace =>
+            let plusFactor := trace.laurentPlus.output.sub (trace.y.nsmul 2)
+            let minusFactor := trace.laurentMinus.output.sub (trace.yInv.nsmul 2)
+            match slitSeparation? plusFactor, slitSeparation? minusFactor with
+            | none, _ | _, none =>
+                stats := { stats with unseparated := stats.unseparated + 1 }
+                if stats.unseparated ≤ 12 then
+                  IO.println s!"bulk branch-cut unresolved: {sideName side} connector={index}"
+            | some plusSeparation, some minusSeparation =>
+                let operations := coordinateTrace.operations ++ trace.operations ++
+                  [ChapterVIDConnectorSeamCompiledGrid.separationOperation
+                      plusFactor plusSeparation,
+                    ChapterVIDConnectorSeamCompiledGrid.separationOperation
+                      minusFactor minusSeparation]
+                let failures := failureCount (batchClaims operations)
+                stats := { stats with failedClaims := stats.failedClaims + failures }
+    let endpointParameter : Interval := match side with
+      | .initial => ChapterVISignedDyadicInterval.pointInt 20 1
+      | .final => ChapterVISignedDyadicInterval.pointInt 20 0
+    let endpointCoordinate :=
+      ChapterVILeanCompCertProposals.lineMapTrace source target endpointParameter
+    match ChapterVILeanCompCertProposals.cartesianRadicandTrace?
+        zetaRectangle endpointCoordinate.output
+        ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient
+        ChapterVIDOuterArcPolarCompiledGrid.inverse10001 with
+    | none =>
+        stats := { stats with argumentRejected := stats.argumentRejected + 1 }
+        IO.println s!"anchor argument rejected: {sideName side}"
+    | some trace =>
+        let minusFactor := trace.laurentMinus.output.sub (trace.yInv.nsmul 2)
+        let anchorOperations := endpointCoordinate.operations ++ trace.operations ++
+          [ChapterVIDConnectorSeamCompiledGrid.separationOperation
+            minusFactor .realPositive]
+        let failures := failureCount (batchClaims anchorOperations)
+        if !(0 < minusFactor.real.lower) then
+          stats := { stats with unseparated := stats.unseparated + 1 }
+          IO.println s!"anchor companion factor not positive: {sideName side}"
+        stats := { stats with failedClaims := stats.failedClaims + failures }
+  IO.println s!"factor bulk cells checked: {stats.total}"
+  IO.println s!"endpoint collar cells skipped per side: {collarCells}"
+  IO.println s!"argument-rejected batches: {stats.argumentRejected}"
+  IO.println s!"unseparated factor boxes/anchors: {stats.unseparated}"
+  IO.println s!"failed integer claims: {stats.failedClaims}"
+  pure (if stats.argumentRejected = 0 && stats.unseparated = 0 &&
+      stats.failedClaims = 0 then 0 else 1)
+
 def cliMain (args : List String) : IO UInt32 := do
   match args with
   | ["reference-coarse", cellsText] =>
@@ -183,8 +269,14 @@ def cliMain (args : List String) : IO UInt32 := do
       | _, _, _ =>
           IO.eprintln "error: CELLS, DISPLACEMENT, and MARGIN must be natural numbers"
           pure 1
+  | ["reference-factor-bulk", cellsText, collarCellsText] =>
+      match cellsText.toNat?, collarCellsText.toNat? with
+      | some cells, some collarCells => runFactorBulkReference cells collarCells
+      | _, _ =>
+          IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
+          pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-coarse CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

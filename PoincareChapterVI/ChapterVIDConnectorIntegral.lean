@@ -416,6 +416,121 @@ theorem connectorParameterRoot_ne_zero
       (model.criticalValue_mem s)]
   exact chapterVIDCommonParameterRootPath_ne_zero _
 
+/-- The first literal collision factor on a connector rectangle.  Keeping the factors separate
+is substantially sharper than multiplying their interval rectangles before branch tracking. -/
+def rectangleFactorPlus
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (point : I × I) : ℂ :=
+  chapterVIDRootCoordinateCollisionFactorPlus
+    (model.connectorParameterRoot point.1) (model.rectanglePoint side point)
+
+/-- The companion literal collision factor on a connector rectangle. -/
+def rectangleFactorMinus
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (point : I × I) : ℂ :=
+  chapterVIDRootCoordinateCollisionFactorMinus
+    (model.connectorParameterRoot point.1) (model.rectanglePoint side point)
+
+theorem rectangleRadicand_eq_factor_mul
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (point : I × I) :
+    model.rectangleRadicand side point =
+      model.rectangleFactorPlus side point * model.rectangleFactorMinus side point := by
+  exact chapterVIDRootCoordinateRadicand_eq_factors _ _
+
+theorem continuous_rectangleFactorPlus
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.rectangleFactorPlus side) := by
+  let sparse : I × I → ℂ := fun point ↦
+    let ζ := model.connectorParameterRoot point.1
+    let u := model.rectanglePoint side point
+    (((1 / 10001 : ℝ) : ℂ) *
+        ((10000 : ℂ) * u ^ 3 + (u ^ 3)⁻¹ - 200) -
+      2 * chapterVIDRootSecondAnomaly ζ u)
+  have heq : model.rectangleFactorPlus side = sparse := by
+    funext point
+    exact chapterVIDRootCoordinateCollisionFactorPlus_eq_polarCertificateFormula
+      (model.connectorParameterRoot_ne_zero point.1)
+      (model.rectanglePoint_ne_zero side point)
+  rw [heq]
+  have hu : Continuous (fun point : I × I ↦ model.rectanglePoint side point) :=
+    model.continuous_rectanglePoint side
+  have hu3 : Continuous (fun point : I × I ↦ model.rectanglePoint side point ^ 3) :=
+    hu.pow 3
+  have hu3inv : Continuous
+      (fun point : I × I ↦ (model.rectanglePoint side point ^ 3)⁻¹) :=
+    hu3.inv₀ fun point ↦ pow_ne_zero 3 (model.rectanglePoint_ne_zero side point)
+  have hζ : Continuous (fun point : I × I ↦ model.connectorParameterRoot point.1) :=
+    model.continuous_connectorParameterRoot.comp continuous_fst
+  have ht : Continuous (fun point : I × I ↦
+      chapterVIDRootToOriginalContour (model.rectanglePoint side point)) := by
+    rw [continuous_iff_continuousAt]
+    intro point
+    exact (analyticAt_chapterVIDRootToOriginalContour
+      (model.rectanglePoint_ne_zero side point)).continuousAt.comp hu.continuousAt
+  have hy : Continuous (fun point : I × I ↦
+      chapterVIDRootSecondAnomaly (model.connectorParameterRoot point.1)
+        (model.rectanglePoint side point)) := by
+    unfold chapterVIDRootSecondAnomaly
+    exact hζ.mul ht
+  unfold sparse
+  exact (continuous_const.mul
+      (((continuous_const.mul hu3).add hu3inv).sub continuous_const)).sub
+    (continuous_const.mul hy)
+
+theorem continuous_rectangleFactorMinus
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (model.rectangleFactorMinus side) := by
+  let sparse : I × I → ℂ := fun point ↦
+    let ζ := model.connectorParameterRoot point.1
+    let u := model.rectanglePoint side point
+    (((1 / 10001 : ℝ) : ℂ) *
+        (u ^ 3 + 10000 * (u ^ 3)⁻¹ - 200) -
+      2 * (chapterVIDRootSecondAnomaly ζ u)⁻¹)
+  have heq : model.rectangleFactorMinus side = sparse := by
+    funext point
+    exact chapterVIDRootCoordinateCollisionFactorMinus_eq_polarCertificateFormula
+      (model.connectorParameterRoot_ne_zero point.1)
+      (model.rectanglePoint_ne_zero side point)
+  rw [heq]
+  have hu : Continuous (fun point : I × I ↦ model.rectanglePoint side point) :=
+    model.continuous_rectanglePoint side
+  have hu3 : Continuous (fun point : I × I ↦ model.rectanglePoint side point ^ 3) :=
+    hu.pow 3
+  have hu3inv : Continuous
+      (fun point : I × I ↦ (model.rectanglePoint side point ^ 3)⁻¹) :=
+    hu3.inv₀ fun point ↦ pow_ne_zero 3 (model.rectanglePoint_ne_zero side point)
+  have hζ : Continuous (fun point : I × I ↦ model.connectorParameterRoot point.1) :=
+    model.continuous_connectorParameterRoot.comp continuous_fst
+  have ht : Continuous (fun point : I × I ↦
+      chapterVIDRootToOriginalContour (model.rectanglePoint side point)) := by
+    rw [continuous_iff_continuousAt]
+    intro point
+    exact (analyticAt_chapterVIDRootToOriginalContour
+      (model.rectanglePoint_ne_zero side point)).continuousAt.comp hu.continuousAt
+  have hy : Continuous (fun point : I × I ↦
+      chapterVIDRootSecondAnomaly (model.connectorParameterRoot point.1)
+        (model.rectanglePoint side point)) := by
+    unfold chapterVIDRootSecondAnomaly
+    exact hζ.mul ht
+  have hyInv : Continuous (fun point : I × I ↦
+      (chapterVIDRootSecondAnomaly (model.connectorParameterRoot point.1)
+        (model.rectanglePoint side point))⁻¹) :=
+    hy.inv₀ fun point ↦ mul_ne_zero (model.connectorParameterRoot_ne_zero point.1)
+      (chapterVIDRootToOriginalContour_ne_zero
+        (model.rectanglePoint_ne_zero side point))
+  unfold sparse
+  exact (continuous_const.mul
+      ((hu3.add (continuous_const.mul hu3inv)).sub continuous_const)).sub
+    (continuous_const.mul hyInv)
+
 /-- Once the connector coordinate excludes zero, continuity of the literal connector radicand
 follows from its exact analytic formula. No separate radicand-continuity certificate is needed. -/
 theorem continuous_rectangleRadicand_of_coordinate_ne_zero
