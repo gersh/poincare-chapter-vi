@@ -78,4 +78,34 @@ theorem leanCompCert_rpow_real_bracket (P S T n Y : ℕ)
   · exact (div_le_iff₀' (by positivity)).2 hlowerScaled
   · exact (le_div_iff₀' (by positivity)).2 (by simpa [mul_comm] using hupperScaled)
 
+/-- A machine-checkable sum-of-squares bound on scaled component magnitudes gives the
+corresponding lower bound on the complex norm.  This is the final algebraic step expected for
+each row of the compiled outer-arc sample table.
+
+The interval evaluator supplies `hre` and `him`; the compiled checker only has to verify `hsq`,
+an inequality of natural numbers. -/
+theorem leanCompCert_complex_norm_lower_of_scaled_components
+    (scale margin reLower imLower : ℕ) (z : ℂ)
+    (hscale : 0 < scale)
+    (hre : (reLower : ℝ) ≤ (scale : ℝ) * |z.re|)
+    (him : (imLower : ℝ) ≤ (scale : ℝ) * |z.im|)
+    (hsq : margin ^ 2 ≤ reLower ^ 2 + imLower ^ 2) :
+    (margin : ℝ) / scale ≤ ‖z‖ := by
+  have hreSq : (reLower : ℝ) ^ 2 ≤ ((scale : ℝ) * |z.re|) ^ 2 :=
+    pow_le_pow_left₀ (Nat.cast_nonneg reLower) hre 2
+  have himSq : (imLower : ℝ) ^ 2 ≤ ((scale : ℝ) * |z.im|) ^ 2 :=
+    pow_le_pow_left₀ (Nat.cast_nonneg imLower) him 2
+  have hsqReal : (margin : ℝ) ^ 2 ≤
+      (reLower : ℝ) ^ 2 + (imLower : ℝ) ^ 2 := by
+    exact_mod_cast hsq
+  rw [mul_pow, sq_abs] at hreSq himSq
+  have hscaledSq : (margin : ℝ) ^ 2 ≤
+      ((scale : ℝ) * ‖z‖) ^ 2 := by
+    rw [mul_pow, Complex.sq_norm, Complex.normSq_apply]
+    nlinarith
+  have hscaled : (margin : ℝ) ≤ (scale : ℝ) * ‖z‖ :=
+    le_of_pow_le_pow_left₀ (by norm_num) (mul_nonneg (Nat.cast_nonneg scale) (norm_nonneg z))
+      hscaledSq
+  exact (div_le_iff₀' (Nat.cast_pos.mpr hscale)).2 hscaled
+
 end PoincareChapterVI
