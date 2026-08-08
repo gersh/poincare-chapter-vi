@@ -385,13 +385,15 @@ The strongest newly completed component is the finite algebra in §103:
   theorem for the literal `chapterVIDPrincipalPhiIntegrand` needs only collision-square-root
   compatibility; the formerly separate cubic-root branch hypothesis is discharged automatically.
 - `ChapterVIDCompiledThreeArcContinuation.lean` is the compiled-route global interface. Given
-  only a synchronization from positive local critical values to the certified radial parameter
-  together with the two regular connector arcs and the actual five-piece source-contour
+  the real-ray placement of positive local critical values, the two regular connector arcs, and
+  the actual five-piece source-contour
   decomposition, it pulls back the compiled outer finite limit, combines it with the connector
   finite limit, automatically discharges the former broad `regular_sublog` premise, and proves
   that the full continuation has the explicit nonzero logarithmic coefficient. The remaining
   regularity target is now precisely the connector contribution, rather than an unnamed global
-  remainder.
+  remainder. The synchronization function itself is canonical and proved to tend to the
+  collision endpoint unconditionally; exact source-parameter agreement is reduced to showing
+  that the local inverse critical parameter lies on Poincaré's real affine ray.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
