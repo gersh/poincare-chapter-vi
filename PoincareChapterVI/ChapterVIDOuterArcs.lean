@@ -253,6 +253,18 @@ abbrev ChapterVIDOuterArcNonvanishingCertificate
     (side : ChapterVIDOuterArcSide) :=
   ChapterVIFiniteNonvanishingCover (chapterVIDOuterArcRadicand side)
 
+/-- The cheaper concrete target used by the compiled sweep: certify a positive lower bound on
+the real part at every sample, then use the same cover and Lipschitz estimate. -/
+abbrev ChapterVIDOuterArcPositiveRealPartCertificate
+    (side : ChapterVIDOuterArcSide) :=
+  ChapterVIFinitePositiveRealPartCover (chapterVIDOuterArcRadicand side)
+
+def ChapterVIDOuterArcPositiveRealPartCertificate.toNonvanishingCertificate
+    {side : ChapterVIDOuterArcSide}
+    (certificate : ChapterVIDOuterArcPositiveRealPartCertificate side) :
+    ChapterVIDOuterArcNonvanishingCertificate side :=
+  certificate.toNonvanishingCover
+
 /-- Once the finite nonvanishing certificate is supplied, covering-space lifting constructs the
 base-normalized square-root sheet on the entire concrete outer-arc rectangle. -/
 theorem ChapterVIDOuterArcNonvanishingCertificate.exists_squareRootSheet
@@ -280,5 +292,16 @@ theorem ChapterVIDOuterArcNonvanishingCertificate.exists_squareRootSheet
       exact hsets.1.2.prod hsets.2.2
   exact certificate.exists_continuousSquareRootSheet
     (continuous_chapterVIDOuterArcRadicand side) base baseRoot hbaseRoot
+
+theorem ChapterVIDOuterArcPositiveRealPartCertificate.exists_squareRootSheet
+    {side : ChapterVIDOuterArcSide}
+    (certificate : ChapterVIDOuterArcPositiveRealPartCertificate side)
+    (base : I × I) (baseRoot : ℂ)
+    (hbaseRoot : baseRoot ^ 2 = chapterVIDOuterArcRadicand side base) :
+    ∃ sheet : ChapterVIContinuousSquareRootSheet
+        (chapterVIDOuterArcRadicand side),
+      sheet.root base = baseRoot :=
+  certificate.toNonvanishingCertificate.exists_squareRootSheet
+    base baseRoot hbaseRoot
 
 end PoincareChapterVI

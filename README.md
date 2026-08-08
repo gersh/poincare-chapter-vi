@@ -292,9 +292,11 @@ The strongest newly completed component is the finite algebra in §103:
 - `ChapterVISquareRootSheet.lean` proves the general sheet theorem needed for those arcs: any
   continuous nonzero complex radicand on a simply connected parameter rectangle has a continuous
   square root with a prescribed base value. It also defines the precise LeanCompCert-facing
-  continuum bridge. A finite sample table, a certified covering radius, and a kernel-checked
-  Lipschitz bound imply nonvanishing everywhere and therefore produce the sheet. LeanCompCert is
-  useful for the sample table; it does not replace the covering or analytic estimates. A final
+  continuum bridge. For the concrete D arcs the compiled target is the stronger and cheaper claim
+  that the real part has a positive lower bound at every sample. A finite sample table, a certified
+  covering radius, and a kernel-checked Lipschitz bound then imply nonvanishing everywhere and
+  therefore produce the sheet. LeanCompCert is useful for the sample table; it does not replace
+  the covering or analytic estimates. A final
   parametric-integration theorem proves that continuous outer-arc data then have finite endpoint
   limits, exactly the sufficient condition used by `ChapterVIThreeArcAsymptotic.lean`.
 - `ChapterVIDCertificateContour.lean` replaces the unsafe naive linear interpolation by the
@@ -308,6 +310,9 @@ The strongest newly completed component is the finite algebra in §103:
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
   `cos`.
+- The exploratory scan suggests that the real part is separated from zero on both rectangles,
+  but that floating-point observation is not a theorem. The formal interface records the exact
+  compiled obligation: positive sample bounds plus the continuum cover and Lipschitz estimate.
 - `ChapterVILeanCompCertRealBridge.lean` proves the encoding theorem needed by the compiled route:
   LeanCompCert's all-integer fixed-point `rpow` bracket implies the corresponding outward-rounded
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested

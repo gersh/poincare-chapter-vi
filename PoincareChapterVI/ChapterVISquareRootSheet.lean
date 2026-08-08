@@ -90,6 +90,40 @@ structure ChapterVIFiniteNonvanishingCover
   sampleNorm : ∀ center ∈ samples, sampleMargin ≤ ‖radicand center‖
   error_lt_margin : (lipschitzConstant : ℝ) * coverRadius < sampleMargin
 
+/-- A stronger and cheaper certificate specialized to functions whose real part stays positive
+at the samples.  Its finite field is an ordered real comparison, so the compiled artifact need
+not compute a complex norm or square components. -/
+structure ChapterVIFinitePositiveRealPartCover
+    {A : Type*} [PseudoMetricSpace A] (radicand : A → ℂ) where
+  samples : Finset A
+  coverRadius : ℝ
+  lipschitzConstant : NNReal
+  sampleMargin : ℝ
+  coverRadius_nonneg : 0 ≤ coverRadius
+  sampleMargin_pos : 0 < sampleMargin
+  covers : ∀ x : A, ∃ center ∈ samples, dist x center ≤ coverRadius
+  lipschitz : LipschitzWith lipschitzConstant radicand
+  sampleRealPart : ∀ center ∈ samples, sampleMargin ≤ (radicand center).re
+  error_lt_margin : (lipschitzConstant : ℝ) * coverRadius < sampleMargin
+
+/-- Forgetting the stronger positive-real-part information gives the general finite
+nonvanishing certificate. -/
+def ChapterVIFinitePositiveRealPartCover.toNonvanishingCover
+    {A : Type*} [PseudoMetricSpace A] {radicand : A → ℂ}
+    (certificate : ChapterVIFinitePositiveRealPartCover radicand) :
+    ChapterVIFiniteNonvanishingCover radicand where
+  samples := certificate.samples
+  coverRadius := certificate.coverRadius
+  lipschitzConstant := certificate.lipschitzConstant
+  sampleMargin := certificate.sampleMargin
+  coverRadius_nonneg := certificate.coverRadius_nonneg
+  sampleMargin_pos := certificate.sampleMargin_pos
+  covers := certificate.covers
+  lipschitz := certificate.lipschitz
+  sampleNorm center hcenter :=
+    (certificate.sampleRealPart center hcenter).trans (Complex.re_le_norm _)
+  error_lt_margin := certificate.error_lt_margin
+
 /-- The finite-cover certificate proves that the source function cannot vanish between sample
 points.  This is the continuum bridge that a compiled finite computation must not silently
 assume. -/
@@ -110,6 +144,12 @@ theorem ChapterVIFiniteNonvanishingCover.ne_zero
       _ ≤ (certificate.lipschitzConstant : ℝ) * certificate.coverRadius := by
         exact mul_le_mul_of_nonneg_left hdist certificate.lipschitzConstant.coe_nonneg
   exact (not_lt_of_ge hmargin) certificate.error_lt_margin
+
+theorem ChapterVIFinitePositiveRealPartCover.ne_zero
+    {A : Type*} [PseudoMetricSpace A] {radicand : A → ℂ}
+    (certificate : ChapterVIFinitePositiveRealPartCover radicand) (x : A) :
+    radicand x ≠ 0 :=
+  certificate.toNonvanishingCover.ne_zero x
 
 /-- A finite nonvanishing certificate, together with continuity, automatically produces the
 compatible global square-root sheet. -/

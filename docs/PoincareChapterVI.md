@@ -139,7 +139,9 @@ The source-facing files added after the standalone-project commit are deliberate
 - `ChapterVISquareRootSheet.lean`: packages the covering-space lift through `w -> w^2` and fixes
   the sheet by a chosen base root. Its `ChapterVIFiniteNonvanishingCover` is the compiled-
   certificate boundary: finitely many sample lower bounds plus a cover and Lipschitz estimate
-  prove continuum nonvanishing and construct the sheet without adding an analytic axiom. It also
+  prove continuum nonvanishing and construct the sheet without adding an analytic axiom. The D
+  contour also has a stronger `ChapterVIFinitePositiveRealPartCover`; this lets the compiled
+  artifact check one signed real lower bound per sample instead of a complex norm. It also
   proves that continuous numerator, sheet, and path-velocity data make each outer-arc integral
   converge to a finite endpoint value.
 - `ChapterVIDCertificateContour.lean` and `ChapterVIDOuterArcs.lean`: define the explicit
@@ -147,8 +149,8 @@ The source-facing files added after the standalone-project commit are deliberate
   specialize the finite nonvanishing interface to the two compact outer quarters. Their exact
   rational parametrization `((1-t²)+2ti)/(1+t²)` removes trigonometric constants from the compiled
   grid; norm one, endpoints, and the relevant quadrants are proved algebraically. The companion
-  Python scan is exploratory only; the formal milestone is the future outward-rounded interval
-  certificate, not the sampled minimum.
+  Python scan is exploratory only; the formal milestone is the future LeanCompCert-checked
+  positive-real-part certificate, not the sampled minimum.
 - `ChapterVILeanCompCertRealBridge.lean`: closes one concrete encoding gap in that certificate.
   It turns LeanCompCert's natural-number power inequalities into genuine `Real.rpow` bounds, so a
   compiled fixed-point result can be used by the analytic contour proof without treating the
