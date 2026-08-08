@@ -28,6 +28,11 @@ open scoped Interval ComplexOrder
 
 namespace PoincareChapterVI
 
+/-- The canonical collision root on the local source chart.  On the positive real Morse slice
+this is the same principal square root used in the explicit quadratic-pinch integral. -/
+def chapterVIDPrincipalCollisionRoot (point : ℂ × ℂ) : ℂ :=
+  Complex.sqrt (chapterVIDRadicand point)
+
 /-- The actual principal Morse amplitude restricted to Poincare's real vanishing-cycle slice. -/
 def chapterVIDPrincipalRealMorseAmplitude
     (massProduct : ℂ) (b d : ℤ) (point : ℝ × ℝ) : ℂ :=
@@ -150,6 +155,59 @@ structure ChapterVIDPrincipalLocalSourceModel
     chapterVIDRadicand (chapterVIDRealCriticalMorseSourcePoint (k, v)) =
       (k : ℂ) + (v : ℂ) ^ 2
 
+/-- On the certified local rectangle, the canonical source root is literally the principal root
+of Poincaré's exact normal form `k+v²`. -/
+theorem ChapterVIDPrincipalLocalSourceModel.principalCollisionRoot_eq
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    {k v : ℝ} (hk : k ∈ Set.Icc 0 model.δ)
+    (hv : v ∈ Set.uIcc (-model.L) model.L) :
+    chapterVIDPrincipalCollisionRoot
+        (chapterVIDRealCriticalMorseSourcePoint (k, v)) =
+      Complex.sqrt ((k : ℂ) + (v : ℂ) ^ 2) := by
+  rw [chapterVIDPrincipalCollisionRoot, model.radicand_eq k hk v hv]
+
+/-- Pointwise source-to-Morse pullback for the actual principal integrand.  The only hypothesis
+is the already proved local normal-form identity; the square-root compatibility is discharged
+by choosing `Complex.sqrt` on both sides. -/
+theorem chapterVIDPrincipalCriticalMorse_pullback_oneForm
+    (massProduct : ℂ) (b d : ℤ) (point : ℂ × ℂ) (direction : ℂ)
+    (hradicand :
+      chapterVIDRadicand (chapterVIDCriticalMorseSourcePointAtD point) =
+        point.1 + point.2 ^ 2) :
+    chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalPhiIntegrand massProduct b d
+          chapterVIDPrincipalCollisionRoot
+          (chapterVIDCriticalMorseSourcePointAtD point).1)
+        (chapterVIDCriticalMorseSourcePointAtD point).2
+        (direction * chapterVIDMorseJacobian
+          (chapterVIDCriticalMorseParameterMap
+            deriv_chapterVIDCriticalValue_ne_zero point)) =
+      chapterVIComplexScalarOneForm
+        (fun v ↦ chapterVIDPrincipalMorseAmplitude massProduct b d (point.1, v) /
+          Complex.sqrt (point.1 + v ^ 2))
+        point.2 direction := by
+  have hpull := chapterVIDMorse_pullback_inverseRoot_oneForm
+    (chapterVIDPrincipalSourceNumerator massProduct b d)
+    chapterVIDPrincipalCollisionRoot
+    (fun _ ↦ Complex.sqrt (point.1 + point.2 ^ 2))
+    (chapterVIDCriticalMorseParameterMap
+      deriv_chapterVIDCriticalValue_ne_zero point) direction
+    (by
+      change Complex.sqrt
+          (chapterVIDRadicand (chapterVIDCriticalMorseSourcePointAtD point)) =
+        Complex.sqrt (point.1 + point.2 ^ 2)
+      rw [hradicand])
+  simpa only [chapterVIComplexScalarOneForm_apply,
+    chapterVIDPrincipalPhiIntegrand,
+    chapterVIDCriticalMorseSourcePointAtD,
+    chapterVIDCriticalMorseSourcePoint,
+    chapterVIDMorseSourcePoint,
+    chapterVIDCriticalMorseParameterMap,
+    chapterVIDPrincipalMorseAmplitude,
+    chapterVIDCriticalMorseAmplitudeAtD,
+    chapterVIDCriticalMorseAmplitude] using hpull
+
 /-- The analytic constructions made earlier really supply the complete local source model on a
 single compact rectangle. -/
 theorem exists_chapterVIDPrincipalLocalSourceModel
@@ -237,6 +295,29 @@ theorem chapterVIDPrincipalNormalIntegrand_ofReal
   rw [Complex.real_smul]
   push_cast
   rw [inv_mul_eq_div]
+
+/-- On the local model rectangle, the one-form in Poincaré's literal source coordinate pulls
+back exactly to the principal normal-form one-form used in the logarithmic calculation. -/
+theorem ChapterVIDPrincipalLocalSourceModel.principalSource_pullback_oneForm
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalLocalSourceModel massProduct b d)
+    {k v : ℝ} (hk : k ∈ Set.Icc 0 model.δ)
+    (hv : v ∈ Set.uIcc (-model.L) model.L) (direction : ℂ) :
+    chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalPhiIntegrand massProduct b d
+          chapterVIDPrincipalCollisionRoot
+          (chapterVIDRealCriticalMorseSourcePoint (k, v)).1)
+        (chapterVIDRealCriticalMorseSourcePoint (k, v)).2
+        (direction * chapterVIDMorseJacobian
+          (chapterVIDCriticalMorseParameterMap
+            deriv_chapterVIDCriticalValue_ne_zero ((k : ℂ), (v : ℂ)))) =
+      chapterVIComplexScalarOneForm
+        (chapterVIDPrincipalNormalIntegrand massProduct b d k)
+        (v : ℂ) direction := by
+  simpa [chapterVIDRealCriticalMorseSourcePoint,
+    chapterVIDPrincipalNormalIntegrand] using
+    chapterVIDPrincipalCriticalMorse_pullback_oneForm massProduct b d
+      ((k : ℂ), (v : ℂ)) direction (model.radicand_eq k hk v hv)
 
 /-- The interval integral evaluated below is literally the complex curve integral of the
 normal-form one-form along the straight middle path from `-L` to `L`. -/

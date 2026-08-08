@@ -31,7 +31,10 @@ The explicit global endpoint has analytic order two and reaches the prepared loc
 actual §94 numerator is analytic and nonzero at D. On one certified real rectangle the literal
 source radicand is exactly `k+v²`, its complete numerator/Jacobian amplitude is `C¹`, and Lean
 proves that the fixed symmetric middle-cycle integral divided by `-log k` tends to the nonzero
-amplitude at D. Lean also constructs a canonical global contour in Poincaré's `x^(1/3)` plane:
+amplitude at D. The canonical local source root is defined from the literal radicand; Lean proves
+it is exactly `sqrt(k+v²)` on that rectangle and proves the pointwise pullback identity from
+Poincaré's source one-form to the evaluated Morse one-form, with no residual branch-sign premise.
+Lean also constructs a canonical global contour in Poincaré's `x^(1/3)` plane:
 it starts at the literal unit circle, its radius stays strictly between the two explicit pole
 radii before D, and its endpoint passes through their common collision. The normalized three-arc
 theorem passes the local coefficient to the full contour once this topological family is lifted
