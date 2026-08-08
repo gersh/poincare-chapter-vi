@@ -399,6 +399,13 @@ The strongest newly completed component is the finite algebra in §103:
   synchronization, including exact source-parameter agreement on Poincaré's real affine ray,
   is now unconditional. The remaining regularity target is precisely the connector contribution
   and the geometric five-piece contour identity, rather than an unnamed global remainder.
+- `ChapterVIConnectorRegularity.lean` and `ChapterVIFiveArcDecomposition.lean` isolate the next
+  compiled boundary. For an affine connector, a finite nonvanishing cover now constructs its
+  compatible square-root sheet and proves that its normalized integral has a finite collision
+  limit. Lean also proves the exact path-level decomposition into the two outer quarters, two
+  connectors, and the local pinched middle arc. What remains is to choose the two concrete
+  source connectors, certify their literal radicands, and identify the resulting closed contour
+  with the continued source cycle.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
