@@ -11,6 +11,19 @@ coefficients, complex singularities, Darboux asymptotics, and projective curves.
 
 ## Current result
 
+The classical pinch route in §§95--100 now has a concrete global-to-local spine at Poincaré's
+point D. For the exact parameters `a=-1`, `c=3`, `τ=1/100`, and `β=2`, Lean reconstructs the
+§97 branch calculation: D's branch reaches the collision-curve bifurcation B, its two descendants
+meet `|z|=1` with `|x|<1`, and the other descendant has a unique `|z|=1` endpoint with `|x|>1`.
+The proof uses exact rational inequalities, rigorous exponential bounds, calculus, and the
+intermediate-value theorem; LeanCompCert supplies only the finite certificate isolating D's
+cubic root. A winding-integral theorem then proves that a smooth closed contour cannot avoid two
+such opposite-side singularities as they coalesce. The actual §94 numerator is analytic and
+nonzero at D, the convergent local Morse model is `k+v²`, and the three-arc decomposition isolates
+its nonzero logarithmic middle contribution. The remaining global obligation is to identify the
+physical source-sheet lift with the checked translated contour homotopies and control the two
+regular arcs; the general §98 Riemann-surface discussion is not being represented as complete.
+
 The strongest newly completed component is the finite algebra in §103:
 
 - exact rational spatial Kepler ellipses produce Poincaré's degree-six polynomial;

@@ -252,6 +252,56 @@ theorem chapterVI_curveIntegral_eq_of_holomorphic_homotopy
   (ChapterVISmoothContourDeformation.of_holomorphicScalar
     homotopy mapsInterior hf hfClosure hcontDiff).curveIntegral_eq
 
+/-- A closed one-form also has equal integrals along freely homotopic closed contours.  Unlike
+`chapterVI_curveIntegral_eq_of_holomorphic_homotopy`, the base point may move: the two side
+integrals in Stokes' boundary formula cancel because the homotopy remains closed.  This is the
+topological form needed to follow Poincaré's contour together with a moving singular point. -/
+theorem chapterVI_curveIntegral_eq_of_closed_holomorphic_homotopy
+    {a b : ℂ} {f : ℂ → ℂ} {initial : Path a a} {final : Path b b}
+    {domain : Set ℂ}
+    (homotopy : ContinuousMap.Homotopy (initial : C(I, ℂ)) (final : C(I, ℂ)))
+    (closed : ∀ s : I, homotopy (s, 0) = homotopy (s, 1))
+    (mapsInterior : ∀ s ∈ Ioo (0 : I) 1, ∀ t ∈ Ioo (0 : I) 1,
+      homotopy (s, t) ∈ domain)
+    (hf : DifferentiableOn ℂ f domain)
+    (hfClosure : ContinuousOn f (closure domain))
+    (hcontDiff : ContDiffOn ℝ 2
+      (fun st : ℝ × ℝ ↦
+        Set.IccExtend zero_le_one (homotopy.extend st.1) st.2)
+      (Icc 0 1)) :
+    (∫ᶜ z in initial, chapterVIComplexScalarOneForm f z) =
+      ∫ᶜ z in final, chapterVIComplexScalarOneForm f z := by
+  let dω := chapterVIComplexScalarOneFormDerivative f domain
+  have hboundary :=
+    homotopy.curveIntegral_add_curveIntegral_eq_of_hasFDerivWithinAt
+      (ω := chapterVIComplexScalarOneForm f) (dω := dω)
+      mapsInterior
+      (fun z hz ↦ hasFDerivWithinAt_chapterVIComplexScalarOneForm (hf z hz))
+      (by
+        change ContinuousOn (fun z ↦ ContinuousLinearMap.smulRight 1 (f z))
+          (closure domain)
+        exact (ContinuousLinearMap.smulRightL ℂ ℂ ℂ 1).continuous.comp_continuousOn
+          hfClosure)
+      (fun z _ u _ v _ ↦
+        chapterVIComplexScalarOneFormDerivative_symmetric f domain z u v)
+      hcontDiff
+  have hsource : (initial : C(I, ℂ)) 0 = initial 1 := by simp
+  have htarget : (final : C(I, ℂ)) 0 = final 1 := by simp
+  have hsidePath :
+      (homotopy.evalAt 1).cast hsource htarget = homotopy.evalAt 0 := by
+    ext s
+    exact (closed s).symm
+  have hsideIntegral :
+      (∫ᶜ z in homotopy.evalAt 1, chapterVIComplexScalarOneForm f z) =
+        ∫ᶜ z in homotopy.evalAt 0, chapterVIComplexScalarOneForm f z := by
+    calc
+      (∫ᶜ z in homotopy.evalAt 1, chapterVIComplexScalarOneForm f z) =
+          ∫ᶜ z in (homotopy.evalAt 1).cast hsource htarget,
+            chapterVIComplexScalarOneForm f z := (curveIntegral_cast ..).symm
+      _ = _ := by rw [hsidePath]
+  rw [hsideIntegral] at hboundary
+  exact add_right_cancel hboundary
+
 /-- Direct contour-transport theorem for the prepared inverse square-root branch constructed in
 `ChapterVIComplexBranch`. -/
 theorem chapterVI_preparedInverseSquareRoot_curveIntegral_eq

@@ -8,6 +8,8 @@ import Mathlib.Analysis.Fourier.AddCircle
 import PoincareChapterVI.ChapterVIContour
 import PoincareChapterVI.ChapterVIPhi
 import PoincareChapterVI.ChapterVICycleDecomposition
+import PoincareChapterVI.ChapterVIWindingObstruction
+import PoincareChapterVI.ChapterVIDAdmissibility
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra
@@ -80,8 +82,11 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `chapterVIOrientationCoefficient` below records the corresponding one-circle coefficient, but
   is not itself Poincaré's full two-variable perturbing function.
 * §95 (pp. 285--287): Poincaré characterizes candidate singularities of `Phi` by pinching two
-  moving singularities of its contour integrand. This parameterized contour-deformation theorem is
-  not yet formalized.
+  moving singularities of its contour integrand. Lean now proves invariance of the winding
+  integral under a free closed smooth contour homotopy and the resulting obstruction: poles whose
+  translated contours initially have winding numbers one and zero cannot coalesce while one
+  smoothly transported closed contour avoids both. Identifying a complete physical source-sheet
+  lift with the translated homotopies remains the global interface to this theorem.
 * §96 (pp. 287--295): `chapterVI_planarKeplerCoordinate_mul_conjugate` verifies
   `ξ ξ₀ = (1 - sin φ cos u)²`. `chapterVI_planarSourceRadicand_exp` identifies Poincaré's
   concrete Laurent radicand with `(ξ - βη)(ξ₀ - β₀η₀)`, and
@@ -98,8 +103,14 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   as the two source collision factors and reduces exact fiber order two to the four finite checks
   `H=0`, `H'=0`, `H''≠0`, and `H₀≠0` at the selected source point.
 * §97--98 (pp. 295--314): Poincaré decides by contour deformation which candidate singularities
-  are admissible. This Riemann-surface and contour-deformation argument is **not yet formalized**.
-  Poincaré himself describes the general discussion in §98 as only sketched.
+  are admissible. For the concrete planar D instance, Lean now reconstructs the decisive §97
+  calculation rather than assuming the drawing: it proves the exact collision-curve intersection
+  at B, differentiates the branch modulus, isolates the unique exterior `|z|=1` endpoint with
+  `-100<x<-1`, and uses exact exponential bounds plus the intermediate-value theorem to construct
+  both descendants through B with `|x|<1`. Thus D has exactly the terminal inside/inside/outside
+  configuration asserted by Poincaré. The winding obstruction formalizes why opposite sides force
+  a genuine pinch. Poincaré's general Riemann-surface continuation in §98 remains a sketch in the
+  source and is not claimed here.
 * §99--101 (pp. 314--325): local singular expansions and Darboux asymptotics show that high-order
   resonant coefficients do not vanish. `exists_chapterVI_weierstrassNormalForm` applies
   Weierstrass preparation to a bivariate formal series whose parameter specialization has order
