@@ -1,5 +1,6 @@
 import PoincareChapterVI.ChapterVIAnalyticCriticalCenter
 import PoincareChapterVI.ChapterVIComplexBranch
+import PoincareChapterVI.FiberHadamard
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.Complex.HasPrimitives
 import Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv
@@ -12,8 +13,8 @@ source radicand into coordinates centered on it.  The resulting germ is analytic
 entire parameter axis, has zero first fiber derivative along that axis near D, and has nonzero
 second fiber derivative at D.
 
-Thus the remaining convergent-preparation problem is no longer hidden inside a pointwise jet: it
-is precisely analytic division of this centered germ by the square of its second coordinate.
+The reusable analytic Hadamard lemma in `FiberHadamard.lean` then divides this centered germ twice
+by its fiber coordinate and produces a jointly analytic nonvanishing unit.
 -/
 
 open Filter
@@ -204,8 +205,9 @@ theorem analyticOrderAt_chapterVIDCenteredRadicand_eq_two :
 
 /-- The canonical candidate for the jointly analytic unit after square division.  Away from the
 centered parameter axis it is the literal quotient by `u²`; on the axis it is filled in by the
-Taylor value `∂²ᵤ ψ / 2`.  The exact factorization below is algebraic.  Proving that this
-piecewise function is analytic at `(z_D,0)` is precisely the remaining removable-division lemma. -/
+Taylor value `∂²ᵤ ψ / 2`.  The exact factorization below is algebraic.  A jointly analytic unit is
+constructed later by convergent Hadamard division; identifying this particular piecewise
+representative with it on the axis is kept as a separate normalization question. -/
 noncomputable def chapterVIDCenteredJointUnit (point : ℂ × ℂ) : ℂ :=
   if point.2 = 0 then
     (2 : ℂ)⁻¹ * chapterVISecondFiberDerivative chapterVIDCenteredRadicand point
@@ -299,6 +301,82 @@ theorem eventually_chapterVIDCenteredFiberUnit_ne_zero :
   analyticAt_chapterVIDCenteredFiberUnit.continuousAt.eventually_ne
     chapterVIDCenteredFiberUnit_zero_ne
 
+/-! ## Joint convergent square division -/
+
+/-- The exact centered radicand admits a genuinely joint two-variable analytic square division
+near `(z_D,0)`, and its quotient is a unit.  This is the convergent Hadamard-division step that
+cannot be replaced by a finite jet certificate. -/
+theorem exists_chapterVIDCenteredJointAnalyticUnit :
+    ∃ unit : ℂ × ℂ → ℂ,
+      AnalyticAt ℂ unit (chapterVIDZBase, 0) ∧
+      unit (chapterVIDZBase, 0) ≠ 0 ∧
+      ∀ᶠ point in nhds (chapterVIDZBase, (0 : ℂ)),
+        chapterVIDCenteredRadicand point = point.2 ^ 2 * unit point := by
+  obtain ⟨sourceSeries, hsourceSeries⟩ :=
+    exists_hasFPowerSeriesAt_chapterVIDCenteredRadicand
+  have hsourceAxis : ∀ᶠ z in nhds chapterVIDZBase,
+      chapterVIDCenteredRadicand (z, 0) = 0 :=
+    Filter.Eventually.of_forall chapterVIDCenteredRadicand_axis_eq_zero
+  obtain ⟨firstQuotient, hfirstSeries, hfirstFactor⟩ :=
+    exists_hasFPowerSeriesAt_fiberHadamard chapterVIDCenteredRadicand
+      sourceSeries (chapterVIDZBase, (0 : ℂ)) rfl hsourceSeries hsourceAxis
+  have hfirstAnalytic : AnalyticAt ℂ firstQuotient (chapterVIDZBase, 0) :=
+    hfirstSeries.analyticAt
+  have hfirstAxisDeriv : ∀ᶠ z in nhds chapterVIDZBase,
+      firstQuotient (z, 0) =
+        deriv (fun u ↦ chapterVIDCenteredRadicand (z, u)) 0 :=
+    eventually_fiberHadamard_quotient_axis_eq_deriv
+      chapterVIDCenteredRadicand firstQuotient (chapterVIDZBase, (0 : ℂ)) rfl
+      analyticAt_chapterVIDCenteredRadicand hfirstAnalytic hfirstFactor
+  have hfirstAxisZero : ∀ᶠ z in nhds chapterVIDZBase,
+      firstQuotient (z, 0) = 0 := by
+    filter_upwards [hfirstAxisDeriv,
+      eventually_deriv_chapterVIDCenteredRadicand_axis_eq_zero]
+      with z hzQuotient hzDeriv
+    rw [hzQuotient, hzDeriv]
+  obtain ⟨unit, hunitSeries, hsecondFactor⟩ :=
+    exists_hasFPowerSeriesAt_fiberHadamard firstQuotient
+      (chapterVIFiberHadamardSeries sourceSeries)
+      (chapterVIDZBase, (0 : ℂ)) rfl hfirstSeries hfirstAxisZero
+  have hunitAnalytic : AnalyticAt ℂ unit (chapterVIDZBase, 0) :=
+    hunitSeries.analyticAt
+  have hjointFactor : ∀ᶠ point in nhds (chapterVIDZBase, (0 : ℂ)),
+      chapterVIDCenteredRadicand point = point.2 ^ 2 * unit point := by
+    filter_upwards [hfirstFactor, hsecondFactor] with point hfirst hsecond
+    rw [hfirst, hsecond]
+    ring
+  have hsingularFiberMap : Filter.Tendsto
+      (fun u : ℂ ↦ (chapterVIDZBase, u))
+      (nhds 0) (nhds (chapterVIDZBase, (0 : ℂ))) :=
+    continuousAt_const.prodMk continuousAt_id
+  have hjointFiber : ∀ᶠ u in nhds 0,
+      chapterVIDCenteredRadicand (chapterVIDZBase, u) =
+        u ^ 2 * unit (chapterVIDZBase, u) :=
+    hsingularFiberMap.eventually hjointFactor
+  have hunitFiberAnalytic : AnalyticAt ℂ
+      (fun u : ℂ ↦ unit (chapterVIDZBase, u)) 0 :=
+    hunitAnalytic.curry_right
+  have hunitEqFiberUnitPunctured :
+      (fun u : ℂ ↦ unit (chapterVIDZBase, u)) =ᶠ[nhdsWithin 0 ({0}ᶜ : Set ℂ)]
+        chapterVIDCenteredFiberUnit := by
+    filter_upwards [hjointFiber.filter_mono nhdsWithin_le_nhds,
+      eventually_chapterVIDCenteredRadicand_eq_sq_mul_fiberUnit.filter_mono
+        nhdsWithin_le_nhds,
+      self_mem_nhdsWithin] with u hjoint hfiber hu
+    apply mul_left_cancel₀ (pow_ne_zero 2 hu)
+    exact hjoint.symm.trans hfiber
+  have hunitEqFiberUnit :
+      (fun u : ℂ ↦ unit (chapterVIDZBase, u)) =ᶠ[nhds 0]
+        chapterVIDCenteredFiberUnit :=
+    (hunitFiberAnalytic.continuousAt.eventuallyEq_nhds_iff_eventuallyEq_nhdsNE
+      analyticAt_chapterVIDCenteredFiberUnit.continuousAt).mp
+        hunitEqFiberUnitPunctured
+  have hunitBase : unit (chapterVIDZBase, 0) = chapterVIDCenteredFiberUnit 0 :=
+    hunitEqFiberUnit.self_of_nhds
+  refine ⟨unit, hunitAnalytic, ?_, hjointFactor⟩
+  rw [hunitBase]
+  exact chapterVIDCenteredFiberUnit_zero_ne
+
 /-! ## Fiberwise preparation near D -/
 
 /-- The complete centered radicand remains analytic at `(z,0)` for every nearby parameter. -/
@@ -345,8 +423,8 @@ theorem eventually_analyticOrderAt_chapterVIDCenteredRadicand_axis_eq_two :
   exact hzSecond
 
 /-- Consequently every nearby parameter fiber admits a convergent square division by a
-nonvanishing one-variable analytic unit.  The remaining Weierstrass problem is to choose these
-units *jointly analytically* in the parameter. -/
+nonvanishing one-variable analytic unit.  The joint analytic choice has already been supplied
+above by two applications of analytic Hadamard division. -/
 theorem eventually_exists_chapterVIDCenteredFiberUnit :
     ∀ᶠ z in nhds chapterVIDZBase,
       ∃ unit : ℂ → ℂ,

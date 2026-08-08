@@ -173,12 +173,12 @@ The strongest newly completed component is the finite algebra in §103:
 - translating by that center and subtracting its analytic critical value now produces a complete
   convergent two-variable germ that vanishes identically on the parameter axis. Its first fiber
   derivative vanishes on that axis near D, while its second fiber derivative at D is proved
-  nonzero. On the singular fiber, Lean now uses analytic order to divide by the square exactly and
-  obtains a convergent analytic unit that stays nonzero near the pinch. The remaining local
-  preparation obligation is the joint parameter-dependent square division, rather than an
-  unspecified correspondence between a finite jet and the source function. Lean also proves
-  that every sufficiently nearby centered fiber has exact order two and its own convergent
-  nonvanishing unit; only the jointly analytic choice is missing. For the singular fiber itself,
+  nonzero. Lean now proves a convergent two-variable Hadamard-division theorem, applies it twice,
+  and obtains a jointly analytic unit `U(z,u)` with `ψ(z,u)=u²U(z,u)` near D. Comparison with the
+  singular-fiber order-two factorization proves `U(D,0) ≠ 0`. This closes the local joint square
+  division without treating any finite jet as a convergence proof. Lean also proves that every
+  sufficiently nearby centered fiber has exact order two and its own convergent nonvanishing
+  unit. For the singular fiber itself,
   a locally chosen holomorphic square root of the unit now yields an inverse-square-root branch
   holomorphic off the pinch and certified against the actual radicand. Lean further decomposes
   this actual branch as `A(0)/u + R(u)`, where `A(0) ≠ 0` and `R` is analytic at the pinch.
@@ -186,8 +186,9 @@ The strongest newly completed component is the finite algebra in §103:
   of the form `A(0) log u + Q(u)`, with `Q′ = R`; thus the nonzero logarithmic singularity is now
   obtained at function level on the singular fiber. The canonical joint-unit candidate is also
   defined explicitly as the quotient by `u²`, filled in on the axis by `∂²ᵤψ/2`. Its exact
-  factorization is proved everywhere and its analyticity is proved off the axis. The remaining
-  local preparation step is exactly the removable analyticity of that candidate on the axis.
+  factorization is proved everywhere and its analyticity is proved off the axis. Identifying this
+  specifically normalized piecewise representative with the constructed analytic unit on the
+  axis remains separate from the now-complete existence of a joint analytic square quotient.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
