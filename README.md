@@ -155,7 +155,10 @@ The strongest newly completed component is the finite algebra in §103:
   inverse square-root branch.
 - the formal-to-analytic identity boundary is explicit. If the actual radicand and its prepared
   expression are proved to realize the same convergent multivariable power series, Lean proves
-  their equality on a neighborhood and proves the prepared unit remains nonzero there. A
+  their equality on a neighborhood and proves the prepared unit remains nonzero there. Local
+  analyticity then constructs the unit's holomorphic square-root germ without any global
+  extension assumption. Lean builds the natural open punctured quadratic chart and verifies that
+  its holomorphic inverse branch squares against the original radicand to one. A
   LeanCompCert certificate may discharge large finite coefficient comparisons used in this
   construction, but no fixed finite jet is treated as convergence or equality of analytic germs.
 

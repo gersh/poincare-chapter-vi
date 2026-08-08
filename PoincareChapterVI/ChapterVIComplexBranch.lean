@@ -5,6 +5,8 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.Complex.SqrtDeriv
+import Mathlib.Analysis.Calculus.FDeriv.Analytic
+import Mathlib.Analysis.Analytic.ChangeOrigin
 
 /-!
 # Compatible square-root branches for Poincaré's prepared pinch
@@ -19,13 +21,15 @@ the quadratic factor and the analytic unit take values in `Complex.slitPlane`.  
 the product of the two principal square roots is holomorphic, squares to the prepared radicand,
 and has a holomorphic inverse.
 
-The remaining source work is geometric: construct a neighborhood of Poincaré's transported cycle
-on which the actual prepared factors satisfy these slit-plane hypotheses.
+`ChapterVIAnalyticPreparation.lean` applies these constructions to a convergent prepared germ and
+proves correctness for its actual radicand.  The remaining source work is geometric: construct a
+neighborhood of Poincaré's transported cycle on which the actual quadratic factor satisfies the
+slit-plane hypothesis.
 -/
 
 noncomputable section
 
-open Set
+open Set Topology
 
 namespace PoincareChapterVI
 
@@ -224,6 +228,76 @@ noncomputable def ChapterVIHolomorphicSquareRootGerm.of_differentiable
           intro x hx
           exact mul_ne_zero Complex.I_ne_zero
             (Complex.sqrt_ne_zero_of_mem_slitPlane hx) }
+
+/-- Every analytic unit germ that is nonzero at its base point admits a local holomorphic square
+root.  Unlike `of_differentiable`, this constructor makes no global regularity assumption.  Its
+domain is cut down to the open analytic locus and the interior of the appropriate slit-plane
+preimage. -/
+noncomputable def ChapterVIHolomorphicSquareRootGerm.of_analyticAt
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℂ X]
+    {unit : X → ℂ} {base : X}
+    (hunit : AnalyticAt ℂ unit base) (hbase : unit base ≠ 0) :
+    ChapterVIHolomorphicSquareRootGerm unit base := by
+  classical
+  let analyticLocus : Set X := {x | AnalyticAt ℂ unit x}
+  have hopenAnalytic : IsOpen analyticLocus := isOpen_analyticAt ℂ unit
+  have hbaseAnalytic : base ∈ analyticLocus := hunit
+  by_cases hprincipal : unit base ∈ Complex.slitPlane
+  · have hpreimage : unit ⁻¹' Complex.slitPlane ∈ 𝓝 base :=
+      hunit.continuousAt
+        (Complex.isOpen_slitPlane.mem_nhds hprincipal)
+    have hbaseInterior : base ∈ interior (unit ⁻¹' Complex.slitPlane) :=
+      mem_interior_iff_mem_nhds.mpr hpreimage
+    have hinterior : interior (unit ⁻¹' Complex.slitPlane) ⊆
+        unit ⁻¹' Complex.slitPlane := interior_subset
+    exact
+      { domain := analyticLocus ∩ interior (unit ⁻¹' Complex.slitPlane)
+        isOpen_domain := hopenAnalytic.inter isOpen_interior
+        base_mem := ⟨hbaseAnalytic, hbaseInterior⟩
+        root := fun x ↦ Complex.sqrt (unit x)
+        differentiableOn_root := by
+          apply Complex.differentiableOn_sqrt.fun_comp
+          · intro x hx
+            exact hx.1.differentiableAt.differentiableWithinAt
+          · intro x hx
+            exact hinterior hx.2
+        root_sq := fun _ hx ↦
+          Complex.sq_sqrt_of_mem_slitPlane (hinterior hx.2)
+        root_ne_zero := fun _ hx ↦
+          Complex.sqrt_ne_zero_of_mem_slitPlane (hinterior hx.2) }
+  · have hrotated : -unit base ∈ Complex.slitPlane :=
+      (Complex.mem_slitPlane_or_neg_mem_slitPlane hbase).resolve_left hprincipal
+    have hnegativeAnalytic : AnalyticAt ℂ (fun x ↦ -unit x) base := hunit.neg
+    have hpreimage : (fun x ↦ -unit x) ⁻¹' Complex.slitPlane ∈ 𝓝 base :=
+      hnegativeAnalytic.continuousAt
+        (Complex.isOpen_slitPlane.mem_nhds hrotated)
+    have hbaseInterior : base ∈
+        interior ((fun x ↦ -unit x) ⁻¹' Complex.slitPlane) :=
+      mem_interior_iff_mem_nhds.mpr hpreimage
+    have hinterior : interior ((fun x ↦ -unit x) ⁻¹' Complex.slitPlane) ⊆
+        (fun x ↦ -unit x) ⁻¹' Complex.slitPlane := interior_subset
+    exact
+      { domain := analyticLocus ∩
+          interior ((fun x ↦ -unit x) ⁻¹' Complex.slitPlane)
+        isOpen_domain := hopenAnalytic.inter isOpen_interior
+        base_mem := ⟨hbaseAnalytic, hbaseInterior⟩
+        root := fun x ↦ Complex.I * Complex.sqrt (-unit x)
+        differentiableOn_root := by
+          apply DifferentiableOn.const_mul
+          apply Complex.differentiableOn_sqrt.fun_comp
+          · intro x hx
+            exact hx.1.differentiableAt.neg.differentiableWithinAt
+          · intro x hx
+            exact hinterior hx.2
+        root_sq := by
+          intro x hx
+          rw [mul_pow, Complex.I_sq,
+            Complex.sq_sqrt_of_mem_slitPlane (hinterior hx.2)]
+          ring
+        root_ne_zero := by
+          intro x hx
+          exact mul_ne_zero Complex.I_ne_zero
+            (Complex.sqrt_ne_zero_of_mem_slitPlane (hinterior hx.2)) }
 
 /-- Combine the principal branch of the quadratic factor with an arbitrary local holomorphic
 square-root germ of the analytic unit. -/

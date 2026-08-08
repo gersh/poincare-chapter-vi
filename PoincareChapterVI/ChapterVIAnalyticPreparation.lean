@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import Mathlib.Analysis.Analytic.Basic
+import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVIWeierstrass
 
 /-!
@@ -27,7 +28,7 @@ convergence or equality of analytic germs; those remain analytic proof obligatio
 
 noncomputable section
 
-open Filter Topology
+open Filter Set Topology
 
 namespace PoincareChapterVI
 
@@ -86,6 +87,11 @@ namespace ChapterVIConvergentPreparedGerm
 
 variable {radicand : ℂ × ℂ → ℂ} {base : ℂ × ℂ}
 
+/-- The completed-square quadratic factor of a convergent prepared germ. -/
+def quadratic (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    ℂ × ℂ → ℂ :=
+  fun point ↦ (point.2 - germ.center point.1) ^ 2 + germ.kappa point.1
+
 /-- The completed-square factorization holds as an equality of actual functions near the base
 point, once both sides have been identified with the same convergent series. -/
 theorem eventually_factorization
@@ -102,6 +108,25 @@ theorem eventually_unit_ne_zero
     ∀ᶠ point in 𝓝 base, germ.unit point ≠ 0 :=
   germ.unitHasFPowerSeries.continuousAt.eventually_ne germ.unit_base_ne_zero
 
+/-- The factorization and nonvanishing of the prepared unit hold together on one actual open
+neighbourhood of the pinch point. -/
+theorem exists_open_factorization_neighborhood
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    ∃ neighborhood : Set (ℂ × ℂ),
+      IsOpen neighborhood ∧ base ∈ neighborhood ∧
+      ∀ point ∈ neighborhood,
+        radicand point = germ.quadratic point * germ.unit point ∧
+          germ.unit point ≠ 0 := by
+  have heventually : ∀ᶠ point in 𝓝 base,
+      radicand point = germ.quadratic point * germ.unit point ∧
+        germ.unit point ≠ 0 := by
+    filter_upwards [germ.eventually_factorization, germ.eventually_unit_ne_zero]
+      with point hfactor hunit
+    exact ⟨hfactor, hunit⟩
+  rcases eventually_nhds_iff.mp heventually with
+    ⟨neighborhood, hall, hopen, hbase⟩
+  exact ⟨neighborhood, hopen, hbase, hall⟩
+
 /-- The three prepared factors are analytic at their relevant base points. -/
 theorem analytic_factors
     (germ : ChapterVIConvergentPreparedGerm radicand base) :
@@ -111,6 +136,162 @@ theorem analytic_factors
   ⟨germ.centerHasFPowerSeries.analyticAt,
     germ.kappaHasFPowerSeries.analyticAt,
     germ.unitHasFPowerSeries.analyticAt⟩
+
+/-- The automatically selected local holomorphic square root of the prepared unit.  This uses
+only the unit's convergent germ, not a global holomorphic extension. -/
+noncomputable def unitRootGerm
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    ChapterVIHolomorphicSquareRootGerm germ.unit base :=
+  ChapterVIHolomorphicSquareRootGerm.of_analyticAt
+    germ.unitHasFPowerSeries.analyticAt germ.unit_base_ne_zero
+
+/-- The square-root branch obtained by combining the principal quadratic branch with the local
+unit-root germ. -/
+noncomputable def squareRoot
+    (germ : ChapterVIConvergentPreparedGerm radicand base) : ℂ × ℂ → ℂ :=
+  chapterVIPreparedSquareRootFromUnitGerm germ.quadratic germ.unitRootGerm
+
+/-- The inverse square root appearing in Poincare's prepared contour integrand. -/
+noncomputable def inverseSquareRoot
+    (germ : ChapterVIConvergentPreparedGerm radicand base) : ℂ × ℂ → ℂ :=
+  chapterVIPreparedInverseSquareRootFromUnitGerm germ.quadratic germ.unitRootGerm
+
+/-- The open locus on which the parameter factors `center` and `kappa` are analytic.  Convergence
+at the base point ensures that this locus contains the base point. -/
+def analyticFactorDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) : Set (ℂ × ℂ) :=
+  {point | AnalyticAt ℂ germ.center point.1} ∩
+    {point | AnalyticAt ℂ germ.kappa point.1}
+
+theorem isOpen_analyticFactorDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    IsOpen germ.analyticFactorDomain := by
+  exact ((isOpen_analyticAt ℂ germ.center).preimage continuous_fst).inter
+    ((isOpen_analyticAt ℂ germ.kappa).preimage continuous_fst)
+
+theorem base_mem_analyticFactorDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    base ∈ germ.analyticFactorDomain :=
+  ⟨germ.centerHasFPowerSeries.analyticAt,
+    germ.kappaHasFPowerSeries.analyticAt⟩
+
+/-- The completed-square quadratic is holomorphic on the local analytic-factor locus. -/
+theorem differentiableOn_quadratic
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    DifferentiableOn ℂ germ.quadratic germ.analyticFactorDomain := by
+  intro point hpoint
+  have hcenter : DifferentiableAt ℂ
+      (fun x : ℂ × ℂ ↦ germ.center x.1) point :=
+    hpoint.1.differentiableAt.comp point (by fun_prop)
+  have hkappa : DifferentiableAt ℂ
+      (fun x : ℂ × ℂ ↦ germ.kappa x.1) point :=
+    hpoint.2.differentiableAt.comp point (by fun_prop)
+  have hcoordinate : DifferentiableAt ℂ (fun x : ℂ × ℂ ↦ x.2) point := by
+    fun_prop
+  exact (((hcoordinate.sub hcenter).pow 2).add hkappa).differentiableWithinAt
+
+/-- The natural open punctured chart for the prepared inverse square root.  The interior is used
+because the quadratic factor vanishes at the pinch itself, while its chosen square-root branch is
+defined on a slit neighbourhood away from that zero. -/
+def branchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) : Set (ℂ × ℂ) :=
+  (germ.analyticFactorDomain ∩
+    interior (germ.quadratic ⁻¹' Complex.slitPlane)) ∩
+      germ.unitRootGerm.domain
+
+theorem isOpen_branchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    IsOpen germ.branchDomain :=
+  (germ.isOpen_analyticFactorDomain.inter isOpen_interior).inter
+    germ.unitRootGerm.isOpen_domain
+
+/-- The constructed inverse square root is holomorphic on its natural local punctured chart. -/
+theorem differentiableOn_inverseSquareRoot
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    DifferentiableOn ℂ germ.inverseSquareRoot germ.branchDomain := by
+  have hquadratic : DifferentiableOn ℂ germ.quadratic germ.branchDomain :=
+    germ.differentiableOn_quadratic.mono fun _ hx ↦ hx.1.1
+  have hquadraticMap : MapsTo germ.quadratic germ.branchDomain Complex.slitPlane := by
+    have hinterior : interior (germ.quadratic ⁻¹' Complex.slitPlane) ⊆
+        germ.quadratic ⁻¹' Complex.slitPlane := interior_subset
+    intro point hpoint
+    exact hinterior hpoint.1.2
+  have hroot : DifferentiableOn ℂ germ.unitRootGerm.root germ.branchDomain :=
+    germ.unitRootGerm.differentiableOn_root.mono fun _ hx ↦ hx.2
+  have hbranch : DifferentiableOn ℂ germ.squareRoot germ.branchDomain := by
+    exact (Complex.differentiableOn_sqrt.fun_comp hquadratic hquadraticMap).mul hroot
+  apply hbranch.inv
+  intro point hpoint
+  exact chapterVIPreparedSquareRootFromUnitGerm_ne_zero
+    germ.unitRootGerm (hquadraticMap hpoint) hpoint.2
+
+/-- On the local factorization neighbourhood and the quadratic slit chart, the constructed
+square root squares to the *actual* radicand, rather than merely to the prepared expression. -/
+theorem squareRoot_sq_eq_radicand
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    {point : ℂ × ℂ}
+    (hfactorization :
+      radicand point = germ.quadratic point * germ.unit point)
+    (hquadratic : germ.quadratic point ∈ Complex.slitPlane)
+    (hunit : point ∈ germ.unitRootGerm.domain) :
+    germ.squareRoot point ^ 2 = radicand point := by
+  rw [hfactorization]
+  exact chapterVIPreparedSquareRootFromUnitGerm_sq
+    germ.unitRootGerm hquadratic hunit
+
+/-- Algebraic correctness of the constructed inverse branch for the actual radicand. -/
+theorem inverseSquareRoot_sq_mul_radicand
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    {point : ℂ × ℂ}
+    (hfactorization :
+      radicand point = germ.quadratic point * germ.unit point)
+    (hquadratic : germ.quadratic point ∈ Complex.slitPlane)
+    (hunit : point ∈ germ.unitRootGerm.domain) :
+    germ.inverseSquareRoot point ^ 2 * radicand point = 1 := by
+  rw [hfactorization]
+  exact chapterVIPreparedInverseSquareRootFromUnitGerm_sq_mul
+    germ.unitRootGerm hquadratic hunit
+
+/-- Membership in the natural branch domain supplies both branch hypotheses automatically. -/
+theorem inverseSquareRoot_sq_mul_radicand_of_mem_branchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    {point : ℂ × ℂ}
+    (hfactorization :
+      radicand point = germ.quadratic point * germ.unit point)
+    (hpoint : point ∈ germ.branchDomain) :
+    germ.inverseSquareRoot point ^ 2 * radicand point = 1 := by
+  have hinterior : interior (germ.quadratic ⁻¹' Complex.slitPlane) ⊆
+      germ.quadratic ⁻¹' Complex.slitPlane := interior_subset
+  exact germ.inverseSquareRoot_sq_mul_radicand hfactorization
+    (hinterior hpoint.1.2) hpoint.2
+
+/-- There is one open neighbourhood of the pinch on whose punctured branch chart the constructed
+holomorphic inverse branch is an actual inverse square root of the original radicand. -/
+theorem exists_open_inverseSquareRoot_neighborhood
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    ∃ neighborhood : Set (ℂ × ℂ),
+      IsOpen neighborhood ∧ base ∈ neighborhood ∧
+      ∀ point ∈ neighborhood ∩ germ.branchDomain,
+        germ.inverseSquareRoot point ^ 2 * radicand point = 1 := by
+  rcases germ.exists_open_factorization_neighborhood with
+    ⟨neighborhood, hopen, hbase, hfactorization⟩
+  refine ⟨neighborhood, hopen, hbase, ?_⟩
+  intro point hpoint
+  exact germ.inverseSquareRoot_sq_mul_radicand_of_mem_branchDomain
+    (hfactorization point hpoint.1).1 hpoint.2
+
+/-- Near the pinch, every point lying in the quadratic slit chart and the automatically chosen
+unit-root chart satisfies the inverse-square-root equation for the actual radicand. -/
+theorem eventually_inverseSquareRoot_sq_mul_radicand
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    ∀ᶠ point in 𝓝 base,
+      germ.quadratic point ∈ Complex.slitPlane →
+      point ∈ germ.unitRootGerm.domain →
+      germ.inverseSquareRoot point ^ 2 * radicand point = 1 := by
+  filter_upwards [germ.eventually_factorization] with point hfactorization
+  intro hquadratic hunit
+  exact germ.inverseSquareRoot_sq_mul_radicand
+    hfactorization hquadratic hunit
 
 end ChapterVIConvergentPreparedGerm
 
