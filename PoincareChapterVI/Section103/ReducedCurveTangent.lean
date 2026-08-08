@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import PoincareChapterVI.ChapterVICurveAlgebra
 import PoincareChapterVI.Section103.AffineIntersectionCount
+import PoincareChapterVI.Section103.AffineTransversality
 import PoincareChapterVI.Section103.LocalIntersection
 import PoincareChapterVI.Section103.SingularityParameterTangent
 
@@ -29,6 +30,7 @@ namespace PoincareChapterVI.ReducedCurveTangent
 open scoped BigOperators
 open Section103Source
 open AffineIntersectionCount
+open AffineTransversality
 open SingularityParameterTangent
 
 private abbrev Bivar := MvPolynomial (Fin 2) ℂ
@@ -260,5 +262,163 @@ theorem finiteIntersectionPoint_constantSingularityTangentDerivative_eq_zero
   have hcommon :=
     (common_zero_iff_origin_or_finiteIntersectionPoints point).mpr (Or.inr hpoint)
   exact clearedCurve_constantSingularityTangentDerivative_eq_zero point hcommon.1 hcommon.2
+
+/-- Neither affine coordinate vanishes at any of the twenty-four finite intersections. -/
+theorem finiteIntersectionPoint_coordinates_ne_zero
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    point 0 ≠ 0 ∧ point 1 ≠ 0 := by
+  have hy := point_one_ne_zero_of_mem_finiteIntersectionPoints point hpoint
+  refine ⟨?_, hy⟩
+  intro hx
+  have hcurve :=
+    (common_zero_iff_origin_or_finiteIntersectionPoints point).mpr (Or.inr hpoint) |>.1
+  have hsource := eval_sourceAffineCurve_eq_zero point hcurve
+  have hformula :
+      MvPolynomial.eval point sourceAffineCurve = (9 / 100 : ℂ) * (point 1) ^ 2 := by
+    simp [sourceAffineCurve, sourceAffineCubic, chapterVICurvePolynomial,
+      chapterVICubicFamily, chapterVICubicForm,
+      chapterVISection103_cubicCoefficient_eq_complexTable,
+      chapterVISection103CubicComplexCoefficient, Fin.sum_univ_succ,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
+      Matrix.cons_val_three, Matrix.cons_val_four, Matrix.head_cons,
+      Matrix.tail_cons, Fin.isValue, hx]
+    ring_nf
+    rw [Complex.I_sq]
+    ring
+  rw [hformula] at hsource
+  have hyPow : (point 1) ^ 2 = 0 :=
+    (mul_eq_zero.mp hsource).resolve_left (by norm_num)
+  exact hy ((pow_eq_zero_iff (by decide : (2 : ℕ) ≠ 0)).mp hyPow)
+
+private theorem sourceSextic_ne_zero_at_logCriticalPair
+    (x y : ℂ)
+    (hx : x = 1 / 3 ∨ x = 3) (hy : y = 1 / 5 ∨ y = 5) :
+    MvPolynomial.eval ![x, y] chapterVISection103AffinePolynomial ≠ 0 := by
+  have hsource : MvPolynomial.eval ![x, y] sourceAffineCurve ≠ 0 := by
+    rcases hx with rfl | rfl <;> rcases hy with rfl | rfl <;>
+      intro hzero <;> have hre := congrArg Complex.re hzero <;>
+      norm_num (config := { maxSteps := 1000000 })
+        [sourceAffineCurve, sourceAffineCubic, chapterVICurvePolynomial,
+        chapterVICubicFamily, chapterVICubicForm,
+        chapterVISection103_cubicCoefficient_eq_complexTable,
+        chapterVISection103CubicComplexCoefficient, Fin.sum_univ_succ,
+        Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
+        Matrix.cons_val_three, Matrix.cons_val_four,
+        Matrix.head_cons, Matrix.tail_cons, Fin.isValue,
+        pow_two, Complex.mul_re, Complex.mul_im] at hre
+  intro hzero
+  have hnormalization := congrArg (MvPolynomial.eval ![x, y])
+    sourceAffineCurve_normalization
+  simp only [map_mul, MvPolynomial.eval_C, hzero] at hnormalization
+  exact hsource ((mul_eq_zero.mp hnormalization).resolve_left (by norm_num))
+
+private theorem firstLogCoefficient_zero_iff
+    {x : ℂ} (hx : x ≠ 0) :
+    halfAngleLogCoefficient (-2) (1 / 3) x = 0 ↔ x = 1 / 3 ∨ x = 3 := by
+  unfold halfAngleLogCoefficient
+  constructor
+  · intro h
+    field_simp [hx] at h
+    norm_num at h
+    rcases h with h | h
+    · left
+      linear_combination (1 / 3) * h
+    · right
+      linear_combination -h
+  · rintro (rfl | rfl) <;> norm_num
+
+private theorem secondLogCoefficient_zero_iff
+    {y : ℂ} (hy : y ≠ 0) :
+    halfAngleLogCoefficient 3 (1 / 5) y = 0 ↔ y = 1 / 5 ∨ y = 5 := by
+  unfold halfAngleLogCoefficient
+  constructor
+  · intro h
+    field_simp [hy] at h
+    norm_num at h
+    rcases h with h | h
+    · left
+      linear_combination (1 / 5) * h
+    · right
+      linear_combination -h
+  · rintro (rfl | rfl) <;> norm_num
+
+/-- Poincaré's logarithmic `dz/z` covector is nonzero at every certified finite point. -/
+theorem finiteIntersectionPoint_logDifferential_ne_zero
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    halfAngleLogCoefficient (-2) (1 / 3) (point 0) ≠ 0 ∨
+      halfAngleLogCoefficient 3 (1 / 5) (point 1) ≠ 0 := by
+  have hcoordinates := finiteIntersectionPoint_coordinates_ne_zero point hpoint
+  by_contra hboth
+  push Not at hboth
+  have hx := (firstLogCoefficient_zero_iff hcoordinates.1).mp hboth.1
+  have hy := (secondLogCoefficient_zero_iff hcoordinates.2).mp hboth.2
+  have hcurve :=
+    (common_zero_iff_origin_or_finiteIntersectionPoints point).mpr (Or.inr hpoint) |>.1
+  have hpointEq : point = ![point 0, point 1] := by
+    funext i
+    fin_cases i <;> rfl
+  rw [hpointEq] at hcurve
+  exact sourceSextic_ne_zero_at_logCriticalPair (point 0) (point 1) hx hy hcurve
+
+/-- At a certified singular point, every velocity preserving Poincaré's singularity parameter
+is tangent to the sextic.  This is the precise linear-algebra step implicit between `dz = 0`
+and equation (2) in §103. -/
+theorem finiteIntersectionPoint_curveDerivative_eq_zero_of_logDifferential_eq_zero
+    (point velocity : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints)
+    (hlog : singularityLogDifferential (-2) 3 (1 / 3) (1 / 5)
+      (point 0) (point 1) (velocity 0, velocity 1) = 0) :
+    MvPolynomial.eval point (MvPolynomial.pderiv 0 chapterVISection103AffinePolynomial) *
+          velocity 0 +
+        MvPolynomial.eval point (MvPolynomial.pderiv 1 chapterVISection103AffinePolynomial) *
+          velocity 1 = 0 := by
+  let A := halfAngleLogCoefficient (-2) (1 / 3) (point 0)
+  let B := halfAngleLogCoefficient 3 (1 / 5) (point 1)
+  let Px := MvPolynomial.eval point
+    (MvPolynomial.pderiv 0 chapterVISection103AffinePolynomial)
+  let Py := MvPolynomial.eval point
+    (MvPolynomial.pderiv 1 chapterVISection103AffinePolynomial)
+  let K := (point 0) ^ 2 * (point 1) ^ 2 *
+    (1 + (1 / 3 : ℂ) ^ 2) * (1 + (1 / 5 : ℂ) ^ 2)
+  have hcoordinates := finiteIntersectionPoint_coordinates_ne_zero point hpoint
+  have hK : K ≠ 0 := by
+    dsimp [K]
+    exact mul_ne_zero
+      (mul_ne_zero
+        (mul_ne_zero (pow_ne_zero 2 hcoordinates.1) (pow_ne_zero 2 hcoordinates.2))
+        (by norm_num))
+      (by norm_num)
+  have hVx :
+      (constantSingularityTangent (-2) 3 (1 / 3) (1 / 5)
+        (point 0) (point 1)).1 = K * B := by
+    dsimp [K, B]
+    unfold constantSingularityTangent halfAngleLogCoefficient
+    field_simp [hcoordinates.2]
+  have hVy :
+      (constantSingularityTangent (-2) 3 (1 / 3) (1 / 5)
+        (point 0) (point 1)).2 = -(K * A) := by
+    dsimp [K, A]
+    unfold constantSingularityTangent halfAngleLogCoefficient
+    field_simp [hcoordinates.1]
+  have htangent :=
+    finiteIntersectionPoint_constantSingularityTangentDerivative_eq_zero point hpoint
+  change Px *
+      (constantSingularityTangent (-2) 3 (1 / 3) (1 / 5)
+        (point 0) (point 1)).1 +
+      Py *
+      (constantSingularityTangent (-2) 3 (1 / 3) (1 / 5)
+        (point 0) (point 1)).2 = 0 at htangent
+  rw [hVx, hVy] at htangent
+  have hcross : Px * B - Py * A = 0 := by
+    apply (mul_eq_zero.mp ?_).resolve_left hK
+    linear_combination htangent
+  change A * velocity 0 + B * velocity 1 = 0 at hlog
+  change Px * velocity 0 + Py * velocity 1 = 0
+  rcases finiteIntersectionPoint_logDifferential_ne_zero point hpoint with hA | hB
+  · change A ≠ 0 at hA
+    apply (mul_eq_zero.mp ?_).resolve_left hA
+    linear_combination Px * hlog - velocity 1 * hcross
+  · change B ≠ 0 at hB
+    apply (mul_eq_zero.mp ?_).resolve_left hB
+    linear_combination Py * hlog + velocity 0 * hcross
 
 end PoincareChapterVI.ReducedCurveTangent
