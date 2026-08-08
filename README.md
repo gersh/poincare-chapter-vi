@@ -125,6 +125,9 @@ The strongest newly completed component is the finite algebra in §103:
   circle. Mathlib's holomorphic divided difference now constructs `H` and its scalar power series
   automatically whenever `G` is analytic beyond `z₀`. Thus this route no longer postulates either
   a Tannery majorant or the removable factorization separately.
+- scalar analytic germs now have a proved Cauchy-product coefficient rule. Consequently a
+  function-level finite sum of actual varying amplitudes times logarithms, plus an analytic
+  remainder, determines all coefficients by analytic-germ uniqueness and feeds §102 directly.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
@@ -132,8 +135,8 @@ concrete moving algebraic branches, physical derivative identification, formal c
 identification of the reduced curve with the constant-`z` tangent derivative, and the
 three-versus-two rank contradiction are now established. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
-including larger-disk analyticity and the coefficient identity for a varying analytic log
-amplitude, and
+including the function-level logarithmic decomposition and larger-disk analyticity for its
+varying analytic amplitudes, and
 to derive the coefficient family and common radius from the Chapter V uniform-integral relation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly
 from a regular factor analytic beyond the boundary circle. The remaining reduction must derive

@@ -828,4 +828,205 @@ theorem not_twoCoordinateRegularAnalyticLogAmplitudeFactorization
   not_twoCoordinateScaledUnitSpectrumFactorization spectrumSize essentialCoordinates
     (factorization.toScaledUnitSpectrumFactorization spectrumSize essentialCoordinates)
 
+/-- The most source-facing §100--102 interface: the coefficient-generating function is given,
+as an analytic germ at the origin, by actual varying analytic amplitudes multiplying logarithms
+plus a larger-disk analytic remainder.  All Cauchy-product coefficients, removable factors, and
+Darboux tail bounds are derived rather than included as fields. -/
+structure TwoCoordinateAnalyticLogGermFactorization
+    (spectrumSize : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential) where
+  baseEssential : Essential
+  coefficientFunction : FiniteSingularPoint → Essential → ℂ → ℂ
+  coefficient : FiniteSingularPoint → Essential → ℕ → ℂ
+  normalizationRadius : FiniteSingularPoint → Essential → ℝ≥0
+  normalizationRadius_ne_zero : ∀ point essential,
+    normalizationRadius point essential ≠ 0
+  singularity : FiniteSingularPoint → Orientation → ℂ → Fin spectrumSize → ℂ
+  amplitude : FiniteSingularPoint → Orientation → ℂ → Fin spectrumSize → ℂ → ℂ
+  amplitudeCoefficient : FiniteSingularPoint → Orientation → ℂ →
+    Fin spectrumSize → ℕ → ℂ
+  amplitudeRadius : FiniteSingularPoint → Orientation → ℂ →
+    Fin spectrumSize → ℝ≥0
+  remainder : FiniteSingularPoint → Orientation → ℂ → ℂ → ℂ
+  remainderCoefficient : FiniteSingularPoint → Orientation → ℂ → ℕ → ℂ
+  remainderRadius : FiniteSingularPoint → Orientation → ℂ → ℝ≥0
+  distinguished : FiniteSingularPoint → Fin spectrumSize
+  distinguished_eq : ∀ point rotation γ,
+    singularity point rotation γ (distinguished point) =
+      branchSingularityValue rotation point γ
+  eventually_coefficient_hasFPowerSeries : ∀ point rotation, ∀ᶠ (γ : ℂ) in nhds 0,
+    HasFPowerSeriesAt
+      (coefficientFunction point
+        (baseEssential + γ • essentialCoordinates rotation))
+      (FormalMultilinearSeries.ofScalars ℂ
+        (coefficient point
+          (baseEssential + γ • essentialCoordinates rotation))) 0
+  eventually_function_decomposition : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    coefficientFunction point
+        (baseEssential + γ • essentialCoordinates rotation) =ᶠ[nhds 0]
+      fun z ↦ (∑ j, amplitude point rotation γ j z *
+        Complex.log (1 - z * (singularity point rotation γ j)⁻¹)) +
+        remainder point rotation γ z
+  eventually_radius_lt_amplitudeRadius : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ j, normalizationRadius point
+      (baseEssential + γ • essentialCoordinates rotation) <
+        amplitudeRadius point rotation γ j
+  eventually_amplitude_analytic : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ j, HasFPowerSeriesOnBall (amplitude point rotation γ j)
+      (FormalMultilinearSeries.ofScalars ℂ
+        (amplitudeCoefficient point rotation γ j)) 0
+      (amplitudeRadius point rotation γ j)
+  eventually_radius_lt_remainderRadius : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    normalizationRadius point
+      (baseEssential + γ • essentialCoordinates rotation) <
+        remainderRadius point rotation γ
+  eventually_remainder_analytic : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    HasFPowerSeriesOnBall (remainder point rotation γ)
+      (FormalMultilinearSeries.ofScalars ℂ (remainderCoefficient point rotation γ)) 0
+      (remainderRadius point rotation γ)
+  eventually_singularity_injective : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    Function.Injective (singularity point rotation γ)
+  eventually_common_norm : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ j, ‖singularity point rotation γ j‖ =
+      normalizationRadius point
+        (baseEssential + γ • essentialCoordinates rotation)
+  eventually_leadingAmplitude_ne_zero : ∀ point rotation, ∀ᶠ γ in nhds 0,
+    ∀ j, amplitude point rotation γ j (singularity point rotation γ j) ≠ 0
+
+/-- The actual analytic-log germ decomposition supplies the entire scaled spectrum interface. -/
+def TwoCoordinateAnalyticLogGermFactorization.toScaledUnitSpectrumFactorization
+    (spectrumSize : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateAnalyticLogGermFactorization
+      spectrumSize essentialCoordinates) :
+    TwoCoordinateScaledUnitSpectrumFactorization spectrumSize essentialCoordinates where
+  baseEssential := factorization.baseEssential
+  normalizationRadius := factorization.normalizationRadius
+  normalizationRadius_ne_zero := factorization.normalizationRadius_ne_zero
+  normalizedCoefficient point essential :=
+    PoincareChapterVI.chapterVINormalizedCoefficient
+      (factorization.normalizationRadius point essential)
+      (fun index ↦ factorization.coefficient point essential (index + 1))
+  spectrumBase point rotation γ j :=
+    PoincareChapterVI.chapterVIUnitBase
+      (factorization.normalizationRadius point
+        (factorization.baseEssential + γ • essentialCoordinates rotation))
+      (factorization.singularity point rotation γ j)⁻¹
+  spectrumWeight point rotation γ j :=
+    PoincareChapterVI.chapterVILogSpectrumWeight
+      (factorization.normalizationRadius point
+        (factorization.baseEssential + γ • essentialCoordinates rotation))
+      (factorization.singularity point rotation γ j)⁻¹
+      (factorization.amplitude point rotation γ j
+        (factorization.singularity point rotation γ j))
+  distinguished := factorization.distinguished
+  distinguished_eq := by
+    intro point rotation γ
+    rw [factorization.distinguished_eq]
+    rfl
+  eventually_base_injective := by
+    intro point rotation
+    filter_upwards [factorization.eventually_singularity_injective point rotation,
+      factorization.eventually_common_norm point rotation] with γ hinjective hnorm
+    intro i j hij
+    apply hinjective
+    apply inv_injective
+    apply mul_left_cancel₀
+      (show (factorization.normalizationRadius point
+        (factorization.baseEssential + γ • essentialCoordinates rotation) : ℂ) ≠ 0 by
+          exact_mod_cast factorization.normalizationRadius_ne_zero point
+            (factorization.baseEssential + γ • essentialCoordinates rotation))
+    exact hij
+  eventually_base_unit := by
+    intro point rotation
+    filter_upwards [factorization.eventually_common_norm point rotation] with γ hnorm
+    intro j
+    apply PoincareChapterVI.norm_chapterVIUnitBase_eq_one
+      (factorization.normalizationRadius_ne_zero point
+        (factorization.baseEssential + γ • essentialCoordinates rotation))
+    rw [norm_inv, hnorm j]
+  eventually_weight_ne_zero := by
+    intro point rotation
+    filter_upwards [factorization.eventually_common_norm point rotation,
+      factorization.eventually_leadingAmplitude_ne_zero point rotation] with
+        γ hnorm hamplitude
+    intro j
+    unfold PoincareChapterVI.chapterVILogSpectrumWeight
+    apply mul_ne_zero (neg_ne_zero.mpr (hamplitude j))
+    have hbaseNorm := PoincareChapterVI.norm_chapterVIUnitBase_eq_one
+      (factorization.normalizationRadius_ne_zero point
+        (factorization.baseEssential + γ • essentialCoordinates rotation))
+      (by rw [norm_inv, hnorm j])
+    intro hbase
+    rw [hbase, norm_zero] at hbaseNorm
+    exact zero_ne_one hbaseNorm
+  eventually_asymptotic := by
+    intro point rotation
+    filter_upwards [factorization.eventually_coefficient_hasFPowerSeries point rotation,
+      factorization.eventually_function_decomposition point rotation,
+      factorization.eventually_radius_lt_amplitudeRadius point rotation,
+      factorization.eventually_amplitude_analytic point rotation,
+      factorization.eventually_radius_lt_remainderRadius point rotation,
+      factorization.eventually_remainder_analytic point rotation,
+      factorization.eventually_common_norm point rotation] with
+        γ hcoefficient hdecomposition hamplitudeRadii hamplitude
+          hremainderRadius hremainder hnorm
+    let radius := factorization.normalizationRadius point
+      (factorization.baseEssential + γ • essentialCoordinates rotation)
+    have hsingularity : ∀ j, factorization.singularity point rotation γ j ≠ 0 := by
+      intro j hzero
+      have := hnorm j
+      rw [hzero, norm_zero] at this
+      exact factorization.normalizationRadius_ne_zero point
+        (factorization.baseEssential + γ • essentialCoordinates rotation)
+        (NNReal.coe_eq_zero.mp this.symm)
+    have hlog :=
+      PoincareChapterVI.tendsto_chapterVINormalizedCoefficient_sub_finiteAnalyticLogProductSpectrum
+        (factorization.normalizationRadius_ne_zero point
+          (factorization.baseEssential + γ • essentialCoordinates rotation))
+        (factorization.singularity point rotation γ) hsingularity hnorm
+        (factorization.amplitudeCoefficient point rotation γ)
+        (factorization.amplitude point rotation γ)
+        (factorization.amplitudeRadius point rotation γ) hamplitudeRadii hamplitude
+    have hanalytic := PoincareChapterVI.tendsto_chapterVINormalizedCoefficient_analyticRemainder
+      hremainderRadius hremainder
+    have htotal := hlog.add hanalytic
+    convert htotal using 1
+    · funext index
+      have hcoefficientDecomposition :=
+        PoincareChapterVI.coefficient_eq_finiteAnalyticLogs_add_analyticRemainder
+          (fun j ↦ (factorization.singularity point rotation γ j)⁻¹)
+          (factorization.amplitude point rotation γ)
+          (factorization.amplitudeCoefficient point rotation γ)
+          hcoefficient (show HasFPowerSeriesAt (factorization.remainder point rotation γ)
+            (FormalMultilinearSeries.ofScalars ℂ
+              (factorization.remainderCoefficient point rotation γ)) 0 from
+                ⟨factorization.remainderRadius point rotation γ, hremainder⟩)
+          (fun j ↦ ⟨factorization.amplitudeRadius point rotation γ j, hamplitude j⟩)
+          hdecomposition (index + 1)
+      have hcoefficientDecomposition' :
+          factorization.coefficient point
+              (factorization.baseEssential + γ • essentialCoordinates rotation) (index + 1) =
+            PoincareChapterVI.chapterVIFiniteAnalyticLogProductCoefficient
+              (factorization.singularity point rotation γ)
+              (factorization.amplitudeCoefficient point rotation γ) index +
+            factorization.remainderCoefficient point rotation γ (index + 1) := by
+        simpa [PoincareChapterVI.chapterVIFiniteAnalyticLogProductCoefficient] using
+          hcoefficientDecomposition
+      unfold PoincareChapterVI.chapterVINormalizedCoefficient at hcoefficientDecomposition ⊢
+      simp only [Pi.sub_apply]
+      rw [hcoefficientDecomposition']
+      ring
+    · simp
+
+/-- Poincaré's function-level analytic-log germ data already contradicts the compiled §103
+calculation; no independent coefficient or tail estimate remains in this interface. -/
+theorem not_twoCoordinateAnalyticLogGermFactorization
+    (spectrumSize : ℕ)
+    (essentialCoordinates : Orientation →L[ℂ] Essential)
+    (factorization : TwoCoordinateAnalyticLogGermFactorization
+      spectrumSize essentialCoordinates) : False :=
+  not_twoCoordinateScaledUnitSpectrumFactorization spectrumSize essentialCoordinates
+    (factorization.toScaledUnitSpectrumFactorization spectrumSize essentialCoordinates)
+
 end PoincareChapterVI.ChapterVISection102

@@ -102,8 +102,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   derives the required weighted summability directly when `H` is analytic on a disk larger than
   the boundary circle. The holomorphic divided difference `dslope` now constructs `H` and its
   scalar power series automatically from any amplitude analytic beyond the boundary point.
-  Establishing that larger-disk analyticity for the actual contour amplitude, uniformly in the
-  orbital parameters, remains open.
+  A scalar Cauchy-product theorem and analytic-germ uniqueness derive the full varying-log
+  coefficient sequence from the function-level decomposition. Establishing that decomposition
+  and larger-disk analyticity for the actual contour amplitude, uniformly in the orbital
+  parameters, remains open.
   `tendsto_chapterVI_quadraticPinch_sub_log` evaluates
   the real symmetric prepared
   quadratic model and proves its exact logarithmic asymptotic. Identifying the actual convergent
@@ -123,7 +125,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   root-label permutation. `ChapterVISection102DarbouxTransfer.lean` converts either a finite
   logarithmic germ decomposition, finite log-amplitude jets, a full analytic amplitude with
   explicit Tannery control, or the regular-factor analytic form above with a larger-disk analytic
-  remainder into that spectrum interface and hence the §103 contradiction. The recovery theorems
+  remainder into that spectrum interface and hence the §103 contradiction. Its most source-facing
+  interface starts from the actual function-level varying-log germ and derives every coefficient
+  and tail estimate internally. The recovery theorems
   derive the rank-at-most-two assertion for the canonical differential of all constructed
   second-kind roots. In §103,
   `chapterVI_curvePolynomial_derivative` verifies the corrected identity

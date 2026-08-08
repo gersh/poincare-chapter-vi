@@ -7,6 +7,7 @@ Authors: Gershon Bialer
 import Mathlib.Analysis.Analytic.OfScalars
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Normed.Group.Tannery
+import Mathlib.Analysis.Normed.Ring.InfiniteSum
 import Mathlib.Analysis.SpecificLimits.Normed
 import Mathlib.Analysis.SpecialFunctions.Complex.Analytic
 import PoincareChapterVI.ChapterVIDarboux
@@ -408,24 +409,309 @@ theorem tendsto_natCast_mul_chapterVITruncatedConvolution
       simp [term, hnotle]
   simpa [heq] using htsum
 
-/-- Scaling a Cauchy product coefficient by `R^degree` scales each factor coefficient by its own
-degree. -/
-theorem chapterVITruncatedConvolution_scaled (radius : ℝ≥0)
+/-- Multiplying a Cauchy product coefficient by `scale^degree` scales each factor coefficient by
+its own degree. -/
+theorem chapterVITruncatedConvolution_mul_pow (scale : ℂ)
     (left right : ℕ → ℂ) (degree : ℕ) :
-    (radius : ℂ) ^ degree * chapterVITruncatedConvolution left right degree =
+    scale ^ degree * chapterVITruncatedConvolution left right degree =
       chapterVITruncatedConvolution
-        (fun index ↦ (radius : ℂ) ^ index * left index)
-        (fun index ↦ (radius : ℂ) ^ index * right index) degree := by
+        (fun index ↦ scale ^ index * left index)
+        (fun index ↦ scale ^ index * right index) degree := by
   unfold chapterVITruncatedConvolution
   rw [Finset.mul_sum]
   apply Finset.sum_congr rfl
   intro index hindex
   have hle : index ≤ degree := Nat.le_of_lt_succ (Finset.mem_range.mp hindex)
-  have hpow : (radius : ℂ) ^ degree =
-      (radius : ℂ) ^ index * (radius : ℂ) ^ (degree - index) := by
+  have hpow : scale ^ degree =
+      scale ^ index * scale ^ (degree - index) := by
     rw [← pow_add, Nat.add_sub_of_le hle]
   rw [hpow]
   ring
+
+/-- Radius-specialized spelling of `chapterVITruncatedConvolution_mul_pow`. -/
+theorem chapterVITruncatedConvolution_scaled (radius : ℝ≥0)
+    (left right : ℕ → ℂ) (degree : ℕ) :
+    (radius : ℂ) ^ degree * chapterVITruncatedConvolution left right degree =
+      chapterVITruncatedConvolution
+        (fun index ↦ (radius : ℂ) ^ index * left index)
+        (fun index ↦ (radius : ℂ) ^ index * right index) degree :=
+  chapterVITruncatedConvolution_mul_pow (radius : ℂ) left right degree
+
+/-- Product rule for scalar analytic germs: the product has the finite Cauchy convolution of the
+two scalar coefficient sequences.  This is the coefficient-extraction bridge needed for
+Poincaré's varying logarithmic amplitude. -/
+theorem hasFPowerSeriesAt_mul_ofScalars
+    {leftFunction rightFunction : ℂ → ℂ} {leftCoefficient rightCoefficient : ℕ → ℂ}
+    (hleft : HasFPowerSeriesAt leftFunction
+      (FormalMultilinearSeries.ofScalars ℂ leftCoefficient) 0)
+    (hright : HasFPowerSeriesAt rightFunction
+      (FormalMultilinearSeries.ofScalars ℂ rightCoefficient) 0) :
+    HasFPowerSeriesAt (fun z ↦ leftFunction z * rightFunction z)
+      (FormalMultilinearSeries.ofScalars ℂ
+        (chapterVITruncatedConvolution leftCoefficient rightCoefficient)) 0 := by
+  rcases hleft with ⟨leftRadius, hleft⟩
+  rcases hright with ⟨rightRadius, hright⟩
+  have hcommonPos : 0 < min leftRadius rightRadius :=
+    lt_min hleft.r_pos hright.r_pos
+  obtain ⟨commonRadius, hcommonRadiusPos, hcommonRadius⟩ :=
+    ENNReal.lt_iff_exists_nnreal_btwn.1 hcommonPos
+  let leftSeries := FormalMultilinearSeries.ofScalars ℂ leftCoefficient
+  let rightSeries := FormalMultilinearSeries.ofScalars ℂ rightCoefficient
+  let productCoefficient := chapterVITruncatedConvolution leftCoefficient rightCoefficient
+  let productSeries := FormalMultilinearSeries.ofScalars ℂ productCoefficient
+  have hleftRadius : (commonRadius : ENNReal) < leftSeries.radius :=
+    (hcommonRadius.trans_le (min_le_left _ _)).trans_le hleft.r_le
+  have hrightRadius : (commonRadius : ENNReal) < rightSeries.radius :=
+    (hcommonRadius.trans_le (min_le_right _ _)).trans_le hright.r_le
+  have hleftSummable : Summable fun degree : ℕ ↦
+      ‖(commonRadius : ℂ) ^ degree * leftCoefficient degree‖ := by
+    have h := leftSeries.summable_norm_mul_pow hleftRadius
+    simpa [leftSeries, norm_mul, norm_pow, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg commonRadius.coe_nonneg, mul_comm] using h
+  have hrightSummable : Summable fun degree : ℕ ↦
+      ‖(commonRadius : ℂ) ^ degree * rightCoefficient degree‖ := by
+    have h := rightSeries.summable_norm_mul_pow hrightRadius
+    simpa [rightSeries, norm_mul, norm_pow, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg commonRadius.coe_nonneg, mul_comm] using h
+  have hproductNorm := summable_norm_sum_mul_range_of_summable_norm
+    hleftSummable hrightSummable
+  have hproductSummable : Summable fun degree : ℕ ↦
+      ‖productSeries degree‖ * (commonRadius : ℝ) ^ degree := by
+    apply hproductNorm.congr
+    intro degree
+    have hscale := chapterVITruncatedConvolution_mul_pow (commonRadius : ℂ)
+      leftCoefficient rightCoefficient degree
+    change ‖chapterVITruncatedConvolution
+        (fun index ↦ (commonRadius : ℂ) ^ index * leftCoefficient index)
+        (fun index ↦ (commonRadius : ℂ) ^ index * rightCoefficient index) degree‖ = _
+    rw [← hscale]
+    simp [productSeries, productCoefficient, norm_pow,
+      Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg commonRadius.coe_nonneg]
+    ring
+  refine ⟨(commonRadius : ENNReal), {
+    r_le := productSeries.le_radius_of_summable_norm hproductSummable
+    r_pos := hcommonRadiusPos
+    hasSum := ?_ }⟩
+  intro y hy
+  have hyleft : y ∈ Metric.eball (0 : ℂ) leftRadius := by
+    rw [mem_eball_zero_iff] at hy ⊢
+    exact hy.trans (hcommonRadius.trans_le (min_le_left _ _))
+  have hyright : y ∈ Metric.eball (0 : ℂ) rightRadius := by
+    rw [mem_eball_zero_iff] at hy ⊢
+    exact hy.trans (hcommonRadius.trans_le (min_le_right _ _))
+  have hleftSum : HasSum (fun degree ↦ y ^ degree * leftCoefficient degree)
+      (leftFunction y) := by
+    simpa [leftSeries, FormalMultilinearSeries.apply_eq_prod_smul_coeff,
+      mul_comm] using hleft.hasSum hyleft
+  have hrightSum : HasSum (fun degree ↦ y ^ degree * rightCoefficient degree)
+      (rightFunction y) := by
+    simpa [rightSeries, FormalMultilinearSeries.apply_eq_prod_smul_coeff,
+      mul_comm] using hright.hasSum hyright
+  have hynormLeft : ‖y‖₊ < commonRadius := by
+    simpa only [mem_eball_zero_iff, enorm_eq_nnnorm, ENNReal.coe_lt_coe] using hy
+  have hleftNorm : Summable fun degree ↦
+      ‖y ^ degree * leftCoefficient degree‖ := by
+    have hyLeftRadius : (‖y‖₊ : ENNReal) < leftSeries.radius :=
+      (ENNReal.coe_lt_coe.mpr hynormLeft).trans hleftRadius
+    have h := leftSeries.summable_norm_mul_pow (r := ‖y‖₊) hyLeftRadius
+    simpa [leftSeries, norm_mul, norm_pow, mul_comm] using h
+  have hrightNorm : Summable fun degree ↦
+      ‖y ^ degree * rightCoefficient degree‖ := by
+    have hyRightRadius : (‖y‖₊ : ENNReal) < rightSeries.radius :=
+      (ENNReal.coe_lt_coe.mpr hynormLeft).trans hrightRadius
+    have h := rightSeries.summable_norm_mul_pow (r := ‖y‖₊) hyRightRadius
+    simpa [rightSeries, norm_mul, norm_pow, mul_comm] using h
+  have hproduct := hasSum_sum_range_mul_of_summable_norm hleftNorm hrightNorm
+  rw [hleftSum.tsum_eq, hrightSum.tsum_eq] at hproduct
+  have hterms : (fun degree ↦ productSeries degree (fun _ : Fin degree ↦ y)) =
+      (fun degree ↦ ∑ index ∈ Finset.range (degree + 1),
+        y ^ index * leftCoefficient index *
+          (y ^ (degree - index) * rightCoefficient (degree - index))) := by
+    funext degree
+    rw [show productSeries degree (fun _ : Fin degree ↦ y) =
+        y ^ degree * productCoefficient degree by
+      simp [productSeries, FormalMultilinearSeries.apply_eq_prod_smul_coeff]]
+    rw [chapterVITruncatedConvolution_mul_pow]
+    unfold chapterVITruncatedConvolution
+    apply Finset.sum_congr rfl
+    intro index hindex
+    ring
+  change HasSum (fun degree ↦ productSeries degree (fun _ : Fin degree ↦ y))
+    (leftFunction (0 + y) * rightFunction (0 + y))
+  rw [hterms]
+  simpa using hproduct
+
+/-- Taylor coefficients of the linear vanishing factor `1 - z * singularityInverse`. -/
+def chapterVIVanishingFactorTaylorCoefficient
+    (singularityInverse : ℂ) (degree : ℕ) : ℂ :=
+  if degree = 0 then 1 else if degree = 1 then -singularityInverse else 0
+
+theorem hasFPowerSeriesAt_chapterVIVanishingFactorTaylorCoefficient
+    (singularityInverse : ℂ) :
+    HasFPowerSeriesAt (fun z : ℂ ↦ 1 - z * singularityInverse)
+      (FormalMultilinearSeries.ofScalars ℂ
+        (chapterVIVanishingFactorTaylorCoefficient singularityInverse)) 0 := by
+  let scale : ℂ →L[ℂ] ℂ :=
+    (ContinuousLinearMap.lsmul ℂ ℂ) (-singularityInverse)
+  let series : FormalMultilinearSeries ℂ ℂ ℂ :=
+    constFormalMultilinearSeries ℂ ℂ (1 : ℂ) + scale.fpowerSeries 0
+  have h : HasFPowerSeriesAt (fun z : ℂ ↦ 1 + scale z) series 0 :=
+    (hasFPowerSeriesAt_const (𝕜 := ℂ) (E := ℂ)
+      (c := (1 : ℂ)) (e := (0 : ℂ))).add (scale.hasFPowerSeriesAt 0)
+  convert h using 1
+  · funext z
+    simp [scale]
+    ring
+  · change FormalMultilinearSeries.ofScalars ℂ
+      (chapterVIVanishingFactorTaylorCoefficient singularityInverse) = series
+    rw [formalMultilinearSeries_eq_ofScalars_coeff series]
+    congr 1
+    funext degree
+    cases degree with
+    | zero => simp [chapterVIVanishingFactorTaylorCoefficient, series,
+        FormalMultilinearSeries.coeff, scale]
+    | succ degree =>
+        cases degree with
+        | zero => simp [chapterVIVanishingFactorTaylorCoefficient, series,
+            FormalMultilinearSeries.coeff, scale]
+        | succ degree => simp [chapterVIVanishingFactorTaylorCoefficient, series,
+            FormalMultilinearSeries.coeff, scale]
+
+theorem chapterVITruncatedConvolution_vanishingFactor_log
+    (singularityInverse : ℂ) (degree : ℕ) :
+    chapterVITruncatedConvolution
+      (chapterVIVanishingFactorTaylorCoefficient singularityInverse)
+      (chapterVILogTaylorCoefficient singularityInverse) degree =
+      chapterVIFirstVanishingLogTaylorCoefficient singularityInverse degree := by
+  cases degree with
+  | zero =>
+      simp [chapterVITruncatedConvolution, chapterVIVanishingFactorTaylorCoefficient,
+        chapterVIFirstVanishingLogTaylorCoefficient, chapterVILogTaylorCoefficient]
+  | succ degree =>
+      have hfactor (index : ℕ) :
+          chapterVIVanishingFactorTaylorCoefficient singularityInverse index =
+            (if index = 0 then 1 else 0) +
+              (if index = 1 then -singularityInverse else 0) := by
+        simp [chapterVIVanishingFactorTaylorCoefficient]
+        split <;> split <;> simp_all
+      unfold chapterVITruncatedConvolution
+      simp_rw [hfactor, add_mul]
+      rw [Finset.sum_add_distrib]
+      simp [chapterVIFirstVanishingLogTaylorCoefficient]
+      ring
+
+/-- The exact full power series of the first-vanishing logarithmic kernel. -/
+theorem hasFPowerSeriesAt_chapterVIFirstVanishingLogTaylorCoefficient
+    (singularityInverse : ℂ) :
+    HasFPowerSeriesAt
+      (fun z : ℂ ↦ (1 - z * singularityInverse) *
+        Complex.log (1 - z * singularityInverse))
+      (FormalMultilinearSeries.ofScalars ℂ
+        (chapterVIFirstVanishingLogTaylorCoefficient singularityInverse)) 0 := by
+  have h := hasFPowerSeriesAt_mul_ofScalars
+    (hasFPowerSeriesAt_chapterVIVanishingFactorTaylorCoefficient singularityInverse)
+    (hasFPowerSeriesAt_chapterVILogTaylorCoefficient singularityInverse)
+  convert h using 1
+  congr 1
+  funext degree
+  exact (chapterVITruncatedConvolution_vanishingFactor_log
+    singularityInverse degree).symm
+
+/-- A finite sum of genuinely analytic amplitudes times logarithmic germs has the corresponding
+finite sum of Cauchy-product coefficient sequences. -/
+theorem hasFPowerSeriesAt_finiteAnalyticLogarithmicSum {r : ℕ}
+    (singularityInverse : Fin r → ℂ) (amplitude : Fin r → ℂ → ℂ)
+    (amplitudeCoefficient : Fin r → ℕ → ℂ)
+    (hamplitude : ∀ j, HasFPowerSeriesAt (amplitude j)
+      (FormalMultilinearSeries.ofScalars ℂ (amplitudeCoefficient j)) 0) :
+    HasFPowerSeriesAt
+      (fun z : ℂ ↦ ∑ j, amplitude j z *
+        Complex.log (1 - z * singularityInverse j))
+      (FormalMultilinearSeries.ofScalars ℂ (fun degree ↦ ∑ j,
+        chapterVITruncatedConvolution (amplitudeCoefficient j)
+          (chapterVILogTaylorCoefficient (singularityInverse j)) degree)) 0 := by
+  classical
+  let terms : Fin r → ℂ → ℂ := fun j z ↦
+    amplitude j z * Complex.log (1 - z * singularityInverse j)
+  let termCoefficient : Fin r → ℕ → ℂ := fun j degree ↦
+    chapterVITruncatedConvolution (amplitudeCoefficient j)
+      (chapterVILogTaylorCoefficient (singularityInverse j)) degree
+  let termSeries : Fin r → FormalMultilinearSeries ℂ ℂ ℂ := fun j ↦
+    FormalMultilinearSeries.ofScalars ℂ (termCoefficient j)
+  have hterm (j : Fin r) : HasFPowerSeriesAt (terms j) (termSeries j) 0 := by
+    exact hasFPowerSeriesAt_mul_ofScalars (hamplitude j)
+      (hasFPowerSeriesAt_chapterVILogTaylorCoefficient (singularityInverse j))
+  have hsum : HasFPowerSeriesAt (fun z : ℂ ↦ ∑ j, terms j z)
+      (∑ j, termSeries j) 0 := by
+    induction (Finset.univ : Finset (Fin r)) using Finset.induction_on with
+    | empty =>
+        simpa using (hasFPowerSeriesAt_const (𝕜 := ℂ) (E := ℂ)
+          (c := (0 : ℂ)) (e := (0 : ℂ)))
+    | @insert j indices hj ih =>
+        rw [Finset.sum_insert hj]
+        apply ((hterm j).add ih).congr
+        apply Eventually.of_forall
+        intro z
+        change terms j z + ∑ x ∈ indices, terms x z =
+          ∑ x ∈ insert j indices, terms x z
+        rw [Finset.sum_insert hj]
+  convert hsum using 1
+  · change FormalMultilinearSeries.ofScalars ℂ
+        (fun degree ↦ ∑ j, termCoefficient j degree) =
+      ∑ j, FormalMultilinearSeries.ofScalars ℂ (termCoefficient j)
+    let coefficientSum : ℕ → ℂ := fun degree ↦ ∑ j, termCoefficient j degree
+    have hcoefficientSum : coefficientSum = ∑ j, termCoefficient j := by
+      funext degree
+      simp [coefficientSum]
+    change FormalMultilinearSeries.ofScalars ℂ coefficientSum = _
+    rw [hcoefficientSum]
+    induction (Finset.univ : Finset (Fin r)) using Finset.induction_on with
+    | empty => simp
+    | @insert j indices hj ih =>
+        rw [Finset.sum_insert hj, Finset.sum_insert hj,
+          FormalMultilinearSeries.ofScalars_add, ih]
+
+/-- A function-level finite varying-log decomposition determines its Taylor coefficients; no
+coefficient identity is retained as a separate assumption. -/
+theorem coefficient_eq_finiteAnalyticLogs_add_analyticRemainder
+    {r : ℕ} {coefficientFunction remainder : ℂ → ℂ}
+    {coefficient remainderCoefficient : ℕ → ℂ}
+    (singularityInverse : Fin r → ℂ) (amplitude : Fin r → ℂ → ℂ)
+    (amplitudeCoefficient : Fin r → ℕ → ℂ)
+    (hcoefficient : HasFPowerSeriesAt coefficientFunction
+      (FormalMultilinearSeries.ofScalars ℂ coefficient) 0)
+    (hremainder : HasFPowerSeriesAt remainder
+      (FormalMultilinearSeries.ofScalars ℂ remainderCoefficient) 0)
+    (hamplitude : ∀ j, HasFPowerSeriesAt (amplitude j)
+      (FormalMultilinearSeries.ofScalars ℂ (amplitudeCoefficient j)) 0)
+    (hdecomposition : coefficientFunction =ᶠ[nhds 0]
+      fun z ↦ (∑ j, amplitude j z *
+        Complex.log (1 - z * singularityInverse j)) + remainder z)
+    (degree : ℕ) :
+    coefficient degree =
+      (∑ j, chapterVITruncatedConvolution (amplitudeCoefficient j)
+        (chapterVILogTaylorCoefficient (singularityInverse j)) degree) +
+      remainderCoefficient degree := by
+  let logarithmicCoefficient : ℕ → ℂ := fun n ↦ ∑ j,
+    chapterVITruncatedConvolution (amplitudeCoefficient j)
+      (chapterVILogTaylorCoefficient (singularityInverse j)) n
+  have hlogarithms := hasFPowerSeriesAt_finiteAnalyticLogarithmicSum
+    singularityInverse amplitude amplitudeCoefficient hamplitude
+  have hrhs : HasFPowerSeriesAt
+      (fun z ↦ (∑ j, amplitude j z *
+        Complex.log (1 - z * singularityInverse j)) + remainder z)
+      (FormalMultilinearSeries.ofScalars ℂ
+        (fun n ↦ logarithmicCoefficient n + remainderCoefficient n)) 0 := by
+    convert hlogarithms.add hremainder using 1
+    · funext z
+      rfl
+    · change FormalMultilinearSeries.ofScalars ℂ
+          (logarithmicCoefficient + remainderCoefficient) = _
+      rw [FormalMultilinearSeries.ofScalars_add]
+  have hseries := hcoefficient.eq_formalMultilinearSeries_of_eventually hrhs hdecomposition
+  have hdegree := congrArg
+    (fun series : FormalMultilinearSeries ℂ ℂ ℂ ↦ series.coeff degree) hseries
+  simpa [logarithmicCoefficient] using hdegree
 
 /-- Coefficients of an analytic function multiplied by the first-vanishing logarithmic kernel,
 indexed at Taylor degree `index + 1`. -/
@@ -547,6 +833,82 @@ theorem exists_regularAmplitudeFactorization_of_analytic
       _ = amplitude singularity + (1 - z * singularity⁻¹) * regular z := by
         unfold regular
         rw [← mul_assoc, halgebra]
+
+/-- The removable factorization also holds coefficientwise after multiplication by the
+logarithmic germ.  Thus the direct Cauchy-product coefficients of `G(z) log(1-z/z₀)` split into
+the leading value `G(z₀)` and a regular-amplitude first-vanishing remainder. -/
+theorem exists_regularAmplitudeCoefficientFactorization_of_analytic
+    {radius analyticRadius : ℝ≥0} {singularity : ℂ}
+    (hsingularity : singularity ≠ 0) (hnorm : ‖singularity‖ = radius)
+    (hradii : radius < analyticRadius) (amplitude : ℂ → ℂ)
+    (amplitudeCoefficient : ℕ → ℂ)
+    (hamplitude : HasFPowerSeriesOnBall amplitude
+      (FormalMultilinearSeries.ofScalars ℂ amplitudeCoefficient) 0 analyticRadius) :
+    ∃ (regularRadius : ℝ≥0) (regularCoefficient : ℕ → ℂ) (regular : ℂ → ℂ),
+      radius < regularRadius ∧
+      HasFPowerSeriesOnBall regular
+        (FormalMultilinearSeries.ofScalars ℂ regularCoefficient) 0 regularRadius ∧
+      (∀ z, amplitude z = amplitude singularity +
+        (1 - z * singularity⁻¹) * regular z) ∧
+      ∀ degree,
+        chapterVITruncatedConvolution amplitudeCoefficient
+            (chapterVILogTaylorCoefficient singularity⁻¹) degree =
+          amplitude singularity * chapterVILogTaylorCoefficient singularity⁻¹ degree +
+            chapterVITruncatedConvolution regularCoefficient
+              (chapterVIFirstVanishingLogTaylorCoefficient singularity⁻¹) degree := by
+  obtain ⟨regularRadius, regularCoefficient, regular, hregularRadius,
+      hregular, hfactor⟩ :=
+    exists_regularAmplitudeFactorization_of_analytic hsingularity hnorm hradii amplitude
+      (FormalMultilinearSeries.ofScalars ℂ amplitudeCoefficient) hamplitude
+  refine ⟨regularRadius, regularCoefficient, regular, hregularRadius,
+    hregular, hfactor, ?_⟩
+  let logarithm : ℂ → ℂ := fun z ↦ Complex.log (1 - z * singularity⁻¹)
+  let firstVanishingLogarithm : ℂ → ℂ := fun z ↦
+    (1 - z * singularity⁻¹) * logarithm z
+  have hlogarithm : HasFPowerSeriesAt logarithm
+      (FormalMultilinearSeries.ofScalars ℂ
+        (chapterVILogTaylorCoefficient singularity⁻¹)) 0 :=
+    hasFPowerSeriesAt_chapterVILogTaylorCoefficient singularity⁻¹
+  have hdirect := hasFPowerSeriesAt_mul_ofScalars
+    (show HasFPowerSeriesAt amplitude
+      (FormalMultilinearSeries.ofScalars ℂ amplitudeCoefficient) 0 from
+        ⟨analyticRadius, hamplitude⟩) hlogarithm
+  have hfirstVanishing : HasFPowerSeriesAt firstVanishingLogarithm
+      (FormalMultilinearSeries.ofScalars ℂ
+        (chapterVIFirstVanishingLogTaylorCoefficient singularity⁻¹)) 0 :=
+    hasFPowerSeriesAt_chapterVIFirstVanishingLogTaylorCoefficient singularity⁻¹
+  have hregularProduct := hasFPowerSeriesAt_mul_ofScalars
+    (show HasFPowerSeriesAt regular
+      (FormalMultilinearSeries.ofScalars ℂ regularCoefficient) 0 from
+        ⟨regularRadius, hregular⟩) hfirstVanishing
+  have hleading : HasFPowerSeriesAt
+      (fun z ↦ amplitude singularity * logarithm z)
+      (FormalMultilinearSeries.ofScalars ℂ
+        (fun degree ↦ amplitude singularity *
+          chapterVILogTaylorCoefficient singularity⁻¹ degree)) 0 := by
+    have h := hlogarithm.const_smul (c := amplitude singularity)
+    convert h using 1
+    · funext z
+      simp
+    · rw [← FormalMultilinearSeries.ofScalars_smul]
+      congr 1
+  have hrhs := hleading.add hregularProduct
+  have heventually : (fun z ↦ amplitude z * logarithm z) =ᶠ[nhds 0]
+      (fun z ↦ amplitude singularity * logarithm z +
+        regular z * firstVanishingLogarithm z) := by
+    apply Eventually.of_forall
+    intro z
+    change amplitude z * logarithm z = amplitude singularity * logarithm z +
+      regular z * firstVanishingLogarithm z
+    rw [hfactor z]
+    simp only [firstVanishingLogarithm]
+    ring
+  have hseries := hdirect.eq_formalMultilinearSeries_of_eventually hrhs heventually
+  rw [← FormalMultilinearSeries.ofScalars_add] at hseries
+  intro degree
+  have hdegree := congrArg
+    (fun series : FormalMultilinearSeries ℂ ℂ ℂ ↦ series.coeff degree) hseries
+  simpa [Pi.add_apply] using hdegree
 
 /-- A regular analytic amplitude multiplying `(1-zλ) log(1-zλ)` is Darboux-subleading whenever
 its radius-scaled Taylor coefficients have a summable first moment.  This is the coefficient
@@ -1050,6 +1412,65 @@ theorem tendsto_chapterVINormalizedCoefficient_sub_finiteRegularAnalyticLogAmpli
   unfold chapterVINormalizedCoefficient at hleading ⊢
   rw [mul_add, hleading]
   ring
+
+/-- Direct Cauchy-product coefficients of finitely many genuinely analytic amplitudes multiplying
+their logarithmic boundary germs. -/
+def chapterVIFiniteAnalyticLogProductCoefficient {r : ℕ}
+    (singularity : Fin r → ℂ) (amplitudeCoefficient : Fin r → ℕ → ℂ)
+    (index : ℕ) : ℂ :=
+  ∑ j, chapterVITruncatedConvolution (amplitudeCoefficient j)
+    (chapterVILogTaylorCoefficient (singularity j)⁻¹) (index + 1)
+
+/-- Source-level varying-amplitude Darboux transfer.  Analyticity of each actual amplitude beyond
+the common singularity circle is sufficient: the removable regular factors, their coefficients,
+and all summability estimates are constructed internally. -/
+theorem tendsto_chapterVINormalizedCoefficient_sub_finiteAnalyticLogProductSpectrum
+    {r : ℕ} {radius : ℝ≥0} (hradius : radius ≠ 0)
+    (singularity : Fin r → ℂ) (hsingularity : ∀ j, singularity j ≠ 0)
+    (hnorm : ∀ j, ‖singularity j‖ = radius)
+    (amplitudeCoefficient : Fin r → ℕ → ℂ)
+    (amplitude : Fin r → ℂ → ℂ) (analyticRadius : Fin r → ℝ≥0)
+    (hradii : ∀ j, radius < analyticRadius j)
+    (hanalytic : ∀ j, HasFPowerSeriesOnBall (amplitude j)
+      (FormalMultilinearSeries.ofScalars ℂ (amplitudeCoefficient j)) 0
+      (analyticRadius j)) :
+    Tendsto
+      (chapterVINormalizedCoefficient radius
+          (chapterVIFiniteAnalyticLogProductCoefficient singularity amplitudeCoefficient) -
+        chapterVIFiniteExponentialMoment
+          (fun j ↦ chapterVIUnitBase radius (singularity j)⁻¹)
+          (fun j ↦ chapterVILogSpectrumWeight radius
+            (singularity j)⁻¹ (amplitude j (singularity j))))
+      atTop (nhds 0) := by
+  have hexists (j : Fin r) :=
+    exists_regularAmplitudeCoefficientFactorization_of_analytic
+      (hsingularity j) (hnorm j) (hradii j) (amplitude j)
+        (amplitudeCoefficient j) (hanalytic j)
+  choose regularRadius regularCoefficient regular hregularRadius hregularAnalytic
+    hregularFactor hcoefficient using hexists
+  have hunit : ∀ j, ‖chapterVIUnitBase radius (singularity j)⁻¹‖ = 1 := by
+    intro j
+    rw [chapterVIUnitBase, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg radius.coe_nonneg, norm_inv, hnorm j]
+    exact mul_inv_cancel₀ (NNReal.coe_ne_zero.mpr hradius)
+  have hregularSpectrum :=
+    tendsto_chapterVINormalizedCoefficient_sub_finiteRegularAnalyticLogAmplitudeSpectrum
+      hradius (fun j ↦ (singularity j)⁻¹) (fun j ↦ amplitude j (singularity j))
+      regularCoefficient regular regularRadius hunit hregularRadius hregularAnalytic
+  have hcoefficientEq :
+      chapterVIFiniteRegularAnalyticLogAmplitudeCoefficient
+          (fun j ↦ (singularity j)⁻¹) (fun j ↦ amplitude j (singularity j))
+          regularCoefficient =
+        chapterVIFiniteAnalyticLogProductCoefficient singularity amplitudeCoefficient := by
+    funext index
+    unfold chapterVIFiniteAnalyticLogProductCoefficient
+      chapterVIFiniteRegularAnalyticLogAmplitudeCoefficient
+      chapterVIRegularAmplitudeLogRemainderCoefficient
+    apply Finset.sum_congr rfl
+    intro j hj
+    exact (hcoefficient j (index + 1)).symm
+  rw [hcoefficientEq] at hregularSpectrum
+  exact hregularSpectrum
 
 /-- Coefficients contributed by finitely many logarithmic singularities whose analytic
 amplitudes are represented by infinite local power series.  Order zero is separated from the

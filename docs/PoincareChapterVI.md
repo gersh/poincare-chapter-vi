@@ -48,7 +48,7 @@ transcription of the 1892 text.
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` checks selected half-angle factorizations, reciprocal symmetries, a discriminant, and `z ↦ z⁻¹` | Formalize all collision equations from the actual Kepler parametrization and prove equivalence without losing roots while clearing denominators |
 | §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | Not formalized | Construct the relevant Riemann surface/cycle, compute monodromy or vanishing-cycle intersection, and prove the required parameter regions. Poincaré explicitly says this discussion is only sketched |
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves its logarithmic asymptotic | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, the analytic unit, and the remainder |
-| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarbouxTransfer.lean` derives Taylor coefficients from equality of analytic germs, proves larger-disk analytic remainders disappear after normalization, constructs `G(z)=G(z₀)+(1-z/z₀)H(z)` by holomorphic divided difference, and applies a proved weighted-convolution estimate; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral and larger-disk analyticity of `G`, uniformly in the orbital parameters |
+| §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarbouxTransfer.lean` proves scalar Cauchy-product coefficients, derives coefficients from a function-level varying-log germ, constructs `G(z)=G(z₀)+(1-z/z₀)H(z)` by holomorphic divided difference, and applies a weighted-convolution estimate; `ChapterVIDarbouxSpectrum.lean` recovers all equal-modulus bases | Derive the logarithmic expansion of the actual integral and larger-disk analyticity of `G`, uniformly in the orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, prevents root-label permutation, and reaches the compiled §103 contradiction | Derive the two-coordinate coefficient germ, its finite singular enumeration, common radius, and regular-factor analyticity from the Chapter V uniform-integral relation and the actual contour integral |
 | §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
@@ -72,9 +72,11 @@ requires a uniform summable majorant. The newer
 `TwoCoordinateRegularAnalyticLogAmplitudeFactorization` instead records
 `G(z)=G(z₀)+(1-z/z₀)H(z)` and derives that majorant internally from larger-disk analyticity of
 `H`. The divided-difference theorem constructs this factorization and `H`'s scalar power series
-from larger-disk analyticity of `G`. Reaching the interface therefore requires proving the
-function-level logarithmic decomposition, nonzero leading amplitudes, common boundary radius,
-two-coordinate dependence, the coefficient identity, and that analyticity of `G`.
+from larger-disk analyticity of `G`. `TwoCoordinateAnalyticLogGermFactorization` goes further: it
+starts from the function-level logarithmic decomposition and derives its Cauchy-product
+coefficients and all tail estimates internally. Reaching it therefore requires proving that
+decomposition, nonzero leading amplitudes, common boundary radius, two-coordinate dependence,
+and the larger-disk analyticity of `G`.
 Analytic-germ uniqueness, every finite amplitude jet, full regular-factor tail transfer,
 coefficient extraction, common-radius normalization, finite equal-modulus spectrum recovery,
 prevention of local root permutation, and the §103 contradiction are formalized.
@@ -102,7 +104,8 @@ The source-facing files added after the standalone-project commit are deliberate
   summable uniform majorant. It also proves the exact first-vanishing kernel, a weighted
   convolution theorem, and the needed first-moment summability from larger-disk analyticity.
   It also constructs the regular factor and its scalar power series using a removable holomorphic
-  divided difference.
+  divided difference, and proves the scalar Cauchy-product rule needed to extract coefficients
+  from the full varying-log germ.
 - `ChapterVIJacobian.lean`: the exact determinant row reduction in §102 from the six scaled
   singularities to five singularity ratios and the resulting equivalence of determinant
   vanishing, without assuming the missing analytic/rank input.
@@ -113,7 +116,8 @@ The source-facing files added after the standalone-project commit are deliberate
 - `ChapterVISection102DarbouxTransfer.lean`: the correctly scaled equal-modulus interface and its
   construction from either a finite constant-leading-logarithm germ decomposition or finite
   analytic log-amplitude jets, plus the full analytic-amplitude interface with explicit Tannery
-  control and the regular-factor interface that derives this control from analyticity.
+  control, the regular-factor interface that derives this control from analyticity, and the
+  function-level analytic-log interface that also derives the coefficient identity.
 - `ChapterVICurveAlgebra.lean`: the five-term cubic-form simplification in §103, the corrected
   derivative identity for `P = ∑ Uᵢ²`, the exact derivative-equation reduction modulo `P`, and
   the degree-seven estimate for the reduced curve.
@@ -263,8 +267,9 @@ subleading, and Tannery's theorem sums the infinite tail under an explicit summa
 More directly, Lean now writes the nonconstant part as `(1-z/z₀)H(z)`, proves the corresponding
 kernel is `O(1/n²)`, and derives the required convolution decay whenever `H` is analytic beyond
 the boundary circle. It also constructs `H` automatically from any `G` analytic beyond `z₀`.
-What remains is to establish that larger-disk analyticity and the coefficient identity for the
-actual contour germ with the uniform parameter control used by §102. Multiple
+The scalar Cauchy-product theorem now derives the coefficient identity from the function-level
+germ. What remains is to establish that germ and its larger-disk amplitude analyticity for the
+actual contour integral with the uniform parameter control used by §102. Multiple
 boundary singularities can also cancel on a subsequence, which is why the formal theorem recovers
 the entire finite spectrum rather than asserting eventual nonvanishing of the combined sequence.
 
