@@ -304,6 +304,10 @@ The strongest newly completed component is the finite algebra in §103:
   nonvanishing-certificate types. The exploratory script
   `research/chapter_vi_outer_arc_scan.py` records why this radius was selected; its floating-point
   output is explicitly not accepted as proof.
+- `ChapterVILeanCompCertRealBridge.lean` proves the encoding theorem needed by the compiled route:
+  LeanCompCert's all-integer fixed-point `rpow` bracket implies the corresponding outward-rounded
+  interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested
+  under both Lean 4.32.1 and this project's Lean 4.33 release candidate.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

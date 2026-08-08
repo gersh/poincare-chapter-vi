@@ -147,6 +147,10 @@ The source-facing files added after the standalone-project commit are deliberate
   specialize the finite nonvanishing interface to the two compact outer quarters. The companion
   Python scan is exploratory only; the formal milestone is the future outward-rounded interval
   certificate, not the sampled minimum.
+- `ChapterVILeanCompCertRealBridge.lean`: closes one concrete encoding gap in that certificate.
+  It turns LeanCompCert's natural-number power inequalities into genuine `Real.rpow` bounds, so a
+  compiled fixed-point result can be used by the analytic contour proof without treating the
+  integer scale convention as an assumption.
 - `ChapterVIDFiberDerivative.lean`: the exact differential-ideal identity behind equation (7),
   neighborhood-valid ODEs for both actual inverse-coordinate anomaly functions on the fixed-`z`
   fiber, and the resulting proofs that Poincaré's literal collision factor has zero first and
