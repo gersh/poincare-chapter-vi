@@ -246,7 +246,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   contour inherits this coefficient once the source-sheet three-arc realization is constructed
   and its two regular arcs are `o(-log k)`. `ChapterVIDGlobalMorseBridge.lean` proves that the
   explicit global `u=x^(1/3)` coordinate is locally analytically equivalent at D to the same
-  Morse `v` coordinate and that its inverse reconstructs the exact local Morse source point.
+  Morse `v` coordinate and that its inverse reconstructs the exact local Morse source point. The
+  local `t_D` is normalized to the explicit global contour endpoint, so the formerly necessary
+  cubic deck multiplier is formally equal to one.
   `ChapterVISquareRootSheet.lean` reduces the compatible outer-arc square-root sheet to
   nonvanishing on a compact parameter rectangle and supplies a finite-cover/Lipschitz interface
   for discharging that fact with a large LeanCompCert sample certificate. The concrete compiled

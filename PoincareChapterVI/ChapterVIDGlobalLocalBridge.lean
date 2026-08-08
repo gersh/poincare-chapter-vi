@@ -28,6 +28,13 @@ namespace PoincareChapterVI
 noncomputable def chapterVIDGlobalTBase : ℂ :=
   chapterVIDRootToOriginalContour chapterVIDCollisionLift
 
+/-- The local analytic construction is normalized at exactly the endpoint of the global
+contour; there is no residual cubic deck ambiguity. -/
+@[simp]
+theorem chapterVIDGlobalTBase_eq_tBase :
+    chapterVIDGlobalTBase = chapterVIDTBase := by
+  rfl
+
 @[simp]
 theorem chapterVIDGlobalTBase_pow :
     chapterVIDGlobalTBase ^ (3 : ℤ) =
@@ -96,10 +103,17 @@ multiplier. -/
 noncomputable def chapterVIDTDeckMultiplier : ℂ :=
   chapterVIDTBase * chapterVIDGlobalTBase⁻¹
 
+@[simp]
+theorem chapterVIDTDeckMultiplier_eq_one :
+    chapterVIDTDeckMultiplier = 1 := by
+  unfold chapterVIDTDeckMultiplier
+  rw [chapterVIDGlobalTBase_eq_tBase]
+  exact mul_inv_cancel₀ chapterVIDTBase_ne_zero
+
 theorem chapterVIDTDeckMultiplier_mul_global :
     chapterVIDTDeckMultiplier * chapterVIDGlobalTBase = chapterVIDTBase := by
-  unfold chapterVIDTDeckMultiplier
-  field_simp [chapterVIDGlobalTBase_ne_zero]
+  rw [chapterVIDTDeckMultiplier_eq_one, one_mul,
+    chapterVIDGlobalTBase_eq_tBase]
 
 theorem chapterVIDTDeckMultiplier_pow_three :
     chapterVIDTDeckMultiplier ^ 3 = 1 := by
@@ -119,6 +133,12 @@ theorem chapterVIDTDeckMultiplier_ne_zero : chapterVIDTDeckMultiplier ≠ 0 := b
 matches the local inverse branch selected in the Morse construction. -/
 noncomputable def chapterVIDDeckedRootToLocalContour (u : ℂ) : ℂ :=
   chapterVIDTDeckMultiplier * chapterVIDRootToOriginalContour u
+
+@[simp]
+theorem chapterVIDDeckedRootToLocalContour_eq (u : ℂ) :
+    chapterVIDDeckedRootToLocalContour u =
+      chapterVIDRootToOriginalContour u := by
+  simp [chapterVIDDeckedRootToLocalContour]
 
 @[simp]
 theorem chapterVIDDeckedRootToLocalContour_collision :

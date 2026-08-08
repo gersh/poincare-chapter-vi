@@ -7,6 +7,7 @@ Authors: Gershon Bialer
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Complex.Polynomial.Basic
 import PoincareChapterVI.ChapterVIDCandidate
+import PoincareChapterVI.ChapterVIDRootCoordinates
 import PoincareChapterVI.ChapterVIDoubleZero
 
 /-!
@@ -124,20 +125,22 @@ def chapterVIDFiberX (t : ℂ) : ℂ := (chapterVIDFiberAnomalies t).1
 
 def chapterVIDFiberY (t : ℂ) : ℂ := (chapterVIDFiberAnomalies t).2
 
-/-- A selected lift `t_D` satisfying Poincaré's relation `t_D³ = exp(i l_D)`. -/
-theorem exists_chapterVIDTBase : ∃ t : ℂ,
-    t ^ 3 = chapterVIKeplerExponential chapterVIDEccentricity chapterVIDX :=
-  IsAlgClosed.exists_pow_nat_eq
-    (chapterVIKeplerExponential chapterVIDEccentricity chapterVIDX) (by norm_num)
-
+/-- The lift `t_D` selected by Poincaré's explicit global `u = x^(1/3)` contour.  Fixing this
+value here, instead of choosing an arbitrary cube root, makes the later local Morse chart live
+on the same literal contour sheet as the certified global path. -/
 noncomputable def chapterVIDTBase : ℂ :=
-  Classical.choose exists_chapterVIDTBase
+  chapterVIDRootToOriginalContour chapterVIDCollisionLift
 
 @[simp] theorem chapterVIDTBase_pow : chapterVIDTBase ^ (3 : ℤ) =
     chapterVIKeplerExponential chapterVIDEccentricity chapterVIDX := by
   unfold chapterVIDTBase
-  simpa only [zpow_ofNat] using Classical.choose_spec
-    exists_chapterVIDTBase
+  rw [zpow_ofNat, chapterVIDRootToOriginalContour_pow,
+    chapterVIDCollisionLift_pow]
+
+/-- The now-canonical base point still supplies the existential statement used by older APIs. -/
+theorem exists_chapterVIDTBase : ∃ t : ℂ,
+    t ^ 3 = chapterVIKeplerExponential chapterVIDEccentricity chapterVIDX :=
+  ⟨chapterVIDTBase, by simpa only [zpow_ofNat] using chapterVIDTBase_pow⟩
 
 theorem chapterVIDTBase_ne_zero : chapterVIDTBase ≠ 0 := by
   intro hzero

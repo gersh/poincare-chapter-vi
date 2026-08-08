@@ -25,7 +25,8 @@ collision. More strongly, any `C²` closed contour family beginning at the unit 
 the literal transformed radicand nonzero throughout the radial continuation yields a direct
 contradiction. The exact change back to the §94 variable,
 `t=u exp((100/30003)((u^3)⁻¹-u^3))`, is now verified; its endpoint maps to the same anomaly pair
-D as the local germ, and the two selected lifts differ by a certified cubic deck transformation.
+D as the local germ. The local base point is now defined to be this explicit global endpoint, so
+the formerly possible cubic deck transformation is proved to be exactly `1`.
 The explicit global endpoint has analytic order two and reaches the prepared local model. The
 actual §94 numerator is analytic and nonzero at D. On one certified real rectangle the literal
 source radicand is exactly `k+v²`, its complete numerator/Jacobian amplitude is `C¹`, and Lean
@@ -283,11 +284,14 @@ The strongest newly completed component is the finite algebra in §103:
   convex weight making the initial intermediate circle have radius one, constructs the resulting
   closed contour homotopy, proves it avoids both poles before the endpoint, and proves its final
   negative-real half-turn is exactly the collision lift.
-- `ChapterVIDGlobalMorseBridge.lean` proves that the exact deck-transformed `u -> t` map is
+- `ChapterVIDGlobalMorseBridge.lean` proves that the exact global `u -> t` map is
   holomorphic and unramified at D, composes it with the prepared Morse map, and constructs the
   canonical local inverse from the straight `v` segment back to the actual global `u` coordinate.
   Near D, the reconstructed `(z,t)` point is proved equal to `chapterVIDMorseSourcePoint`; this
-  removes the former endpoint-only identification. The compiled polar cover below now supplies
+  removes the former endpoint-only identification. `ChapterVIDFiberDerivative.lean` normalizes
+  the local `t_D` directly to the explicit global endpoint, and
+  `ChapterVIDGlobalLocalBridge.lean` proves the residual deck multiplier is `1`. The compiled
+  polar cover below now supplies
   compatible square-root sheets on the two outer-arc rectangles. The remaining global work is to
   join those sheets to the full deforming three-arc family and match their signs to the middle
   Morse sheet.

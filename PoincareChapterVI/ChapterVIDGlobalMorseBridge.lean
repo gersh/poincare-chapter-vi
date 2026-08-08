@@ -41,7 +41,7 @@ noncomputable def chapterVIDGlobalCenteredContourPoint (u : ℂ) : ℂ × ℂ :=
 theorem chapterVIDGlobalCenteredContourPoint_collision :
     chapterVIDGlobalCenteredContourPoint chapterVIDCollisionLift =
       (chapterVIDZBase, 0) := by
-  simp [chapterVIDGlobalCenteredContourPoint]
+  simp [chapterVIDGlobalCenteredContourPoint, chapterVIDTBase]
 
 theorem analyticAt_chapterVIDGlobalCenteredContourPoint :
     AnalyticAt ℂ chapterVIDGlobalCenteredContourPoint chapterVIDCollisionLift := by
@@ -191,6 +191,15 @@ Morse segment. -/
 noncomputable def chapterVIDGlobalSourceContourFromMorse (v : ℂ) : ℂ × ℂ :=
   (chapterVIDZBase,
     chapterVIDDeckedRootToLocalContour (chapterVIDGlobalContourFromMorse v))
+
+/-- After the canonical base-point normalization, the source contour reconstructed from the
+Morse coordinate uses Poincaré's literal global `u -> t` map with no deck correction. -/
+@[simp]
+theorem chapterVIDGlobalSourceContourFromMorse_eq (v : ℂ) :
+    chapterVIDGlobalSourceContourFromMorse v =
+      (chapterVIDZBase,
+        chapterVIDRootToOriginalContour (chapterVIDGlobalContourFromMorse v)) := by
+  simp [chapterVIDGlobalSourceContourFromMorse]
 
 /-- The preceding global source point is exactly Poincare's reconstructed local Morse source
 point near D.  This is the precise local correspondence needed to transport the logarithmic
