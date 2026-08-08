@@ -158,7 +158,10 @@ The strongest newly completed component is the finite algebra in §103:
   their equality on a neighborhood and proves the prepared unit remains nonzero there. Local
   analyticity then constructs the unit's holomorphic square-root germ without any global
   extension assumption. Lean builds the natural open punctured quadratic chart and verifies that
-  its holomorphic inverse branch squares against the original radicand to one. A
+  its holomorphic inverse branch squares against the original radicand to one. Every fixed-
+  parameter slice now feeds directly into the formalized `C²` contour-homotopy theorem; requiring
+  the deformation domain's closure to stay in the chart derives the needed boundary continuity
+  automatically. A
   LeanCompCert certificate may discharge large finite coefficient comparisons used in this
   construction, but no fixed finite jet is treated as convergence or equality of analytic germs.
 

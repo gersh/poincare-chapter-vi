@@ -133,7 +133,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   prepared germ therefore has the completed-square factorization with a locally nonzero unit.
   It then constructs the unit root from local analyticity alone, builds an open punctured
   quadratic branch chart, and proves that the resulting holomorphic inverse branch is an actual
-  inverse square root of the original radicand on an open neighbourhood of the pinch.
+  inverse square root of the original radicand on an open neighbourhood of the pinch. Fixed
+  parameter slices inherit an open holomorphic chart and feed directly into the checked `C²`
+  contour-homotopy theorem, provided the deformation domain's closure remains in that chart.
   Constructing those convergent realizations from the nested formal Weierstrass factors, and
   proving the source cycle's factor values lie in one such chart, remain open.
   `ChapterVIContourTransport.lean` proves genuine non-affine contour invariance for

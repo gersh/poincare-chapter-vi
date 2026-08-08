@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import Mathlib.Analysis.Analytic.Basic
 import PoincareChapterVI.ChapterVIComplexBranch
+import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIWeierstrass
 
 /-!
@@ -29,6 +30,7 @@ convergence or equality of analytic germs; those remain analytic proof obligatio
 noncomputable section
 
 open Filter Set Topology
+open scoped unitInterval
 
 namespace PoincareChapterVI
 
@@ -126,6 +128,34 @@ theorem exists_open_factorization_neighborhood
   rcases eventually_nhds_iff.mp heventually with
     ⟨neighborhood, hall, hopen, hbase⟩
   exact ⟨neighborhood, hopen, hbase, hall⟩
+
+/-- The canonical open neighbourhood on which the actual radicand equals its prepared
+factorization. -/
+def factorizationDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) : Set (ℂ × ℂ) :=
+  interior {point | radicand point = germ.quadratic point * germ.unit point}
+
+theorem isOpen_factorizationDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    IsOpen germ.factorizationDomain :=
+  isOpen_interior
+
+theorem base_mem_factorizationDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    base ∈ germ.factorizationDomain := by
+  apply mem_interior_iff_mem_nhds.mpr
+  change radicand =ᶠ[𝓝 base]
+    fun point : ℂ × ℂ ↦ germ.quadratic point * germ.unit point
+  simpa only [quadratic] using germ.eventually_factorization
+
+theorem factorization_of_mem_factorizationDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    {point : ℂ × ℂ} (hpoint : point ∈ germ.factorizationDomain) :
+    radicand point = germ.quadratic point * germ.unit point := by
+  have hinterior :
+      interior {x | radicand x = germ.quadratic x * germ.unit x} ⊆
+        {x | radicand x = germ.quadratic x * germ.unit x} := interior_subset
+  exact hinterior hpoint
 
 /-- The three prepared factors are analytic at their relevant base points. -/
 theorem analytic_factors
@@ -225,6 +255,22 @@ theorem differentiableOn_inverseSquareRoot
   exact chapterVIPreparedSquareRootFromUnitGerm_ne_zero
     germ.unitRootGerm (hquadraticMap hpoint) hpoint.2
 
+/-- The open chart on which the inverse branch is both holomorphic and certified to be the
+inverse square root of the original radicand. -/
+def actualBranchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) : Set (ℂ × ℂ) :=
+  germ.factorizationDomain ∩ germ.branchDomain
+
+theorem isOpen_actualBranchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    IsOpen germ.actualBranchDomain :=
+  germ.isOpen_factorizationDomain.inter germ.isOpen_branchDomain
+
+theorem differentiableOn_inverseSquareRoot_actualBranchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base) :
+    DifferentiableOn ℂ germ.inverseSquareRoot germ.actualBranchDomain :=
+  germ.differentiableOn_inverseSquareRoot.mono inter_subset_right
+
 /-- On the local factorization neighbourhood and the quadratic slit chart, the constructed
 square root squares to the *actual* radicand, rather than merely to the prepared expression. -/
 theorem squareRoot_sq_eq_radicand
@@ -265,6 +311,14 @@ theorem inverseSquareRoot_sq_mul_radicand_of_mem_branchDomain
   exact germ.inverseSquareRoot_sq_mul_radicand hfactorization
     (hinterior hpoint.1.2) hpoint.2
 
+/-- Pointwise correctness is automatic throughout the actual branch domain. -/
+theorem inverseSquareRoot_sq_mul_radicand_of_mem_actualBranchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    {point : ℂ × ℂ} (hpoint : point ∈ germ.actualBranchDomain) :
+    germ.inverseSquareRoot point ^ 2 * radicand point = 1 :=
+  germ.inverseSquareRoot_sq_mul_radicand_of_mem_branchDomain
+    (germ.factorization_of_mem_factorizationDomain hpoint.1) hpoint.2
+
 /-- There is one open neighbourhood of the pinch on whose punctured branch chart the constructed
 holomorphic inverse branch is an actual inverse square root of the original radicand. -/
 theorem exists_open_inverseSquareRoot_neighborhood
@@ -292,6 +346,77 @@ theorem eventually_inverseSquareRoot_sq_mul_radicand
   intro hquadratic hunit
   exact germ.inverseSquareRoot_sq_mul_radicand
     hfactorization hquadratic hunit
+
+/-- Restrict the two-variable inverse branch to one fixed parameter value, as required by the
+one-variable contour integral in §§99--100. -/
+noncomputable def sliceInverseSquareRoot
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    (parameter : ℂ) : ℂ → ℂ :=
+  fun coordinate ↦ germ.inverseSquareRoot (parameter, coordinate)
+
+/-- The corresponding slice of the open two-variable branch domain. -/
+def sliceBranchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    (parameter : ℂ) : Set ℂ :=
+  {coordinate | (parameter, coordinate) ∈ germ.actualBranchDomain}
+
+theorem isOpen_sliceBranchDomain
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    (parameter : ℂ) :
+    IsOpen (germ.sliceBranchDomain parameter) := by
+  exact germ.isOpen_actualBranchDomain.preimage (continuous_const.prodMk continuous_id)
+
+/-- Holomorphicity of every fixed-parameter inverse branch on its sliced chart. -/
+theorem differentiableOn_sliceInverseSquareRoot
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    (parameter : ℂ) :
+    DifferentiableOn ℂ (germ.sliceInverseSquareRoot parameter)
+      (germ.sliceBranchDomain parameter) := by
+  have hembedding : Differentiable ℂ (fun coordinate : ℂ ↦ (parameter, coordinate)) := by
+    fun_prop
+  change DifferentiableOn ℂ
+    (germ.inverseSquareRoot ∘ fun coordinate : ℂ ↦ (parameter, coordinate))
+    ((fun coordinate : ℂ ↦ (parameter, coordinate)) ⁻¹' germ.actualBranchDomain)
+  exact germ.differentiableOn_inverseSquareRoot_actualBranchDomain.comp
+    hembedding.differentiableOn (fun _ hpoint ↦ hpoint)
+
+/-- On every fixed-parameter actual branch chart, the slice is pointwise an inverse square root
+of the corresponding slice of the original radicand. -/
+theorem sliceInverseSquareRoot_sq_mul_radicand
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    (parameter coordinate : ℂ)
+    (hcoordinate : coordinate ∈ germ.sliceBranchDomain parameter) :
+    germ.sliceInverseSquareRoot parameter coordinate ^ 2 *
+        radicand (parameter, coordinate) = 1 :=
+  germ.inverseSquareRoot_sq_mul_radicand_of_mem_actualBranchDomain hcoordinate
+
+/-- Direct contour transport for the inverse square root of the actual convergent radicand.
+The deformation may use any domain whose closure stays inside the fixed-parameter branch chart;
+this closure condition automatically supplies the continuity premise required by Stokes' theorem.
+-/
+theorem sliceInverseSquareRoot_curveIntegral_eq_of_holomorphic_homotopy
+    (germ : ChapterVIConvergentPreparedGerm radicand base)
+    (parameter : ℂ)
+    {a b : ℂ} {initial final : Path a b} {domain : Set ℂ}
+    (homotopy : Path.Homotopy initial final)
+    (mapsInterior : ∀ s ∈ Ioo (0 : I) 1, ∀ t ∈ Ioo (0 : I) 1,
+      homotopy (s, t) ∈ domain)
+    (hclosure : closure domain ⊆ germ.sliceBranchDomain parameter)
+    (hcontDiff : ContDiffOn ℝ 2
+      (fun st : ℝ × ℝ ↦
+        Set.IccExtend zero_le_one (homotopy.toHomotopy.extend st.1) st.2)
+      (Icc 0 1)) :
+    (∫ᶜ z in initial,
+      chapterVIComplexScalarOneForm (germ.sliceInverseSquareRoot parameter) z) =
+      ∫ᶜ z in final,
+        chapterVIComplexScalarOneForm (germ.sliceInverseSquareRoot parameter) z := by
+  have hdomain : domain ⊆ germ.sliceBranchDomain parameter :=
+    subset_closure.trans hclosure
+  exact chapterVI_curveIntegral_eq_of_holomorphic_homotopy
+    homotopy mapsInterior
+    ((germ.differentiableOn_sliceInverseSquareRoot parameter).mono hdomain)
+    ((germ.differentiableOn_sliceInverseSquareRoot parameter).continuousOn.mono hclosure)
+    hcontDiff
 
 end ChapterVIConvergentPreparedGerm
 
