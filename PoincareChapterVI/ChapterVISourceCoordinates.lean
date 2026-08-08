@@ -209,6 +209,21 @@ theorem eventually_chapterVIPowerLocalInverse_zpow
   unfold chapterVIPowerLocalInverse
   exact HasStrictDerivAt.eventually_left_inverse ..
 
+/-- On the selected local branch, raising the inverse value back to the integer power recovers
+the input near the base value. -/
+theorem eventually_zpow_chapterVIPowerLocalInverse
+    (degree : ℤ) (base : ℂ) (hbase : base ≠ 0) (hdegree : degree ≠ 0) :
+    (fun mean : ℂ ↦
+      chapterVIPowerLocalInverse degree base hbase hdegree mean ^ degree) =ᶠ[𝓝 (base ^ degree)]
+      fun mean ↦ mean := by
+  let hf : AnalyticAt ℂ (fun z : ℂ ↦ z ^ degree) base := analyticAt_id.zpow hbase
+  have hderiv : deriv (fun z : ℂ ↦ z ^ degree) base ≠ 0 := by
+    rw [deriv_zpow]
+    exact mul_ne_zero (Int.cast_ne_zero.mpr hdegree) (zpow_ne_zero _ hbase)
+  unfold chapterVIPowerLocalInverse
+  convert hf.hasStrictDerivAt.eventually_right_inverse hderiv using 1
+  all_goals rfl
+
 /-- Poincaré's monomial change from the two mean-anomaly exponentials `(s,r)` to `(z,s)`,
 where `s = exp(il)` and `z = sᵃ rᶜ`.  His contour variable satisfies `s = tᶜ`. -/
 def chapterVIMeanToContourMap (a c : ℤ) (mean : ℂ × ℂ) : ℂ × ℂ :=
