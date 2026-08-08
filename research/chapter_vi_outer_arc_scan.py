@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Exploratory, non-rigorous scan of the concrete Chapter VI D outer arcs.
 
-This script is not a proof artifact.  It was used to reject a naive linear-radius contour and to
-choose the explicit sixth-root radius formalized in `ChapterVIDCertificateContour.lean`.  The
+This script is not a proof artifact. It was used to reject a naive linear-radius contour and to
+choose the explicit sixth-root radius with an affine endpoint correction formalized in
+`ChapterVIDCertificateContour.lean`. The
 eventual LeanCompCert certificate must use outward-rounded rational interval bounds and prove the
 `ChapterVIDOuterArcNonvanishingCertificate` fields; floating-point samples here cannot discharge
 that obligation.
@@ -71,6 +72,10 @@ def scan(samples: int) -> None:
 
     def certificate_radius(s: mp.mpf) -> mp.mpf:
         q = parameter(s)
+        return q ** (mp.mpf(1) / 6) * (1 + (sixth_correction - 1) * s)
+
+    def exponential_correction_radius(s: mp.mpf) -> mp.mpf:
+        q = parameter(s)
         return q ** (mp.mpf(1) / 6) * sixth_correction**s
 
     def linear_radius(s: mp.mpf) -> mp.mpf:
@@ -82,7 +87,8 @@ def scan(samples: int) -> None:
     print(f"sixth-root correction = {mp.nstr(sixth_correction, 30)}")
 
     for label, radius in (
-        ("certificate sixth-root radius", certificate_radius),
+        ("certificate affine-correction sixth-root radius", certificate_radius),
+        ("earlier exponential-correction radius", exponential_correction_radius),
         ("unsafe linear radius", linear_radius),
     ):
         minimum = (mp.inf, mp.mpf(0), "", mp.mpf(0))

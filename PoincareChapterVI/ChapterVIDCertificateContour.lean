@@ -14,15 +14,18 @@ The pole-weighted radial contour is ideal for the qualitative inside/outside pro
 radius uses noncomputable inverse monotone branches.  A large compiled interval certificate is
 easier to state for a radius given directly by elementary source data.
 
-Writing `q(s)` for Poincare's affine positive source-parameter modulus, this file defines
+Writing `q(s)` for Poincare's affine positive source-parameter modulus and
+`c = r_D / q_D^(1/6)`, this file defines
 
-`r(s) = q(s)^(1/6) * (r_D / q_D^(1/6))^s`.
+`r(s) = q(s)^(1/6) * ((1-s) + s*c)`.
 
-The sixth-root scale follows the observed geometry of the two synchronized cubic branches.  Lean
-proves that this radius is positive and continuous, starts at one, and ends at the exact collision
-radius.  Therefore it gives another explicit homotopy from the literal unit circle to a circle
-through D.  Unlike `ChapterVIDRadialContour.lean`, avoidance of the full source radicand is not
-claimed here: that is deliberately the downstream finite nonvanishing-certificate obligation.
+The sixth-root scale follows the observed geometry of the two synchronized cubic branches. The
+affine correction has the same exact endpoints as the earlier `c^s` choice but eliminates a
+variable real exponent from the compiled certificate. Lean proves that this radius is positive
+and continuous, starts at one, and ends at the exact collision radius. Therefore it gives another
+explicit homotopy from the literal unit circle to a circle through D. Unlike
+`ChapterVIDRadialContour.lean`, avoidance of the full source radicand is not claimed here: that is
+deliberately the downstream finite nonvanishing-certificate obligation.
 -/
 
 noncomputable section
@@ -78,42 +81,60 @@ theorem chapterVIDCertificateContourCorrection_pos :
   exact div_pos (norm_pos_iff.mpr chapterVIDCollisionLift_ne_zero)
     chapterVIDCriticalParameterSixthRoot_pos
 
+/-- Positive affine interpolation from `1` to the endpoint correction. -/
+noncomputable def chapterVIDCertificateContourCorrectionFactor (s : I) : ℝ :=
+  AffineMap.lineMap 1 chapterVIDCertificateContourCorrection (s : ℝ)
+
+theorem chapterVIDCertificateContourCorrectionFactor_pos (s : I) :
+    0 < chapterVIDCertificateContourCorrectionFactor s := by
+  unfold chapterVIDCertificateContourCorrectionFactor
+  simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul]
+  rw [show (s : ℝ) * (chapterVIDCertificateContourCorrection - 1) + 1 =
+      (1 - (s : ℝ)) + (s : ℝ) * chapterVIDCertificateContourCorrection by ring]
+  by_cases hs : (s : ℝ) = 1
+  · simp [hs, chapterVIDCertificateContourCorrection_pos]
+  · exact add_pos_of_pos_of_nonneg
+      (sub_pos.mpr (lt_of_le_of_ne s.property.2 hs))
+      (mul_nonneg s.property.1 chapterVIDCertificateContourCorrection_pos.le)
+
 /-- Directly executable formula for the certificate contour radius. -/
 noncomputable def chapterVIDCertificateContourRadius (s : I) : ℝ :=
   chapterVIDCertificateParameter s ^ ((6 : ℝ)⁻¹) *
-    chapterVIDCertificateContourCorrection ^ (s : ℝ)
+    chapterVIDCertificateContourCorrectionFactor s
 
 theorem continuous_chapterVIDCertificateContourRadius :
     Continuous chapterVIDCertificateContourRadius := by
   unfold chapterVIDCertificateContourRadius
   exact (continuous_chapterVIDCertificateParameter.rpow_const
       (fun s ↦ Or.inl (chapterVIDCertificateParameter_pos s).ne')).mul
-    (continuous_const.rpow continuous_subtype_val
-      (fun _ ↦ Or.inl chapterVIDCertificateContourCorrection_pos.ne'))
+    (by unfold chapterVIDCertificateContourCorrectionFactor; fun_prop)
 
 theorem chapterVIDCertificateContourRadius_pos (s : I) :
     0 < chapterVIDCertificateContourRadius s := by
   unfold chapterVIDCertificateContourRadius
   exact mul_pos
     (Real.rpow_pos_of_pos (chapterVIDCertificateParameter_pos s) _)
-    (Real.rpow_pos_of_pos chapterVIDCertificateContourCorrection_pos _)
+    (chapterVIDCertificateContourCorrectionFactor_pos s)
 
 @[simp]
 theorem chapterVIDCertificateContourRadius_zero :
     chapterVIDCertificateContourRadius 0 = 1 := by
-  simp [chapterVIDCertificateContourRadius]
+  simp [chapterVIDCertificateContourRadius,
+    chapterVIDCertificateContourCorrectionFactor, AffineMap.lineMap_apply]
 
 @[simp]
 theorem chapterVIDCertificateContourRadius_one :
     chapterVIDCertificateContourRadius 1 = ‖chapterVIDCollisionLift‖ := by
   unfold chapterVIDCertificateContourRadius chapterVIDCertificateParameter
-    chapterVIDCertificateContourCorrection chapterVIDCriticalParameterSixthRoot
+    chapterVIDCertificateContourCorrectionFactor chapterVIDCertificateContourCorrection
+    chapterVIDCriticalParameterSixthRoot
   simp only [Set.Icc.coe_one]
   rw [show AffineMap.lineMap 1 chapterVIDCriticalParameterModulus (1 : ℝ) =
     chapterVIDCriticalParameterModulus by simp [AffineMap.lineMap_apply]]
-  simp only [Real.rpow_one]
+  simp only [AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul]
   field_simp [ne_of_gt
     (Real.rpow_pos_of_pos chapterVIDCriticalParameterModulus_pos _)]
+  ring
 
 /-- The explicit certificate contour homotopy. -/
 noncomputable def chapterVIDCertificateContourHomotopy : ContinuousMap.Homotopy

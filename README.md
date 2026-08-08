@@ -300,12 +300,16 @@ The strongest newly completed component is the finite algebra in §103:
   parametric-integration theorem proves that continuous outer-arc data then have finite endpoint
   limits, exactly the sufficient condition used by `ChapterVIThreeArcAsymptotic.lean`.
 - `ChapterVIDCertificateContour.lean` replaces the unsafe naive linear interpolation by the
-  explicit radius `q(s)^(1/6) * (r_D / q_D^(1/6))^s`. Lean proves its positivity, continuity,
+  explicit radius `q(s)^(1/6) * ((1-s) + s * (r_D / q_D^(1/6)))`. Lean proves its positivity, continuity,
   exact unit-circle start, and exact arrival at D. `ChapterVIDOuterArcs.lean` restricts its two
   regular quarters, proves the literal radicand is continuous there, and names the concrete
   nonvanishing-certificate types. The exploratory script
   `research/chapter_vi_outer_arc_scan.py` records why this radius was selected; its floating-point
   output is explicitly not accepted as proof.
+- `ChapterVILeanCompCertRoots.lean` checks cubic- and sixth-root enclosures without evaluating a
+  logarithm or fractional power numerically. Compiled signed-integer multiplication traces bound
+  the cubes or sixth powers of dyadic endpoints, and a kernel proof turns those inequalities into
+  root intervals.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
