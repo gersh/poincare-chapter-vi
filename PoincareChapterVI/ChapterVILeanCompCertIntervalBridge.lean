@@ -40,6 +40,20 @@ def productClaim (leftA leftB rightA rightB : ℤ) : Claim where
       leftA * leftB ≤ rightA * rightB := by
   simp [productClaim, Claim.Holds]
 
+/-- If all mathematical claims hold, the verified compiled checker returns zero.
+
+Together with `allHold_of_returns_zero`, this makes the compiled verdict exactly equivalent to
+the claim list's mathematical meaning.  The proof goes through LeanCompCert's verified program
+denotation rather than evaluating the generated C code inside Lean. -/
+theorem returns_zero_of_allHold (name : String) (claims : List Claim)
+    (hadmissible : Admissible claims)
+    (hall : ∀ claim ∈ claims, claim.Holds) :
+    (claimComputation name claims).Returns ((0 : Nat) : Int) := by
+  apply ((LeanCompCert.Verified.Reflect.toComputation_returns
+    (claimProgram claims) name (claimProgram_wf claims) 0)).2
+  rw [claimProgram_denote claims hadmissible]
+  exact congrArg some ((failureCount_eq_zero_iff claims).2 hall)
+
 /-- The well-formedness comparison and eight corner comparisons for one dyadic product. -/
 def mulClaims {precision : ℕ}
     (x y output : ChapterVISignedDyadicInterval precision) : List Claim :=
@@ -95,6 +109,24 @@ theorem mulCertificate_of_allHold {precision : ℕ}
       hall (productClaim x.upper y.upper output.upper (2 ^ precision))
         (by simp [mulClaims])
 
+/-- A mathematical dyadic multiplication certificate proves every claim sent to the checker. -/
+theorem allHold_of_mulCertificate {precision : ℕ}
+    (x y output : ChapterVISignedDyadicInterval precision)
+    (certificate : ChapterVISignedDyadicInterval.MulCertificate x y output) :
+    ∀ claim ∈ mulClaims x y output, claim.Holds := by
+  intro claim hclaim
+  simp [mulClaims] at hclaim
+  rcases hclaim with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  · simpa only [productClaim_holds_iff, mul_one] using certificate.output_wf
+  · simpa only [productClaim_holds_iff] using certificate.lower_ll
+  · simpa only [productClaim_holds_iff] using certificate.lower_lu
+  · simpa only [productClaim_holds_iff] using certificate.lower_ul
+  · simpa only [productClaim_holds_iff] using certificate.lower_uu
+  · simpa only [productClaim_holds_iff] using certificate.upper_ll
+  · simpa only [productClaim_holds_iff] using certificate.upper_lu
+  · simpa only [productClaim_holds_iff] using certificate.upper_ul
+  · simpa only [productClaim_holds_iff] using certificate.upper_uu
+
 /-- A successful compiled run proves a signed-dyadic multiplication certificate. -/
 theorem mulCertificate_of_compiled {precision : ℕ} (name : String)
     (x y output : ChapterVISignedDyadicInterval precision)
@@ -147,6 +179,22 @@ theorem positiveReciprocalCertificate_of_allHold {precision : ℕ}
     simpa only [productClaim_holds_iff, pow_two] using
       hall (productClaim (2 ^ precision) (2 ^ precision) output.upper input.lower)
         (by simp [positiveReciprocalClaims])
+
+/-- A mathematical positive-reciprocal certificate proves every claim sent to the checker. -/
+theorem allHold_of_positiveReciprocalCertificate {precision : ℕ}
+    (input output : ChapterVISignedDyadicInterval precision)
+    (certificate : ChapterVISignedDyadicInterval.PositiveReciprocalCertificate input output) :
+    ∀ claim ∈ positiveReciprocalClaims input output, claim.Holds := by
+  intro claim hclaim
+  simp [positiveReciprocalClaims] at hclaim
+  rcases hclaim with rfl | rfl | rfl | rfl | rfl
+  · simp only [productClaim_holds_iff, mul_one]
+    exact Int.add_one_le_iff.mpr certificate.input_lower_pos
+  · simpa only [productClaim_holds_iff, mul_one] using certificate.output_wf
+  · simpa only [productClaim_holds_iff, zero_mul, mul_one] using
+      certificate.output_lower_nonneg
+  · simpa only [productClaim_holds_iff, pow_two] using certificate.lower_cross
+  · simpa only [productClaim_holds_iff, pow_two] using certificate.upper_cross
 
 /-- A successful compiled run proves a positive signed-dyadic reciprocal certificate. -/
 theorem positiveReciprocalCertificate_of_compiled {precision : ℕ} (name : String)

@@ -3,6 +3,13 @@
 Status: standalone exploratory research, not a claim that Poincaré's complete proof has been
 formalized and not intended for a Lean Pool pull request in its present form.
 
+Large connector batches now have a concrete LeanCompCert receipt interface in
+`ChapterVILeanCompCertAttestation.lean`: Lean derives the emitted C artifact from the same batch
+used by the semantic theorem, and a bound receipt yields the required zero verdict through the
+explicit `RunAdmission` trust boundary. This resolves compiled-result ingestion, but not the
+mathematical endpoint issue: the passing `261/1024` reference cutoff still lacks a proof that it
+lies inside the noncomputably obtained factor collar.
+
 This note separates three questions that are easy to conflate:
 
 1. What is proved in Chapter VI of volume I of *Les méthodes nouvelles de la mécanique

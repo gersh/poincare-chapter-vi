@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import PoincareChapterVI.ChapterVIDConnectorCompiledGrid
+import PoincareChapterVI.ChapterVILeanCompCertAttestation
 import Mathlib.Analysis.RCLike.Sqrt
 
 /-!
@@ -35,6 +36,7 @@ namespace PoincareChapterVI
 namespace ChapterVIDConnectorSeamCompiledGrid
 
 open ChapterVILeanCompCertBatch
+open ChapterVILeanCompCertAttestation
 open LeanCompCert.Ports.SignedProductClaims
 open ChapterVIDConnectorCompiledGrid
 
@@ -545,6 +547,49 @@ structure FactorBulkRunVerdict
     {precision cells : ℕ}
     (name : String) (data : FactorBulkData model side collar precision cells) : Prop where
   returnsZero : (batchComputation name data.operations).Returns ((0 : Nat) : Int)
+
+/-- Kernel-side constructor for generated factor batches whose individual interval certificates
+have already been reconstructed.  This is also the converse of consuming a compiled zero
+verdict: under the word-size admissibility proof, the two formulations are equivalent. -/
+theorem FactorBulkRunVerdict.ofAllSound
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {collar : FactorEndpointCollar model side}
+    {precision cells : ℕ} (name : String)
+    (data : FactorBulkData model side collar precision cells)
+    (hall : ∀ operation ∈ data.operations, operation.Sound) :
+    FactorBulkRunVerdict name data :=
+  ⟨returns_zero_of_allSound name data.operations data.admissible hall⟩
+
+theorem factorBulkRunVerdict_iff_allSound
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {collar : FactorEndpointCollar model side}
+    {precision cells : ℕ} (name : String)
+    (data : FactorBulkData model side collar precision cells) :
+    FactorBulkRunVerdict name data ↔
+      ∀ operation ∈ data.operations, operation.Sound := by
+  constructor
+  · intro run
+    exact allSound_of_returns_zero name data.operations data.admissible run.returnsZero
+  · exact FactorBulkRunVerdict.ofAllSound name data
+
+/-- Construct the factor-bulk verdict from a receipt for the exact Lean-derived C artifact. -/
+theorem FactorBulkRunVerdict.ofReceipt
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {collar : FactorEndpointCollar model side}
+    {precision cells : ℕ} (name : String)
+    (data : FactorBulkData model side collar precision cells)
+    (crypto : LeanCompCert.Attest.ReceiptCrypto)
+    (receipt : LeanCompCert.Attest.RunReceipt)
+    (kind : LeanCompCert.Attest.AttestationKind) (params nonce : String)
+    (bound : LeanCompCert.Attest.receiptBindsProved crypto
+      (batchArtifact name data.operations) kind params nonce ((0 : Nat) : Int) receipt = true)
+    (admitted : LeanCompCert.Attest.RunAdmission crypto
+      (batchArtifact name data.operations) receipt) :
+    FactorBulkRunVerdict name data :=
+  ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce bound admitted⟩
 
 theorem factorBulk_cell_operation_mem
     {massProduct : ℂ} {b d : ℤ}

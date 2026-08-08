@@ -55,6 +55,26 @@ theorem sound_of_allHold {precision : ℕ} (operation : DyadicOperation precisio
       exact Int.zero_lt_one.trans_le h
   | rawClaim claim => exact hall claim (by simp [claims])
 
+/-- The semantic certificate for an operation proves all of its compiled claims. -/
+theorem allHold_of_sound {precision : ℕ} (operation : DyadicOperation precision)
+    (hsound : operation.Sound) : ∀ claim ∈ operation.claims, claim.Holds := by
+  cases operation with
+  | mul x y output => exact allHold_of_mulCertificate x y output hsound
+  | positiveReciprocal input output =>
+      exact allHold_of_positiveReciprocalCertificate input output hsound
+  | positiveLower input =>
+      intro claim hclaim
+      simp only [claims, List.mem_singleton] at hclaim
+      subst claim
+      simp only [productClaim_holds_iff, mul_one]
+      exact Int.add_one_le_iff.mpr hsound
+  | rawClaim claim =>
+      intro item hitem
+      change claim.Holds at hsound
+      simp only [claims, List.mem_singleton] at hitem
+      subst item
+      exact hsound
+
 end DyadicOperation
 
 /-- Concatenated machine input for an entire interval campaign. -/
@@ -79,6 +99,27 @@ theorem allSound_of_returns_zero {precision : ℕ} (name : String)
   apply hall claim
   rw [batchClaims, List.mem_flatMap]
   exact ⟨operation, hoperation, hclaim⟩
+
+/-- If every operation has its semantic certificate, the verified batch checker returns zero. -/
+theorem returns_zero_of_allSound {precision : ℕ} (name : String)
+    (operations : List (DyadicOperation precision))
+    (hadmissible : Admissible (batchClaims operations))
+    (hallSound : ∀ operation ∈ operations, operation.Sound) :
+    (batchComputation name operations).Returns ((0 : Nat) : Int) := by
+  apply returns_zero_of_allHold name (batchClaims operations) hadmissible
+  intro claim hclaim
+  rw [batchClaims, List.mem_flatMap] at hclaim
+  obtain ⟨operation, hoperation, hclaim⟩ := hclaim
+  exact operation.allHold_of_sound (hallSound operation hoperation) claim hclaim
+
+/-- A batch returns zero exactly when every encoded interval operation is semantically sound. -/
+theorem returns_zero_iff_allSound {precision : ℕ} (name : String)
+    (operations : List (DyadicOperation precision))
+    (hadmissible : Admissible (batchClaims operations)) :
+    (batchComputation name operations).Returns ((0 : Nat) : Int) ↔
+      ∀ operation ∈ operations, operation.Sound :=
+  ⟨allSound_of_returns_zero name operations hadmissible,
+    returns_zero_of_allSound name operations hadmissible⟩
 
 /-- Consumer form for a multiplication appearing anywhere in the checked campaign. -/
 theorem mul_contains_of_batch {precision : ℕ} (name : String)

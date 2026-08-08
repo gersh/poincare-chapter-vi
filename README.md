@@ -506,6 +506,12 @@ The strongest newly completed component is the finite algebra in §103:
   cutoff `261 / 1024` must still be proved to lie inside the continuity collar (or replaced by a
   computably justified smaller cutoff). That quantitative cutoff-matching statement is now the
   only endpoint-specific bridge between the generated table and the factor-bulk theorem.
+  `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
+  emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
+  A hash-bound LeanCompCert receipt plus the explicit `RunAdmission` premise then reconstructs
+  `FactorBulkRunVerdict`. The checker is bidirectional in Lean as well: under the proved word-size
+  admissibility bound, a zero result is equivalent to soundness of every encoded operation. This
+  closes the compiled-run plumbing, but it does not manufacture the missing collar bound.
 - The two regular quarters now use the exact rational unit-circle parametrization
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
@@ -524,7 +530,8 @@ The strongest newly completed component is the finite algebra in §103:
   sign-magnitude product claims. LeanCompCert's proved straight-line checker multiplies the
   magnitudes, performs the sign-aware comparisons, and counts failures; a compiled zero result
   now implies the real multiplication and reciprocal containment theorems. The dependency is
-  pinned to the exact revision containing that checker. `ChapterVIDOuterArcInterval.lean` removes
+  pinned to revision `9b16ea7`, containing that checker and the attested-artifact infrastructure.
+  `ChapterVIDOuterArcInterval.lean` removes
   the remaining complex exponential
   from the machine calculation: on the coarse radius annulus, Mathlib's exponential remainder
   theorem encloses it by `1+x` plus an explicit norm error. The compiled sweep therefore performs
