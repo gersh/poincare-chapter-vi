@@ -16,9 +16,11 @@ terminal cells. Its artifacts include the line-map operations, and Lean turns ev
 into a `HasDerivAt` theorem plus strict derivative positivity for the actual model connector.
 This resolves compiled-result ingestion and removes the old fixed-cutoff premise, but not the
 scale-dependent endpoint issue: 30 endpoint-adjacent cells still contain the double zero because
-the Morse length is selected noncomputably. A sound compiled completion therefore needs either a
-scale-normalized trace or a constructive quantitative Morse witness; a receipt alone cannot
-supply that missing analytic relation.
+the Morse length is selected noncomputably. The obstruction is now checked symbolically as well:
+the literal first-factor derivative at the collapsed D endpoint is exactly zero, by reduction to
+the certified cubic equation defining D. A sound compiled completion therefore needs either a
+second-order scale-normalized trace or a constructive quantitative Morse witness; a receipt alone
+cannot supply that missing analytic relation.
 
 This note separates three questions that are easy to conflate:
 

@@ -529,7 +529,12 @@ The strongest newly completed component is the finite algebra in §103:
   without trusting the proposal generator or accepting enclosure hypotheses from a caller.
   The remaining endpoint problem is now exactly 30 cells—21 initial and 9 final—where the
   interval box still contains the scale-dependent double zero. No fixed continuity-collar width
-  is assumed for them.
+  is assumed for them. Lean now also proves the diagnostic identity
+  `chapterVIDRootCoordinateCollisionFactorPlusDerivative_base`: the first derivative is exactly
+  zero at the collapsed D endpoint, with the final polynomial cancellation reduced to the
+  certified cubic equation for `chapterVIDRoot`. Thus higher precision alone cannot produce a
+  uniform first-derivative margin; the terminal artifact must retain second-order/Morse-scale
+  data.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

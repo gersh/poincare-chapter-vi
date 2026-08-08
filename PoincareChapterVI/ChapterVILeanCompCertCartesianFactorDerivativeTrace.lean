@@ -6,6 +6,7 @@ Authors: Gershon Bialer
 
 import PoincareChapterVI.ChapterVILeanCompCertCartesianRadicandTrace
 import PoincareChapterVI.ChapterVILeanCompCertProposals
+import PoincareChapterVI.ChapterVIDMovingRootBridge
 import Mathlib.Analysis.Complex.RealDeriv
 
 /-!
@@ -78,6 +79,35 @@ theorem hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlus
   filter_upwards [eventually_ne_nhds hu] with w hw
   rw [chapterVIDRootCoordinateCollisionFactorPlus_eq_polarCertificateFormula hζ hw]
   simp [chapterVIDRootCoordinateCollisionFactorPlusFormula, inv_pow]
+
+/-- At the collapsed connector endpoint the first collision factor has zero first derivative.
+This is the exact algebraic reason that no fixed positive-margin derivative certificate can cover
+the endpoint merely by increasing interval precision: a terminal certificate must retain the
+second-order Morse scale instead. -/
+theorem chapterVIDRootCoordinateCollisionFactorPlusDerivative_base :
+    chapterVIDRootCoordinateCollisionFactorPlusDerivative
+      chapterVIDZRootBase chapterVIDCollisionLift = 0 := by
+  unfold chapterVIDRootCoordinateCollisionFactorPlusDerivative
+  rw [chapterVIDRootSecondAnomaly_base]
+  have hu : chapterVIDCollisionLift ≠ 0 := chapterVIDCollisionLift_ne_zero
+  have hx : (chapterVIDRoot : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (ne_of_lt chapterVIDRoot_lt_zero)
+  have hu3 : chapterVIDCollisionLift ^ 3 = (chapterVIDRoot : ℂ) := by
+    simpa only [chapterVIDX] using chapterVIDCollisionLift_pow
+  have hu6 : chapterVIDCollisionLift ^ 6 = (chapterVIDRoot : ℂ) ^ 2 := by
+    calc
+      chapterVIDCollisionLift ^ 6 = (chapterVIDCollisionLift ^ 3) ^ 2 := by ring
+      _ = (chapterVIDRoot : ℂ) ^ 2 := by rw [hu3]
+  have hroot : (chapterVIDPolynomial chapterVIDRoot : ℂ) = 0 := by
+    exact_mod_cast chapterVIDRoot_isRoot
+  unfold chapterVIDY chapterVIDX
+  field_simp [hu, hx]
+  ring_nf
+  rw [hu3, hu6]
+  field_simp [hx]
+  unfold chapterVIDPolynomial at hroot
+  push_cast at hroot
+  linear_combination ((800 : ℂ) * chapterVIDRoot - 8) * hroot
 
 /-- Imaginary part of the first collision factor along an affine line in root coordinates. -/
 def chapterVIDRootCoordinateCollisionFactorPlusLineImag
