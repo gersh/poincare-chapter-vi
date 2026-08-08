@@ -23,6 +23,7 @@ import PoincareChapterVI.ChapterVIDoubleZero
 import PoincareChapterVI.ChapterVIDCandidate
 import PoincareChapterVI.ChapterVIDFiberDerivative
 import PoincareChapterVI.ChapterVIAnalyticCriticalCenter
+import PoincareChapterVI.ChapterVIAnalyticCentering
 import PoincareChapterVI.ChapterVISection102DarbouxTransfer
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
@@ -98,7 +99,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `k` vanishing at the singular parameter. Before that formal preparation step,
   `exists_chapterVID_analyticCriticalCenter` applies the complex implicit function theorem to the
   exact convergent source radicand and constructs Poincaré's analytic moving fiber-critical center
-  through D. `hasSum_chapterVILogSingularityCoefficient` verifies the
+  through D. `ChapterVIAnalyticCentering.lean` then translates to this moving center, subtracts
+  the analytic critical value, and proves that the resulting convergent germ vanishes together
+  with its first fiber derivative along the parameter axis while retaining a nonzero second
+  fiber derivative at D. `hasSum_chapterVILogSingularityCoefficient` verifies the
   logarithmic Taylor expansion used in §100, and
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a
   little-oh remainder to Poincaré's leading Darboux model.
