@@ -126,6 +126,33 @@ structure ChapterVIMovingPoleAvoidance
       ((chapterVITranslateContourHomotopy contour pole).extend st.1) st.2)
     (Icc 0 1)
 
+/-- A pointwise pole-avoiding homotopy on the compact parameter square automatically supplies
+the closed translated domain required by `ChapterVIMovingPoleAvoidance`.  This removes a
+technical domain witness from source-facing applications. -/
+noncomputable def chapterVIMovingPoleAvoidanceOfPointwise
+    {a b initialPoint finalPoint : ℂ}
+    {initial : Path a a} {final : Path b b}
+    (contour : ContinuousMap.Homotopy (initial : C(I, ℂ)) (final : C(I, ℂ)))
+    (pole : Path initialPoint finalPoint)
+    (havoid : ∀ s t : I, contour (s, t) ≠ pole s)
+    (hcontDiff : ContDiffOn ℝ 2
+      (fun st : ℝ × ℝ ↦ Set.IccExtend zero_le_one
+        ((chapterVITranslateContourHomotopy contour pole).extend st.1) st.2)
+      (Icc 0 1)) :
+    ChapterVIMovingPoleAvoidance contour pole where
+  domain := Set.range (fun st : I × I ↦ contour st - pole st.1)
+  mapsInterior := by
+    intro s _ t _
+    exact ⟨(s, t), rfl⟩
+  zero_not_mem_closure := by
+    have hcontinuous : Continuous (fun st : I × I ↦ contour st - pole st.1) := by
+      fun_prop
+    rw [(isCompact_range hcontinuous).isClosed.closure_eq]
+    rintro ⟨⟨s, t⟩, hzero⟩
+    apply havoid s t
+    exact sub_eq_zero.mp hzero
+  contDiff_translatedHomotopy := hcontDiff
+
 /-- The positively oriented unit circle has normalized winding integral one about every point
 strictly inside it. -/
 theorem chapterVIWindingIntegral_unitCircle_eq_one

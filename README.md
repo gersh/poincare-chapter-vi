@@ -21,10 +21,16 @@ cubic root. The two inverse-monotone descendants are explicit continuous paths i
 `x^(1/3)` coordinate: Lean proves pointwise that both annihilate his literal collision factor,
 carry the same actual complex `z` parameter, and coalesce at D. A winding-integral theorem then
 proves that a smooth closed contour cannot avoid both opposite-side singularities through that
-collision. The actual §94 numerator is analytic and
+collision. More strongly, any `C²` closed contour family beginning at the unit circle and keeping
+the literal transformed radicand nonzero throughout the radial continuation yields a direct
+contradiction. The exact change back to the §94 variable,
+`t=u exp((100/30003)((u^3)⁻¹-u^3))`, is now verified; its endpoint maps to the same anomaly pair
+D as the local germ, and the two selected lifts differ by a certified cubic deck transformation.
+The explicit global endpoint has analytic order two and reaches the prepared local model with a
+nonzero logarithmic coefficient. The actual §94 numerator is analytic and
 nonzero at D, the convergent local Morse model is `k+v²`, and the three-arc decomposition isolates
-its nonzero logarithmic middle contribution. The remaining global obligation is to construct the
-physical source-sheet contour deformation avoiding those checked pole paths and control the two
+its nonzero logarithmic middle contribution. The remaining global obligation is to place and
+transport the physical integration cycle around those checked pole paths and control the two
 regular arcs; the general §98 Riemann-surface discussion is not being represented as complete.
 
 The strongest newly completed component is the finite algebra in §103:
