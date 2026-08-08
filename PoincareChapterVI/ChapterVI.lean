@@ -14,6 +14,7 @@ import PoincareChapterVI.ChapterVIDRootCoordinates
 import PoincareChapterVI.ChapterVIDRadialContour
 import PoincareChapterVI.ChapterVIDGlobalLocalBridge
 import PoincareChapterVI.ChapterVIDGlobalMorseBridge
+import PoincareChapterVI.ChapterVISquareRootSheet
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra
@@ -220,7 +221,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   and its two regular arcs are `o(-log k)`. `ChapterVIDGlobalMorseBridge.lean` proves that the
   explicit global `u=x^(1/3)` coordinate is locally analytically equivalent at D to the same
   Morse `v` coordinate and that its inverse reconstructs the exact local Morse source point.
-  The compatible global square-root sheet and the two regular-arc bounds remain.
+  `ChapterVISquareRootSheet.lean` reduces the compatible outer-arc square-root sheet to
+  nonvanishing on a compact parameter rectangle and supplies a finite-cover/Lipschitz interface
+  for discharging that fact with a large LeanCompCert sample certificate. The concrete bounds
+  and the two regular-arc limits remain.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling

@@ -289,6 +289,14 @@ The strongest newly completed component is the finite algebra in §103:
   Near D, the reconstructed `(z,t)` point is proved equal to `chapterVIDMorseSourcePoint`; this
   removes the former endpoint-only identification. The remaining global work is the compatible
   square-root sheet and regularity/finite-limit control on the two outer arcs.
+- `ChapterVISquareRootSheet.lean` proves the general sheet theorem needed for those arcs: any
+  continuous nonzero complex radicand on a simply connected parameter rectangle has a continuous
+  square root with a prescribed base value. It also defines the precise LeanCompCert-facing
+  continuum bridge. A finite sample table, a certified covering radius, and a kernel-checked
+  Lipschitz bound imply nonvanishing everywhere and therefore produce the sheet. LeanCompCert is
+  useful for the sample table; it does not replace the covering or analytic estimates. A final
+  parametric-integration theorem proves that continuous outer-arc data then have finite endpoint
+  limits, exactly the sufficient condition used by `ChapterVIThreeArcAsymptotic.lean`.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
