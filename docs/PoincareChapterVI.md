@@ -10,8 +10,9 @@ This note separates three questions that are easy to conflate:
 2. Which individual reductions have been checked in this Lean repository?
 3. What would be required for a faithful modern proof of the decisive argument?
 
-The primary text is [Chapter VI, §§90–103][chapter-vi]. The page-level facsimiles are linked
-below where the printed formula matters.
+The primary text is [Chapter VI, §§90–103][chapter-vi]. For the §102 dependency argument, see
+especially [p. 326][page-326], [p. 327][page-327], [p. 328][page-328], and [p. 329][page-329].
+The page-level facsimiles are linked below where the printed formula matters.
 
 ## Bottom line
 
@@ -25,9 +26,9 @@ and formal-series subarguments. The central analytic and geometric steps remain 
 - deriving the local logarithmic expansion from a convergent Weierstrass preparation and a
   parameter-dependent contour;
 - proving a Darboux remainder estimate strong enough to give eventual nonvanishing;
-- deriving Poincaré's §102 two-essential-coordinate constancy claim from the Chapter V input.
-  The actual moving algebraic equations, their analytic branches at all 24 certified points,
-  and the ensuing §103 rank contradiction are now formalized.
+- deriving Poincaré's §102 rank-at-most-two conclusion for the singular-root differential from
+  the Chapter V input. The actual moving algebraic equations, their analytic branches at all 24
+  certified points, and the ensuing §103 rank contradiction are now formalized.
 
 This is not merely a matter of filling routine Lean library gaps. At the end of §98 Poincaré says
 that he has only sketched the discussion and calls for a complete analytic study of the different
@@ -48,8 +49,8 @@ transcription of the 1892 text.
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | `ChapterVIWeierstrass.lean` proves the analogous statement for nested **formal** power series; `ChapterVIPinchModel.lean` exactly integrates the real symmetric quadratic model and proves its logarithmic asymptotic | Analytic Weierstrass preparation for the actual convergent germ, nondegeneracy, compatible complex square-root branches, transport of the contour, the analytic unit, and the remainder |
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
-| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`; `ChapterVI.lean` supplies only a conditional restricted-problem interface | Formalize the Chapter V input, analytic dependence/enumeration of singular roots, prove the required ratio Jacobian is nonzero, and justify the passage from coefficient relations to singular-locus relations |
-| §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, derives equation (2) from local constancy of Poincaré's displayed singularity parameter, and completes the rank-nullity contradiction through the LeanCompCert certificate | Prove the §102 constancy/factorization input used by `BranchSingularityConstancy`; no additional finite calculation or source-identification interface remains in the §103 endgame |
+| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`. `ChapterVISection102.lean` verifies the block-determinant step on p. 329, states the intrinsic rank-at-most-two root differential, and proves that this rank bound contradicts §103 | Formalize the Chapter V input and analytic dependence/enumeration of singular roots, then justify Poincaré's passage from coefficient relations and Darboux asymptotics to the rank-at-most-two singular-root differential |
+| §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
 
 ## What the current Lean files actually establish
 
@@ -61,7 +62,10 @@ parameter derivative with the certified rotation source.
 coordinate calculation: the explicit singularity parameter has Poincaré's displayed
 logarithmic differential, its polynomial kernel direction is exactly the direction defining the
 reduced septic, and the certified sextic derivative vanishes in that direction at all 24 points.
-The still-open bridge is precisely the §102 factorization/constancy assertion itself.
+The still-open bridge is precisely the analytic derivation of the §102 rank bound from the
+uniform-integral coefficient relations and Poincaré's singularity analysis. Local constancy is
+not required: a nonzero common stationary direction is exactly what the printed Jacobian argument
+and the formal §103 endgame use.
 
 The source-facing files added after the standalone-project commit are deliberately small lemmas:
 
@@ -77,6 +81,10 @@ The source-facing files added after the standalone-project commit are deliberate
   a nonzero Darboux asymptotic to eventual coefficient nonvanishing.
 - `ChapterVIJacobian.lean`: the exact determinant row reduction in §102 from the six scaled
   singularities to five singularity ratios, without assuming the missing analytic/rank input.
+- `ChapterVISection102.lean`: the p. 329 block-triangular determinant factorization, the canonical
+  differential of all 24 constructed second-kind roots, rank-nullity extraction of a nonzero
+  common stationary direction, and the contradiction with the compiled §103 restriction
+  certificate.
 - `ChapterVICurveAlgebra.lean`: the five-term cubic-form simplification in §103, the corrected
   derivative identity for `P = ∑ Uᵢ²`, the exact derivative-equation reduction modulo `P`, and
   the degree-seven estimate for the reduced curve.
@@ -378,12 +386,13 @@ parameter derivative from local agreement with the genuine rotation family; it n
 that derivative equality. `SingularBranches.lean` now constructs the persistent branch by the
 complex implicit-function theorem and proves persistence of both `Δ=0` and `Δₜ=0`.
 `SingularJacobian.lean` supplies an explicit inverse for the generic fiber Jacobian under
-`Δ_z ≠ 0` and `Δ_tt ≠ 0`. `MovingAlgebraicBranches.lean` now gives the direct source-level
-route needed here: it proves that the moving Cayley sextic and reduced septic have the certified
-base equations and Jacobian, constructs all 24 analytic branches, and derives the certified
-rotation-source vanishing from constancy of Poincaré's singularity parameter. Thus the remaining
-source-level task in §§102–103 is the substantive §102 factorization/constancy input itself, not
-another finite computation or coordinate-identification layer.
+`Δ_z ≠ 0` and `Δ_tt ≠ 0`. `MovingAlgebraicBranches.lean` now gives the direct source-level route
+needed here: it proves that the moving Cayley sextic and reduced septic have the certified base
+equations and Jacobian, constructs all 24 analytic branches, computes their derivatives as a
+linear map of the rotation parameters, and derives the certified rotation-source vanishing from
+first-order stationarity of Poincaré's singularity parameter. Thus the remaining source-level
+task in §§102–103 is the substantive analytic proof of the rank-at-most-two bound, not another
+finite computation or coordinate-identification layer.
 
 ## LeanCompCert trust boundary
 
@@ -398,6 +407,8 @@ theorems contain no `native_decide` or externally admitted run result.
 - Henri Poincaré, [*Les méthodes nouvelles de la mécanique céleste*, volume I, Chapter VI
   (§§90–103)][chapter-vi], 1892.
 - Henri Poincaré, [facsimiles p. 290][page-290], [p. 323][page-323], and [p. 331][page-331].
+- Henri Poincaré, §102 facsimiles [p. 326][page-326], [p. 327][page-327],
+  [p. 328][page-328], and [p. 329][page-329].
 - Henri Poincaré, [*Sur les périodes des intégrales doubles et le développement de la fonction
   perturbatrice*][poincare-1897], *Journal de mathématiques pures et appliquées* 5e série, 3
   (1897), 203–276.
@@ -412,6 +423,10 @@ theorems contain no `native_decide` or externally admitted run result.
 [chapter-vi]: https://fr.wikisource.org/wiki/Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste/Chap.06
 [page-290]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/302
 [page-323]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/335
+[page-326]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/338
+[page-327]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/339
+[page-328]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/340
+[page-329]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/341
 [page-331]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/343
 [poincare-1897]: https://www.numdam.org/item/JMPA_1897_5_3__203_0.pdf
 [yagasaki-classical]: https://arxiv.org/abs/2111.11031

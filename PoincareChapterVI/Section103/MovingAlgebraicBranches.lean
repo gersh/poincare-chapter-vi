@@ -250,8 +250,106 @@ def movingAffineReducedValue (rotation : Fin 3 → ℂ) (γ : ℂ)
           movingAffineCubic rotation γ point coordinate) -
     secondOutsideValue fiber *
       (∑ coordinate : Fin 3,
-        movingSecondReducedValue rotation γ fiber coordinate *
+          movingSecondReducedValue rotation γ fiber coordinate *
           movingAffineCubic rotation γ point coordinate)
+
+/-- Base value of the first reduced quadratic factor. -/
+def affineFirstReducedValue (fiber : Fiber) (coordinate : Fin 3) : ℂ :=
+  chapterVISection103CubicCoefficient 0 coordinate * fiber.1 ^ 2 -
+    chapterVISection103CubicCoefficient 4 coordinate
+
+/-- Base value of the second reduced quadratic factor. -/
+def affineSecondReducedValue (fiber : Fiber) (coordinate : Fin 3) : ℂ :=
+  chapterVISection103CubicCoefficient 1 coordinate * fiber.2 ^ 2 -
+    chapterVISection103CubicCoefficient 3 coordinate
+
+/-- Directional derivative of the first reduced factor under an infinitesimal rotation. -/
+def affineFirstReducedDirectionalValue (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) (coordinate : Fin 3) : ℂ :=
+  combinedCubicCoefficientDerivative rotation 0 coordinate * fiber.1 ^ 2 -
+    combinedCubicCoefficientDerivative rotation 4 coordinate
+
+/-- Directional derivative of the second reduced factor under an infinitesimal rotation. -/
+def affineSecondReducedDirectionalValue (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) (coordinate : Fin 3) : ℂ :=
+  combinedCubicCoefficientDerivative rotation 1 coordinate * fiber.2 ^ 2 -
+    combinedCubicCoefficientDerivative rotation 3 coordinate
+
+/-- Directional derivative of Poincaré's reduced degree-seven equation. -/
+def affineReducedDirectionalValue (rotation : Fin 3 → ℂ) (fiber : Fiber) : ℂ :=
+  let point : Fin 2 → ℂ := ![fiber.1, fiber.2]
+  firstOutsideValue fiber *
+      (∑ coordinate : Fin 3,
+        (affineFirstReducedDirectionalValue rotation fiber coordinate *
+            affineCubicValue point coordinate +
+          affineFirstReducedValue fiber coordinate *
+            affineCubicDirectionalValue rotation point coordinate)) -
+    secondOutsideValue fiber *
+      (∑ coordinate : Fin 3,
+        (affineSecondReducedDirectionalValue rotation fiber coordinate *
+            affineCubicValue point coordinate +
+          affineSecondReducedValue fiber coordinate *
+            affineCubicDirectionalValue rotation point coordinate))
+
+/-- Exact derivative of the first reduced factor at the base rotation. -/
+theorem hasDerivAt_movingFirstReducedValue_zero (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) (coordinate : Fin 3) :
+    HasDerivAt (fun γ ↦ movingFirstReducedValue rotation γ fiber coordinate)
+      (affineFirstReducedDirectionalValue rotation fiber coordinate) 0 := by
+  exact ((hasDerivAt_movingCubicCoefficient_zero rotation 0 coordinate).mul_const
+    (fiber.1 ^ 2)).sub
+      (hasDerivAt_movingCubicCoefficient_zero rotation 4 coordinate)
+
+/-- Exact derivative of the second reduced factor at the base rotation. -/
+theorem hasDerivAt_movingSecondReducedValue_zero (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) (coordinate : Fin 3) :
+    HasDerivAt (fun γ ↦ movingSecondReducedValue rotation γ fiber coordinate)
+      (affineSecondReducedDirectionalValue rotation fiber coordinate) 0 := by
+  exact ((hasDerivAt_movingCubicCoefficient_zero rotation 1 coordinate).mul_const
+    (fiber.2 ^ 2)).sub
+      (hasDerivAt_movingCubicCoefficient_zero rotation 3 coordinate)
+
+/-- Exact derivative of the moving reduced equation at the base rotation. -/
+theorem hasDerivAt_movingAffineReducedValue_zero (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) :
+    HasDerivAt (fun γ ↦ movingAffineReducedValue rotation γ fiber)
+      (affineReducedDirectionalValue rotation fiber) 0 := by
+  let point : Fin 2 → ℂ := ![fiber.1, fiber.2]
+  have hfirst (coordinate : Fin 3) : HasDerivAt
+      (fun γ ↦ movingFirstReducedValue rotation γ fiber coordinate *
+        movingAffineCubic rotation γ point coordinate)
+      (affineFirstReducedDirectionalValue rotation fiber coordinate *
+          affineCubicValue point coordinate +
+        affineFirstReducedValue fiber coordinate *
+          affineCubicDirectionalValue rotation point coordinate) 0 := by
+    convert (hasDerivAt_movingFirstReducedValue_zero rotation fiber coordinate).mul
+      (hasDerivAt_movingAffineCubic_zero rotation point coordinate) using 1
+    · exact complexAddCommGroupForCalculus_eq_field
+    · funext γ
+      rfl
+    · simp [movingFirstReducedValue, affineFirstReducedValue]
+  have hsecond (coordinate : Fin 3) : HasDerivAt
+      (fun γ ↦ movingSecondReducedValue rotation γ fiber coordinate *
+        movingAffineCubic rotation γ point coordinate)
+      (affineSecondReducedDirectionalValue rotation fiber coordinate *
+          affineCubicValue point coordinate +
+        affineSecondReducedValue fiber coordinate *
+          affineCubicDirectionalValue rotation point coordinate) 0 := by
+    convert (hasDerivAt_movingSecondReducedValue_zero rotation fiber coordinate).mul
+      (hasDerivAt_movingAffineCubic_zero rotation point coordinate) using 1
+    · exact complexAddCommGroupForCalculus_eq_field
+    · funext γ
+      rfl
+    · simp [movingSecondReducedValue, affineSecondReducedValue]
+  have hfirstSum := HasDerivAt.sum (u := Finset.univ)
+    (fun coordinate _ ↦ hfirst coordinate)
+  have hsecondSum := HasDerivAt.sum (u := Finset.univ)
+    (fun coordinate _ ↦ hsecond coordinate)
+  convert (hfirstSum.const_mul (firstOutsideValue fiber)).sub
+    (hsecondSum.const_mul (secondOutsideValue fiber)) using 1
+  · funext γ
+    rfl
+  · rfl
 
 /-- The scalar reduced formula is exactly evaluation of the moving polynomial. -/
 theorem eval_movingAffineReducedPolynomial (rotation : Fin 3 → ℂ) (γ : ℂ)
@@ -311,6 +409,115 @@ def movingSystem (rotation : Fin 3 → ℂ) (γ : ℂ) (fiber : Fiber) : Equatio
   let point : Fin 2 → ℂ := ![fiber.1, fiber.2]
   (50700 * MvPolynomial.eval point (movingAffineCurvePolynomial rotation γ),
     438750 * MvPolynomial.eval point (movingAffineReducedPolynomial rotation γ))
+
+/-- The exact parameter-direction derivative of both moving equations at the base rotation. -/
+def movingSystemParameterSource (rotation : Fin 3 → ℂ) (fiber : Fiber) : Equation :=
+  let point : Fin 2 → ℂ := ![fiber.1, fiber.2]
+  (50700 * MvPolynomial.eval point
+      (∑ axis, rotation axis • affineDirectionalPolynomial axis),
+    438750 * affineReducedDirectionalValue rotation fiber)
+
+/-- Differentiating both concrete moving equations gives the displayed source pair. -/
+theorem hasDerivAt_movingSystem_parameter_zero (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) :
+    HasDerivAt (fun γ ↦ movingSystem rotation γ fiber)
+      (movingSystemParameterSource rotation fiber) 0 := by
+  let point : Fin 2 → ℂ := ![fiber.1, fiber.2]
+  have hfirstRaw :=
+    (hasDerivAt_movingAffineDistance_eq_source rotation point).const_mul (50700 : ℂ)
+  have hfirst : HasDerivAt
+      (fun γ ↦ 50700 * MvPolynomial.eval point
+        (movingAffineCurvePolynomial rotation γ))
+      (50700 * MvPolynomial.eval point
+        (∑ axis, rotation axis • affineDirectionalPolynomial axis)) 0 := by
+    convert hfirstRaw using 1
+    · exact complexAddCommGroupForCalculus_eq_field
+    · funext γ
+      rw [eval_movingAffineCurvePolynomial]
+  have hsecondRaw :=
+    (hasDerivAt_movingAffineReducedValue_zero rotation fiber).const_mul (438750 : ℂ)
+  have hsecond : HasDerivAt
+      (fun γ ↦ 438750 * MvPolynomial.eval point
+        (movingAffineReducedPolynomial rotation γ))
+      (438750 * affineReducedDirectionalValue rotation fiber) 0 := by
+    convert hsecondRaw using 1
+    · exact complexAddCommGroupForCalculus_eq_field
+    · funext γ
+      rw [eval_movingAffineReducedPolynomial]
+  convert hfirst.prodMk hsecond using 1 <;> rfl
+
+@[simp] theorem combinedCubicCoefficientDerivative_add
+    (left right : Fin 3 → ℂ) (slot : Fin 5) (coordinate : Fin 3) :
+    combinedCubicCoefficientDerivative (left + right) slot coordinate =
+      combinedCubicCoefficientDerivative left slot coordinate +
+        combinedCubicCoefficientDerivative right slot coordinate := by
+  simp [combinedCubicCoefficientDerivative, add_mul, Finset.sum_add_distrib]
+
+@[simp] theorem combinedCubicCoefficientDerivative_smul
+    (scalar : ℂ) (rotation : Fin 3 → ℂ) (slot : Fin 5) (coordinate : Fin 3) :
+    combinedCubicCoefficientDerivative (scalar • rotation) slot coordinate =
+      scalar * combinedCubicCoefficientDerivative rotation slot coordinate := by
+  simp [combinedCubicCoefficientDerivative, Finset.mul_sum, mul_assoc]
+
+@[simp] theorem affineCubicDirectionalValue_add
+    (left right : Fin 3 → ℂ) (point : Fin 2 → ℂ) (coordinate : Fin 3) :
+    affineCubicDirectionalValue (left + right) point coordinate =
+      affineCubicDirectionalValue left point coordinate +
+        affineCubicDirectionalValue right point coordinate := by
+  simp [affineCubicDirectionalValue, Finset.sum_add_distrib, add_mul]
+
+@[simp] theorem affineCubicDirectionalValue_smul
+    (scalar : ℂ) (rotation : Fin 3 → ℂ) (point : Fin 2 → ℂ) (coordinate : Fin 3) :
+    affineCubicDirectionalValue (scalar • rotation) point coordinate =
+      scalar * affineCubicDirectionalValue rotation point coordinate := by
+  simp [affineCubicDirectionalValue, Finset.mul_sum, mul_assoc]
+
+@[simp] theorem affineReducedDirectionalValue_add
+    (left right : Fin 3 → ℂ) (fiber : Fiber) :
+    affineReducedDirectionalValue (left + right) fiber =
+      affineReducedDirectionalValue left fiber +
+        affineReducedDirectionalValue right fiber := by
+  simp [affineReducedDirectionalValue, affineFirstReducedDirectionalValue,
+    affineSecondReducedDirectionalValue, Finset.sum_add_distrib, add_mul, mul_add,
+    Fin.sum_univ_succ]
+  ring
+
+@[simp] theorem affineReducedDirectionalValue_smul
+    (scalar : ℂ) (rotation : Fin 3 → ℂ) (fiber : Fiber) :
+    affineReducedDirectionalValue (scalar • rotation) fiber =
+      scalar * affineReducedDirectionalValue rotation fiber := by
+  simp [affineReducedDirectionalValue, affineFirstReducedDirectionalValue,
+    affineSecondReducedDirectionalValue, mul_assoc, Fin.sum_univ_succ]
+  ring
+
+/-- The source pair is additive in the infinitesimal rotation. -/
+theorem movingSystemParameterSource_add (left right : Fin 3 → ℂ) (fiber : Fiber) :
+    movingSystemParameterSource (left + right) fiber =
+      movingSystemParameterSource left fiber + movingSystemParameterSource right fiber := by
+  apply Prod.ext
+  · simp [movingSystemParameterSource, Fin.sum_univ_succ]
+    ring
+  · simp [movingSystemParameterSource]
+    ring
+
+/-- The source pair is homogeneous in the infinitesimal rotation. -/
+theorem movingSystemParameterSource_smul (scalar : ℂ) (rotation : Fin 3 → ℂ)
+    (fiber : Fiber) :
+    movingSystemParameterSource (scalar • rotation) fiber =
+      scalar • movingSystemParameterSource rotation fiber := by
+  apply Prod.ext
+  · simp [movingSystemParameterSource, mul_assoc, Fin.sum_univ_succ]
+    ring
+  · simp [movingSystemParameterSource]
+    ring
+
+/-- Continuous linear source map from the three infinitesimal rotations to the two equations. -/
+def movingSystemParameterSourceCLM (fiber : Fiber) :
+    (Fin 3 → ℂ) →L[ℂ] Equation :=
+  LinearMap.toContinuousLinearMap
+    { toFun := fun rotation ↦ movingSystemParameterSource rotation fiber
+      map_add' := fun left right ↦ movingSystemParameterSource_add left right fiber
+      map_smul' := fun scalar rotation ↦ movingSystemParameterSource_smul scalar rotation fiber }
 
 /-- Fiber derivative of the two moving polynomial equations. -/
 def movingFiberDerivative (rotation : Fin 3 → ℂ) (γ : ℂ) (fiber : Fiber) :
@@ -664,6 +871,17 @@ private theorem hasFDerivAt_movingSystem_fiber_of_analyticAt
     (hasFDerivAt_fiberInsertion γ fiber)
   convert hcomposition using 1 <;> rfl
 
+/-- The parameter partial extracted from the joint derivative agrees with the explicit source
+map at the base parameter. -/
+theorem movingParameterDerivative_zero_apply_one_eq_source
+    (rotation : Fin 3 → ℂ) (fiber : Fiber) :
+    movingParameterDerivative rotation 0 fiber 1 =
+      movingSystemParameterSource rotation fiber := by
+  have hpartial :=
+    (hasFDerivAt_movingSystem_parameter_of_analyticAt rotation 0 fiber
+      (analyticAt_movingSystem rotation fiber)).hasDerivAt
+  exact hpartial.unique (hasDerivAt_movingSystem_parameter_zero rotation fiber)
+
 /-- The joint derivative partial in the fiber agrees at the base parameter with the exact
 polynomial-gradient derivative. -/
 theorem movingFiberPartialDerivative_zero_eq (rotation : Fin 3 → ℂ) (fiber : Fiber) :
@@ -761,6 +979,53 @@ theorem movingParameterDerivative_first_eq_source (rotation : Fin 3 → ℂ)
       fin_cases i <;> rfl
   exact hfirst.unique hsource'
 
+/-- The full differential of the algebraic IFT branch with respect to the three infinitesimal
+rotation coordinates. -/
+def branchVelocityDifferential (point : Fin 2 → ℂ)
+    (_hpoint : point ∈ finiteIntersectionPoints) :
+    (Fin 3 → ℂ) →L[ℂ] Fiber :=
+  -((affineJacobian chapterVISection103AffinePolynomial
+      chapterVISection103ReducedAffinePolynomial point).inverse.comp
+        (movingSystemParameterSourceCLM (point 0, point 1)))
+
+/-- Applying the three-variable branch differential to a rotation direction gives exactly the
+one-variable IFT branch derivative constructed for that direction. -/
+theorem branchVelocityDifferential_apply (rotation : Fin 3 → ℂ)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    branchVelocityDifferential point hpoint rotation =
+      (movingLocalSystem rotation point hpoint).branchFDeriv 1 := by
+  change
+    -((affineJacobian chapterVISection103AffinePolynomial
+        chapterVISection103ReducedAffinePolynomial point).inverse
+      (movingSystemParameterSource rotation (point 0, point 1))) =
+    -((movingFiberPartialDerivative rotation 0 (point 0, point 1)).inverse
+      (movingParameterDerivative rotation 0 (point 0, point 1) 1))
+  rw [movingParameterDerivative_zero_apply_one_eq_source,
+    movingFiberPartialDerivative_zero_eq,
+    movingFiberDerivative_zero_eq_affineJacobian]
+
+/-- Poincaré's logarithmic covector as a continuous linear map on fiber velocities. -/
+def singularityLogDifferentialCLM (point : Fin 2 → ℂ) : Fiber →L[ℂ] ℂ :=
+  (halfAngleLogCoefficient (-2) (1 / 3) (point 0)) •
+      ContinuousLinearMap.fst ℂ ℂ ℂ +
+    (halfAngleLogCoefficient 3 (1 / 5) (point 1)) •
+      ContinuousLinearMap.snd ℂ ℂ ℂ
+
+@[simp] theorem singularityLogDifferentialCLM_apply
+    (point : Fin 2 → ℂ) (velocity : Fiber) :
+    singularityLogDifferentialCLM point velocity =
+      singularityLogDifferential (-2) 3 (1 / 3) (1 / 5)
+        (point 0) (point 1) velocity := by
+  simp [singularityLogDifferentialCLM, singularityLogDifferential]
+
+/-- Canonical differential of one singularity parameter with respect to all three orientation
+coordinates. -/
+def branchSingularityDifferential (point : Fin 2 → ℂ)
+    (hpoint : point ∈ finiteIntersectionPoints) : (Fin 3 → ℂ) →L[ℂ] ℂ :=
+  halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5) (point 0) (point 1) •
+    ((singularityLogDifferentialCLM point).comp
+      (branchVelocityDifferential point hpoint))
+
 /-- The derivative selected by the implicit-function theorem satisfies the linearization of
 the two moving equations. -/
 theorem movingLocalSystem_linearized_eq_zero (rotation : Fin 3 → ℂ)
@@ -791,36 +1056,96 @@ structure BranchSingularityConstancy (rotation : Fin 3 → ℂ) : Prop where
     (fun _ ↦ halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
       (point 0) (point 1))
 
-/-- Constancy of the singularity parameter forces the velocity of the concrete IFT branch to
-lie in the kernel of Poincaré's logarithmic differential. -/
+/-- The derivative of Poincaré's displayed singularity parameter along one concrete IFT branch. -/
+def branchSingularityParameterDerivative (rotation : Fin 3 → ℂ)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) : ℂ :=
+  halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5) (point 0) (point 1) *
+    singularityLogDifferential (-2) 3 (1 / 3) (1 / 5)
+      (point 0) (point 1)
+      ((movingLocalSystem rotation point hpoint).branchFDeriv 1)
+
+/-- The canonical three-variable differential evaluates to the derivative of the corresponding
+one-parameter IFT branch. -/
+theorem branchSingularityDifferential_apply (rotation : Fin 3 → ℂ)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    branchSingularityDifferential point hpoint rotation =
+      branchSingularityParameterDerivative rotation point hpoint := by
+  simp [branchSingularityDifferential, branchSingularityParameterDerivative,
+    branchVelocityDifferential_apply]
+
+/-- The logarithmic differentiation formula computes the derivative along the branch selected by
+the algebraic implicit-function theorem. -/
+theorem hasDerivAt_branchSingularityParameter (rotation : Fin 3 → ℂ)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    HasDerivAt
+      (fun γ ↦ halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
+        ((movingLocalSystem rotation point hpoint).branch γ).1
+        ((movingLocalSystem rotation point hpoint).branch γ).2)
+      (branchSingularityParameterDerivative rotation point hpoint) 0 := by
+  let data := movingLocalSystem rotation point hpoint
+  have hcoordinates := finiteIntersectionPoint_coordinates_ne_zero point hpoint
+  have h := hasDerivAt_halfAngleSingularityParameter
+    (-2) 3 (1 / 3) (1 / 5)
+    data.timeBranch_hasDerivAt data.singularValueBranch_hasDerivAt
+    (by simpa [data, movingLocalSystem] using hcoordinates.1)
+    (by simpa [data, movingLocalSystem] using hcoordinates.2)
+    (by norm_num) (by norm_num)
+  simpa [data, movingLocalSystem, branchSingularityParameterDerivative] using h
+
+/-- The exact first-order conclusion used in §103: all twenty-four singularity parameters are
+stationary in the chosen infinitesimal rotation direction.  This is weaker than local constancy
+and matches the Jacobian argument printed in §102. -/
+structure BranchSingularityStationarity (rotation : Fin 3 → ℂ) : Prop where
+  derivative_eq_zero : ∀ (point : Fin 2 → ℂ)
+      (hpoint : point ∈ finiteIntersectionPoints),
+    branchSingularityParameterDerivative rotation point hpoint = 0
+
+/-- Local constancy implies the first-order stationarity actually needed by Poincaré. -/
+theorem BranchSingularityConstancy.toStationarity (rotation : Fin 3 → ℂ)
+    (constancy : BranchSingularityConstancy rotation) :
+    BranchSingularityStationarity rotation where
+  derivative_eq_zero := by
+    intro point hpoint
+    have hbranch := hasDerivAt_branchSingularityParameter rotation point hpoint
+    have hconstant : HasDerivAt
+        (fun γ ↦ halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
+          ((movingLocalSystem rotation point hpoint).branch γ).1
+          ((movingLocalSystem rotation point hpoint).branch γ).2) 0 0 :=
+      (hasDerivAt_const (0 : ℂ)
+        (halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
+          (point 0) (point 1))).congr_of_eventuallyEq
+            (constancy.eventually_constant point hpoint)
+    exact hbranch.unique hconstant
+
+/-- First-order stationarity forces the velocity of the concrete IFT branch to lie in the kernel
+of Poincaré's logarithmic differential. -/
+theorem branch_logDifferential_eq_zero_of_stationarity (rotation : Fin 3 → ℂ)
+    (stationarity : BranchSingularityStationarity rotation)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    singularityLogDifferential (-2) 3 (1 / 3) (1 / 5)
+      (point 0) (point 1)
+      ((movingLocalSystem rotation point hpoint).branchFDeriv 1) = 0 := by
+  have hcoordinates := finiteIntersectionPoint_coordinates_ne_zero point hpoint
+  have hproduct := stationarity.derivative_eq_zero point hpoint
+  unfold branchSingularityParameterDerivative at hproduct
+  exact (mul_eq_zero.mp hproduct).resolve_left
+    (halfAngleSingularityParameter_ne_zero (-2) 3 (1 / 3) (1 / 5)
+      hcoordinates.1 hcoordinates.2)
+
+/-- Backwards-compatible constancy form of the logarithmic tangent conclusion. -/
 theorem branch_logDifferential_eq_zero (rotation : Fin 3 → ℂ)
     (constancy : BranchSingularityConstancy rotation)
     (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
     singularityLogDifferential (-2) 3 (1 / 3) (1 / 5)
       (point 0) (point 1)
-      ((movingLocalSystem rotation point hpoint).branchFDeriv 1) = 0 := by
-  let data := movingLocalSystem rotation point hpoint
-  have hcoordinates := finiteIntersectionPoint_coordinates_ne_zero point hpoint
-  have hconstant :
-      (fun γ ↦ halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
-        (data.branch γ).1 (data.branch γ).2) =ᶠ[nhds 0]
-      (fun _ ↦ halfAngleSingularityParameter (-2) 3 (1 / 3) (1 / 5)
-        ((fun γ ↦ (data.branch γ).1) 0)
-        ((fun γ ↦ (data.branch γ).2) 0)) := by
-    simpa [data, movingLocalSystem] using constancy.eventually_constant point hpoint
-  have hlog := singularityLogDifferential_eq_zero_of_eventually_constant
-    (-2) 3 (1 / 3) (1 / 5)
-    data.timeBranch_hasDerivAt data.singularValueBranch_hasDerivAt
-    (by simpa [data, movingLocalSystem] using hcoordinates.1)
-    (by simpa [data, movingLocalSystem] using hcoordinates.2)
-    (by norm_num) (by norm_num) hconstant
-  simpa [data, movingLocalSystem] using hlog
+      ((movingLocalSystem rotation point hpoint).branchFDeriv 1) = 0 :=
+  branch_logDifferential_eq_zero_of_stationarity rotation constancy.toStationarity point hpoint
 
 /-- The fiber contribution to the first moving equation vanishes along a branch on which
 Poincaré's singularity parameter is constant.  The key tangent implication is the formalized
 `dz = 0` step from §103. -/
-theorem branch_fiberDerivative_first_eq_zero (rotation : Fin 3 → ℂ)
-    (constancy : BranchSingularityConstancy rotation)
+theorem branch_fiberDerivative_first_eq_zero_of_stationarity (rotation : Fin 3 → ℂ)
+    (stationarity : BranchSingularityStationarity rotation)
     (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
     ((movingLocalSystem rotation point hpoint).fiberDerivative 0
       (movingLocalSystem rotation point hpoint).base
@@ -828,7 +1153,8 @@ theorem branch_fiberDerivative_first_eq_zero (rotation : Fin 3 → ℂ)
   let data := movingLocalSystem rotation point hpoint
   let velocity := data.branchFDeriv 1
   let velocityPoint : Fin 2 → ℂ := ![velocity.1, velocity.2]
-  have hlog := branch_logDifferential_eq_zero rotation constancy point hpoint
+  have hlog := branch_logDifferential_eq_zero_of_stationarity
+    rotation stationarity point hpoint
   have hcurve :=
     finiteIntersectionPoint_curveDerivative_eq_zero_of_logDifferential_eq_zero
       point velocityPoint hpoint (by simpa [data, velocity, velocityPoint] using hlog)
@@ -840,17 +1166,28 @@ theorem branch_fiberDerivative_first_eq_zero (rotation : Fin 3 → ℂ)
   rw [← hvelocity, affineJacobian_apply]
   exact hcurve
 
+/-- Local constancy specialization of the fiber tangent theorem. -/
+theorem branch_fiberDerivative_first_eq_zero (rotation : Fin 3 → ℂ)
+    (constancy : BranchSingularityConstancy rotation)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    ((movingLocalSystem rotation point hpoint).fiberDerivative 0
+      (movingLocalSystem rotation point hpoint).base
+      ((movingLocalSystem rotation point hpoint).branchFDeriv 1)).1 = 0 :=
+  branch_fiberDerivative_first_eq_zero_of_stationarity
+    rotation constancy.toStationarity point hpoint
+
 /-- Poincaré's equation (2), now derived for the actual moving algebraic branches: the
 infinitesimal rotation source vanishes at every certified finite intersection. -/
-theorem source_vanishes_of_branchSingularityConstancy
-    (rotation : Fin 3 → ℂ) (constancy : BranchSingularityConstancy rotation)
+theorem source_vanishes_of_branchSingularityStationarity
+    (rotation : Fin 3 → ℂ) (stationarity : BranchSingularityStationarity rotation)
     (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
     MvPolynomial.eval point
       (∑ axis, rotation axis • affineDirectionalPolynomial axis) = 0 := by
   let data := movingLocalSystem rotation point hpoint
   have hlinear := movingLocalSystem_linearized_eq_zero rotation point hpoint
   have hfirst := congrArg Prod.fst hlinear
-  have hfiber := branch_fiberDerivative_first_eq_zero rotation constancy point hpoint
+  have hfiber := branch_fiberDerivative_first_eq_zero_of_stationarity
+    rotation stationarity point hpoint
   have hparameter := movingParameterDerivative_first_eq_source rotation point
   change
     (data.fiberDerivative 0 data.base (data.branchFDeriv 1)).1 +
@@ -862,15 +1199,31 @@ theorem source_vanishes_of_branchSingularityConstancy
   rw [hfiber, zero_add, hparameter] at hfirst
   exact (mul_eq_zero.mp hfirst).resolve_left (by norm_num)
 
-/-- The complete §103 finite conclusion for the constructed branches.  Once §102 supplies
-local constancy of the singularity parameters, the LeanCompCert restriction certificate forces
-the infinitesimal spatial rotation to vanish. -/
-theorem rotation_eq_zero_of_branchSingularityConstancy
-    (rotation : Fin 3 → ℂ) (constancy : BranchSingularityConstancy rotation) :
+/-- Local constancy specialization of Poincaré's equation (2). -/
+theorem source_vanishes_of_branchSingularityConstancy
+    (rotation : Fin 3 → ℂ) (constancy : BranchSingularityConstancy rotation)
+    (point : Fin 2 → ℂ) (hpoint : point ∈ finiteIntersectionPoints) :
+    MvPolynomial.eval point
+      (∑ axis, rotation axis • affineDirectionalPolynomial axis) = 0 :=
+  source_vanishes_of_branchSingularityStationarity
+    rotation constancy.toStationarity point hpoint
+
+/-- The complete §103 finite conclusion under the derivative-level hypothesis stated in §102. -/
+theorem rotation_eq_zero_of_branchSingularityStationarity
+    (rotation : Fin 3 → ℂ) (stationarity : BranchSingularityStationarity rotation) :
     rotation = 0 := by
   apply rotation_eq_zero_of_source_vanishes rotation
   intro point hpoint
-  exact source_vanishes_of_branchSingularityConstancy rotation constancy point hpoint
+  exact source_vanishes_of_branchSingularityStationarity rotation stationarity point hpoint
+
+/-- The complete §103 finite conclusion for the constructed branches.  Once §102 supplies
+the stronger local-constancy hypothesis, the LeanCompCert restriction certificate forces the
+infinitesimal spatial rotation to vanish. The source-faithful endgame above needs only
+first-order stationarity. -/
+theorem rotation_eq_zero_of_branchSingularityConstancy
+    (rotation : Fin 3 → ℂ) (constancy : BranchSingularityConstancy rotation) :
+    rotation = 0 := by
+  exact rotation_eq_zero_of_branchSingularityStationarity rotation constancy.toStationarity
 
 /-- The §102 dimension count joined directly to the concrete analytic branches and the §103
 LeanCompCert calculation.  The sole remaining analytic premise says that a rotation fixing the
