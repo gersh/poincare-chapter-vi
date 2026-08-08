@@ -34,6 +34,9 @@ proves that the fixed symmetric middle-cycle integral divided by `-log k` tends 
 amplitude at D. The canonical local source root is defined from the literal radicand; Lean proves
 it is exactly `sqrt(k+v²)` on that rectangle and proves the pointwise pullback identity from
 Poincaré's source one-form to the evaluated Morse one-form, with no residual branch-sign premise.
+The same compact local model now records that the derivative of the inverse Morse fiber is
+exactly its named Jacobian at every point of the rectangle, supplying the velocity datum needed
+for the path-level curve-integral change of variables.
 Lean also constructs a canonical global contour in Poincaré's `x^(1/3)` plane:
 it starts at the literal unit circle, its radius stays strictly between the two explicit pole
 radii before D, and its endpoint passes through their common collision. The normalized three-arc

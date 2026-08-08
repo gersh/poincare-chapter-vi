@@ -139,6 +139,49 @@ theorem eventually_chapterVIDRadicand_realCriticalMorseSourcePoint_eq :
   exact htendsto.eventually
     eventually_chapterVIDRadicand_criticalMorseSourcePointAtD_eq
 
+/-- On a neighborhood of the real Morse slice, differentiation in the `v` coordinate of the
+inverse Morse fiber is exactly the named inverse Morse Jacobian. -/
+theorem eventually_hasDerivAt_chapterVIDRealCriticalMorseFiberInverse :
+    ∀ᶠ point : ℝ × ℝ in 𝓝 (0, 0),
+      HasDerivAt
+        (chapterVIDMorseFiberInverse ∘ fun w : ℂ ↦
+          (chapterVIDCriticalParameterInverseAtD (point.1 : ℂ), w))
+        (chapterVIDMorseJacobian
+          (chapterVIDCriticalMorseParameterMap
+            deriv_chapterVIDCriticalValue_ne_zero
+            ((point.1 : ℂ), (point.2 : ℂ))))
+        (point.2 : ℂ) := by
+  have hfst : Continuous
+      (fun point : ℝ × ℝ ↦ (point.1 : ℂ)) :=
+    Complex.ofRealCLM.continuous.comp continuous_fst
+  have hsnd : Continuous
+      (fun point : ℝ × ℝ ↦ (point.2 : ℂ)) :=
+    Complex.ofRealCLM.continuous.comp continuous_snd
+  have hcritical : Tendsto
+      (fun point : ℝ × ℝ ↦
+        chapterVIDCriticalMorseParameterMap
+          deriv_chapterVIDCriticalValue_ne_zero
+          ((point.1 : ℂ), (point.2 : ℂ)))
+      (𝓝 (0, 0)) (𝓝 (chapterVIDZBase, 0)) := by
+    have hpair : Tendsto
+        (fun point : ℝ × ℝ ↦ ((point.1 : ℂ), (point.2 : ℂ)))
+        (𝓝 (0, 0)) (𝓝 ((0 : ℂ), (0 : ℂ))) :=
+      (hfst.prodMk hsnd).continuousAt
+    change Tendsto
+      (chapterVIDCriticalMorseParameterMap
+        deriv_chapterVIDCriticalValue_ne_zero ∘
+          fun point : ℝ × ℝ ↦ ((point.1 : ℂ), (point.2 : ℂ)))
+      (𝓝 (0, 0)) (𝓝 (chapterVIDZBase, 0))
+    simpa only [chapterVIDCriticalMorseParameterMap_base] using
+      Filter.Tendsto.comp
+        (analyticAt_chapterVIDCriticalMorseParameterMap
+          deriv_chapterVIDCriticalValue_ne_zero).continuousAt hpair
+  have hfiber := hcritical.eventually
+    eventually_hasDerivAt_chapterVIDMorseFiberInverse
+  filter_upwards [hfiber] with point hpoint
+  simpa only [chapterVIDCriticalMorseParameterMap,
+    chapterVIDCriticalParameterInverseAtD] using hpoint
+
 /-- Complete local data for Poincare's actual principal middle cycle.  On one and the same
 positive rectangle, the pulled-back source amplitude is `C¹` and the literal source radicand is
 exactly `k+v²`. -/
@@ -154,6 +197,14 @@ structure ChapterVIDPrincipalLocalSourceModel
   radicand_eq : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
     chapterVIDRadicand (chapterVIDRealCriticalMorseSourcePoint (k, v)) =
       (k : ℂ) + (v : ℂ) ^ 2
+  sourceFiber_hasDerivAt : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
+    HasDerivAt
+      (chapterVIDMorseFiberInverse ∘ fun w : ℂ ↦
+        (chapterVIDCriticalParameterInverseAtD (k : ℂ), w))
+      (chapterVIDMorseJacobian
+        (chapterVIDCriticalMorseParameterMap
+          deriv_chapterVIDCriticalValue_ne_zero ((k : ℂ), (v : ℂ))))
+      (v : ℂ)
 
 /-- On the certified local rectangle, the canonical source root is literally the principal root
 of Poincaré's exact normal form `k+v²`. -/
@@ -220,7 +271,19 @@ theorem exists_chapterVIDPrincipalLocalSourceModel
         chapterVIDRadicand (chapterVIDRealCriticalMorseSourcePoint point) =
           (point.1 : ℂ) + (point.2 : ℂ) ^ 2} ∈ 𝓝 (0, 0) :=
     eventually_chapterVIDRadicand_realCriticalMorseSourcePoint_eq
-  obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp hnormalSet
+  have hderivSet :
+      {point : ℝ × ℝ |
+        HasDerivAt
+          (chapterVIDMorseFiberInverse ∘ fun w : ℂ ↦
+            (chapterVIDCriticalParameterInverseAtD (point.1 : ℂ), w))
+          (chapterVIDMorseJacobian
+            (chapterVIDCriticalMorseParameterMap
+              deriv_chapterVIDCriticalValue_ne_zero
+              ((point.1 : ℂ), (point.2 : ℂ))))
+          (point.2 : ℂ)} ∈ 𝓝 (0, 0) :=
+    eventually_hasDerivAt_chapterVIDRealCriticalMorseFiberInverse
+  obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp
+    (inter_mem hnormalSet hderivSet)
   let r : ℝ := min (min δ₀ L₀) (ε / 2)
   have hr : 0 < r := by
     dsimp [r]
@@ -239,21 +302,34 @@ theorem exists_chapterVIDPrincipalLocalSourceModel
     δ_pos := hr
     L_pos := hr
     amplitude_contDiffOn := hcont.mono ?_
-    radicand_eq := ?_ }⟩
+    radicand_eq := ?_
+    sourceFiber_hasDerivAt := ?_ }⟩
   · rintro ⟨k, v⟩ ⟨hk, hv⟩
     rw [uIcc_of_le (by linarith [hr])] at hv ⊢
     exact ⟨⟨hk.1, hk.2.trans hrδ⟩,
       ⟨by linarith [hrL, hv.1], by linarith [hrL, hv.2]⟩⟩
   · intro k hk v hv
-    apply hball
-    rw [Metric.mem_ball, Prod.dist_eq, max_lt_iff]
-    simp only [Real.dist_eq, sub_zero]
-    rw [uIcc_of_le (by linarith [hr])] at hv
-    constructor
-    · rw [abs_of_nonneg hk.1]
-      linarith [hk.2, hrε]
-    · rw [abs_lt]
-      constructor <;> linarith [hv.1, hv.2, hrε]
+    have hkv : (k, v) ∈ Metric.ball (0, 0) ε := by
+      rw [Metric.mem_ball, Prod.dist_eq, max_lt_iff]
+      simp only [Real.dist_eq, sub_zero]
+      rw [uIcc_of_le (by linarith [hr])] at hv
+      constructor
+      · rw [abs_of_nonneg hk.1]
+        linarith [hk.2, hrε]
+      · rw [abs_lt]
+        constructor <;> linarith [hv.1, hv.2, hrε]
+    exact (hball hkv).1
+  · intro k hk v hv
+    have hkv : (k, v) ∈ Metric.ball (0, 0) ε := by
+      rw [Metric.mem_ball, Prod.dist_eq, max_lt_iff]
+      simp only [Real.dist_eq, sub_zero]
+      rw [uIcc_of_le (by linarith [hr])] at hv
+      constructor
+      · rw [abs_of_nonneg hk.1]
+        linarith [hk.2, hrε]
+      · rw [abs_lt]
+        constructor <;> linarith [hv.1, hv.2, hrε]
+    exact (hball hkv).2
 
 /-- The integral over the symmetric real middle cycle in the exact `k+v²` Morse chart.  For
 `k>0`, the denominator is the positive square-root sheet of the normal-form radicand. -/
