@@ -547,9 +547,14 @@ The strongest newly completed component is the finite algebra in §103:
   artifacts (321 operations and 2,817 integer claims per shard) have zero failed claims.
   `ReferenceCompiledRunVerdict.modelLineDerivativeImag_hasDerivAt_and_oriented` reconstructs the
   actual model line and proves both the `HasDerivAt` statement and the side-oriented curvature.
-  The remaining join is analytic rather than finite: the curvature must be integrated from a
-  first-path-derivative anchor at the noncomputable inverse-Morse endpoint before these rows can
-  be assembled into the punctured seam cover.
+  `ChapterVIDConnectorFactorTerminal.lean` now performs that integration abstractly: it proves
+  continuum coverage by the 30 rows, strict decrease on the initial terminal interval, strict
+  increase on the final interval, and positivity away from the endpoint from one nonnegative
+  endpoint derivative anchor. `ChapterVIDEndpointOrientation.lean` begins discharging that final
+  analytic premise. It proves the exact reciprocal derivatives of the inverse maps and proves
+  that Poincare's literal `u -> t` coordinate change has strictly positive real derivative at D.
+  What remains is to orient the automatically selected square root of the prepared unit and
+  propagate that phase through the shrunken two-parameter inverse-Morse endpoints.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

@@ -129,6 +129,22 @@ theorem chapterVIDGlobalContourFromMorse_zero :
   simpa only [chapterVIDGlobalContourFromMorse,
     chapterVIDGlobalMorseFiberCoordinate_collision] using hleft
 
+/-- The inverse global contour has the reciprocal derivative of the forward Morse coordinate.
+This is the exact first-order datum needed to orient the two inverse-Morse endpoints, rather than
+an opaque consequence of analyticity. -/
+theorem hasStrictDerivAt_chapterVIDGlobalContourFromMorse :
+    HasStrictDerivAt chapterVIDGlobalContourFromMorse
+      (deriv chapterVIDGlobalMorseFiberCoordinate chapterVIDCollisionLift)⁻¹ 0 := by
+  simpa only [chapterVIDGlobalContourFromMorse,
+    chapterVIDGlobalMorseFiberCoordinate_collision] using
+    hasStrictDerivAt_chapterVIDGlobalMorseFiberCoordinate.to_localInverse
+      deriv_chapterVIDGlobalMorseFiberCoordinate_ne_zero
+
+theorem deriv_chapterVIDGlobalContourFromMorse :
+    deriv chapterVIDGlobalContourFromMorse 0 =
+      (deriv chapterVIDGlobalMorseFiberCoordinate chapterVIDCollisionLift)⁻¹ :=
+  hasStrictDerivAt_chapterVIDGlobalContourFromMorse.hasDerivAt.deriv
+
 theorem analyticAt_chapterVIDGlobalContourFromMorse :
     AnalyticAt ℂ chapterVIDGlobalContourFromMorse 0 := by
   simpa only [chapterVIDGlobalContourFromMorse,

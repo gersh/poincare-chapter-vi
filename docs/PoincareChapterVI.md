@@ -32,6 +32,15 @@ Lean identifies each enclosed value with the derivative of the actual path deriv
 remains is the analytic join to a first-derivative anchor at the selected inverse-Morse endpoint;
 the compiled curvature cannot determine that noncomputable endpoint relation by itself.
 
+The calculus portion of that join is now formalized in
+`ChapterVIDConnectorFactorTerminal.lean`. The 30 closed mesh cells cover their two complete real
+terminal intervals, their certified curvature makes the first path derivative strictly
+antitone/monotone on the respective sides, and a nonnegative endpoint derivative implies strict
+positivity at every punctured terminal point. `ChapterVIDEndpointOrientation.lean` proves the
+global coordinate's exact derivative is positive real and proves reciprocal strict-derivative
+formulas for both inverse maps. The remaining anchor work is consequently the phase of the
+prepared-unit square root and its uniform propagation after shrinking the `(k,v)` model.
+
 This note separates three questions that are easy to conflate:
 
 1. What is proved in Chapter VI of volume I of *Les méthodes nouvelles de la mécanique
