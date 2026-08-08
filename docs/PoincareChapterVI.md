@@ -101,6 +101,12 @@ The source-facing files added after the standalone-project commit are deliberate
   It reduces the order-two premise on Poincaré's complete convergent radicand to four finite
   source-point checks, providing the boundary at which a LeanCompCert certificate can be used
   without replacing an infinite analytic germ by a finite truncation.
+- `ChapterVIDCandidate.lean`: a concrete rational instance of Poincaré's point `D`, with
+  `a=-1`, `c=3`, `τ=1/100`, and `β=2`. A LeanCompCert endpoint certificate and the
+  intermediate-value theorem isolate the unique small negative equation-(7) root in
+  `[-27/1000,-26/1000]`; the file proves that root simple, places the resulting `(x,y)` exactly
+  on collision curve (3), and proves the companion factor nonzero. This is a rigorous local
+  algebraic instance, not yet a verification of Poincaré's global admissibility deformation.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series
