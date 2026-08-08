@@ -30,10 +30,13 @@ The explicit global endpoint has analytic order two and reaches the prepared loc
 actual §94 numerator is analytic and nonzero at D. On one certified real rectangle the literal
 source radicand is exactly `k+v²`, its complete numerator/Jacobian amplitude is `C¹`, and Lean
 proves that the fixed symmetric middle-cycle integral divided by `-log k` tends to the nonzero
-amplitude at D. The normalized three-arc theorem passes this coefficient to the full contour once
-the two outer arcs are proved lower order. The remaining global obligation is to place and
-transport the physical integration cycle around those checked pole paths and discharge that
-regular-arc premise; the general §98 Riemann-surface discussion is not represented as complete.
+amplitude at D. Lean also constructs a canonical global contour in Poincaré's `x^(1/3)` plane:
+it starts at the literal unit circle, its radius stays strictly between the two explicit pole
+radii before D, and its endpoint passes through their common collision. The normalized three-arc
+theorem passes the local coefficient to the full contour once this topological family is lifted
+to a compatible square-root sheet, given the required smooth local parameterization, and its two
+outer arcs are proved regular; the general §98 Riemann-surface discussion is not represented as
+complete.
 
 The strongest newly completed component is the finite algebra in §103:
 
@@ -275,6 +278,12 @@ The strongest newly completed component is the finite algebra in §103:
   coefficient. A finite limit of the complementary contribution automatically implies that
   lower-order condition, so ordinary continuity of the regular arcs is enough. Its continuation
   structure is the current global interface.
+- `ChapterVIDRadialContour.lean` supplies the previously abstract global contour geometry for D.
+  It proves the pole radii remain strictly ordered until collision, chooses the unique constant
+  convex weight making the initial intermediate circle have radius one, constructs the resulting
+  closed contour homotopy, proves it avoids both poles before the endpoint, and proves its final
+  negative-real half-turn is exactly the collision lift. The remaining work is analytic sheet and
+  smoothness data, not choosing a contour set.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

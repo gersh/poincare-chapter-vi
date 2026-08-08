@@ -11,6 +11,7 @@ import PoincareChapterVI.ChapterVICycleDecomposition
 import PoincareChapterVI.ChapterVIWindingObstruction
 import PoincareChapterVI.ChapterVIDAdmissibility
 import PoincareChapterVI.ChapterVIDRootCoordinates
+import PoincareChapterVI.ChapterVIDRadialContour
 import PoincareChapterVI.ChapterVIDGlobalLocalBridge
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
@@ -113,8 +114,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   `-100<x<-1`, and uses exact exponential bounds plus the intermediate-value theorem to construct
   both descendants through B with `|x|<1`. Thus D has exactly the terminal inside/inside/outside
   configuration asserted by Poincaré. The winding obstruction formalizes why opposite sides force
-  a genuine pinch. Poincaré's general Riemann-surface continuation in §98 remains a sketch in the
-  source and is not claimed here.
+  a genuine pinch. `ChapterVIDRadialContour.lean` constructs the corresponding contour family:
+  a circle whose radius begins at one, remains strictly between the two pole radii, and reaches
+  their common negative-real collision at its final half-turn. Poincaré's general square-root
+  sheet continuation in §98 remains a sketch in the source and is not claimed here.
 * §99--101 (pp. 314--325): local singular expansions and Darboux asymptotics show that high-order
   resonant coefficients do not vanish. `exists_chapterVI_weierstrassNormalForm` applies
   Weierstrass preparation to a bivariate formal series whose parameter specialization has order
