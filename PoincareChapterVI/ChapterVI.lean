@@ -88,8 +88,9 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling
-  factor `-z₁⁶ / ζ⁷` in §102. It does not establish the analytic dependence or rank hypotheses,
-  and the dimension/counting argument remains unformalized. In §103,
+  factor `-z₁⁶ / ζ⁷` in §102. It does not establish the analytic dependence or rank hypotheses.
+  The §103 dimension/counting implication is formalized conditionally on the remaining §102
+  constancy assertion. In §103,
   `chapterVI_curvePolynomial_derivative` verifies the corrected identity
   `x ∂P/∂x = 2 ∑ VᵢUᵢ + 2P`; the printing has `+P`, which agrees only after restricting to `P=0`.
   `chapterVI_cubicDerivativeCurveEquation_reduction` verifies the subsequent reduction modulo
@@ -109,7 +110,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   and `8`. A bidirectional affine-elimination certificate then proves directly that the remaining
   affine common-zero locus consists of exactly 24 distinct non-origin points; its separability
   check is a mod-53 coefficient-list Bézout certificate transported to Mathlib polynomials.
-  The deformation/persistence step and final parameter-rank implication are not yet formalized.
+  `Section103/MovingAlgebraicBranches.lean` constructs analytic branches of the genuine moving
+  sextic and reduced septic at all 24 finite points. From the §102 local-constancy premise it
+  derives the deformation equation and completes the final parameter-rank implication using the
+  compiled LeanCompCert restriction certificate.
   The theorems at the end of this file instead connect coefficient nonvanishing to the restricted
   dense Poincaré set and thence to the project's modified nonintegrability proof.
 

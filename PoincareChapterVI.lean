@@ -27,6 +27,7 @@ import PoincareChapterVI.Section103.SingularBranches
 import PoincareChapterVI.Section103.SingularJacobian
 import PoincareChapterVI.Section103.SingularityParameterTangent
 import PoincareChapterVI.Section103.ReducedCurveTangent
+import PoincareChapterVI.Section103.MovingAlgebraicBranches
 import PoincareChapterVI.Section103.DeformationBridge
 import PoincareChapterVI.Section103.ImplicitDeformation
 

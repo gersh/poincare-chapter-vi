@@ -35,7 +35,7 @@ open SingularityParameterTangent
 
 private abbrev Bivar := MvPolynomial (Fin 2) ℂ
 
-private def sourceAffineCubic (coordinate : Fin 3) : Bivar :=
+def sourceAffineCubic (coordinate : Fin 3) : Bivar :=
   chapterVICubicFamily 0 1
     (chapterVISection103CubicCoefficient 0)
     (chapterVISection103CubicCoefficient 1)
@@ -43,30 +43,30 @@ private def sourceAffineCubic (coordinate : Fin 3) : Bivar :=
     (chapterVISection103CubicCoefficient 3)
     (chapterVISection103CubicCoefficient 4) coordinate
 
-private def sourceAffineCurve : Bivar :=
+def sourceAffineCurve : Bivar :=
   chapterVICurvePolynomial sourceAffineCubic
 
-private def sourceAffineFirstOutside : Bivar :=
+def sourceAffineFirstOutside : Bivar :=
   MvPolynomial.C (3 : ℂ) * MvPolynomial.C (1 + (1 / 3 : ℂ) ^ 2) *
     (MvPolynomial.X 1 - MvPolynomial.C (1 / 5)) *
     (1 - MvPolynomial.C (1 / 5) * MvPolynomial.X 1)
 
-private def sourceAffineSecondOutside : Bivar :=
+def sourceAffineSecondOutside : Bivar :=
   MvPolynomial.C (-2 : ℂ) * MvPolynomial.C (1 + (1 / 5 : ℂ) ^ 2) *
     (MvPolynomial.X 0 - MvPolynomial.C (1 / 3)) *
     (1 - MvPolynomial.C (1 / 3) * MvPolynomial.X 0)
 
-private def sourceAffineFirstReduced (coordinate : Fin 3) : Bivar :=
+def sourceAffineFirstReduced (coordinate : Fin 3) : Bivar :=
   chapterVICubicFirstReduced 0
     (chapterVISection103CubicCoefficient 0)
     (chapterVISection103CubicCoefficient 4) coordinate
 
-private def sourceAffineSecondReduced (coordinate : Fin 3) : Bivar :=
+def sourceAffineSecondReduced (coordinate : Fin 3) : Bivar :=
   chapterVICubicSecondReduced 1
     (chapterVISection103CubicCoefficient 1)
     (chapterVISection103CubicCoefficient 3) coordinate
 
-private def sourceAffineReduced : Bivar :=
+def sourceAffineReduced : Bivar :=
   sourceAffineFirstOutside *
       (∑ coordinate : Fin 3,
         sourceAffineFirstReduced coordinate *

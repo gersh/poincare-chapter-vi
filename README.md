@@ -89,17 +89,20 @@ The strongest newly completed component is the finite algebra in §103:
   logarithmic differential is proved to annihilate that same polynomial direction, and local
   constancy along any differentiable path is proved to imply the exact `dz = 0` covector
   equation used in §103.
+- the moving sextic and reduced septic are constructed directly from the genuine Cayley rotation
+  family. Their joint analyticity is proved, their base Jacobian is identified with the certified
+  transverse `(P,R)` Jacobian, and the complex implicit-function theorem constructs a branch
+  through each of the 24 points. Assuming only Poincaré's §102 local constancy claim on these
+  concrete branches, Lean derives equation (2), invokes the compiled LeanCompCert restriction
+  certificate, and completes the three-versus-two rank contradiction.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the source-specific analytic input spanning
-§§102–103. The abstract branch construction and physical derivative identification are now
-closed. What remains in §§102–103 is to instantiate the coupled system with Poincaré's actual
-complexified Kepler equations, relate the now-proved transverse `(P,R)` Jacobians to the
-`(Δ,Δₜ)` coordinates (or build the moving algebraic branch directly), prove the §102
-two-coordinate factorization that makes each `z` locally constant in a kernel direction, and
-discharge the local agreement with the rotating-ellipse distance equation. The formal chain
-rule, the identification of the reduced curve with the constant-`z` tangent derivative, and the
-three-versus-two rank contradiction are closed. The
+complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
+concrete moving algebraic branches, physical derivative identification, formal chain rule,
+identification of the reduced curve with the constant-`z` tangent derivative, and the
+three-versus-two rank contradiction are now closed. What remains in §§102–103 is the §102
+two-coordinate factorization/constancy theorem that makes each displayed singularity parameter
+locally constant in a kernel direction. The
 specialized finite-intersection count, chart-to-local-length gap, and finite determinant/resultant
 correctness gap are now closed; the final rotation-rank implication is also closed once vanishing
 at the 24 points is supplied, and a general projective Bézout theorem is no longer needed for this

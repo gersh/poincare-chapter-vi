@@ -25,9 +25,9 @@ and formal-series subarguments. The central analytic and geometric steps remain 
 - deriving the local logarithmic expansion from a convergent Weierstrass preparation and a
   parameter-dependent contour;
 - proving a Darboux remainder estimate strong enough to give eventual nonvanishing;
-- instantiating the now-formalized implicit singular-branch theorem with the actual complexified
-  Kepler equations, proving its two scalar nondegeneracy conditions, and deriving Poincaré's
-  §102 two-essential-coordinate constancy claim from the Chapter V input.
+- deriving Poincaré's §102 two-essential-coordinate constancy claim from the Chapter V input.
+  The actual moving algebraic equations, their analytic branches at all 24 certified points,
+  and the ensuing §103 rank contradiction are now formalized.
 
 This is not merely a matter of filling routine Lean library gaps. At the end of §98 Poincaré says
 that he has only sketched the discussion and calls for a complete analytic study of the different
@@ -49,22 +49,19 @@ transcription of the 1892 text.
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIDarboux.lean` proves the exact coefficients of a model logarithm and an abstract asymptotic-to-nonvanishing step | Derive the logarithmic expansion of the actual integral; prove the leading factor is nonzero; bound the holomorphic and higher-order terms, including all equally dominant singularities |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
 | §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling of the six-by-six Jacobian to the five ratio derivatives, including the factor `-z₁⁶/ζ⁷`; `ChapterVI.lean` supplies only a conditional restricted-problem interface | Formalize the Chapter V input, analytic dependence/enumeration of singular roots, prove the required ratio Jacobian is nonzero, and justify the passage from coefficient relations to singular-locus relations |
-| §103 | Count 24 finite singular points and contradict the rank constraint using two degree-six curves with 44 counted intersections | `ChapterVICurveAlgebra.lean` checks the source identities; `Section103/Geometry.lean` derives the curve from exact ellipses; the Ruppert modules prove the exact affine polynomial irreducible over `ℂ`; `Section103/ProjectiveIrreducibility.lean` proves the homogeneous sextic irreducible; `Section103/ReducedCurve.lean` records the exact cleared septic and proves the two curves have no common component; `Section103/ReducedCurveSource.lean` uses LeanCompCert to prove the displayed source formula clears to that septic; `LocalIntersection.lean` proves the origin transversality and exact initial forms in both infinity charts; `LocalAlgebra.lean` defines the intrinsic local intersection lengths at all three exceptional points; the origin has length two; `InfinityChartNormalForm.lean` uses exact checked membership certificates to identify both localized chart ideals with eight-dimensional triangular models and proves both infinity lengths equal eight; `AffineIntersectionCount.lean` checks a bidirectional shape-basis certificate, proves the degree-24 residual separable by a mod-53 Bézout certificate, and identifies exactly 24 distinct non-origin affine common zeros; `AffineTransversality.lean` differentiates those shape identities and proves the exact sextic–septic Jacobian invertible at every one of the 24 points; `RotationRestriction.lean` reduces all three rotation derivatives in the radical 24-point algebra and proves by a mod-53 rank certificate that simultaneous vanishing forces the rotation to be zero; `RotationSource.lean` and `RotationFamily.lean` connect those derivatives to a genuine ellipse-rotation family; `SingularBranches.lean` constructs a persistent `(t,z)` root of `(Δ,Δₜ)=0` by the complex IFT and computes its derivative; `SingularJacobian.lean` proves that `Δ_z ≠ 0` and `Δ_tt ≠ 0` imply the required Jacobian invertibility; `ImplicitDeformation.lean` derives `dz/dγ₃=0` from local constancy and feeds the constructed branch into `DeformationBridge.lean`, which proves equation (2) and the final rotation contradiction | Define the source `Δ(t,z,γ)` from the actual Kepler substitutions and relate its `(t,z)` Jacobian to the now-invertible algebraic `(P,R)` Jacobian (or construct the moving algebraic branch directly); prove the §102 constancy/factorization input; and prove the local source-identification fields required by `ImplicitPhysicalSingularDeformation` |
+| §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, derives equation (2) from local constancy of Poincaré's displayed singularity parameter, and completes the rank-nullity contradiction through the LeanCompCert certificate | Prove the §102 constancy/factorization input used by `BranchSingularityConstancy`; no additional finite calculation or source-identification interface remains in the §103 endgame |
 
 ## What the current Lean files actually establish
 
-Update to the §103 row: `RotationFamily.lean` closes the physical parameter-derivative
-identification, while `SingularBranches.lean`, `SingularJacobian.lean`, and
-`ImplicitDeformation.lean` close the generic local branch construction. The remaining
-§102–103 obligation is source-specific. `AffineTransversality.lean` proves the exact `(P,R)`
-pair is nondegenerate at all 24 finite points; it remains to connect that result to the source
-coordinates, establish §102 constancy, and verify agreement with the rotating-ellipse equation.
+Update to the §103 row: `MovingAlgebraicBranches.lean` closes the formerly missing direct bridge.
+It constructs the moving `(P,R)` equations from `RotationFamily.lean`, proves their analyticity,
+uses `AffineTransversality.lean` to obtain IFT branches at all 24 points, and identifies the
+parameter derivative with the certified rotation source.
 `SingularityParameterTangent.lean` and `ReducedCurveTangent.lean` now close the intermediate
 coordinate calculation: the explicit singularity parameter has Poincaré's displayed
 logarithmic differential, its polynomial kernel direction is exactly the direction defining the
 reduced septic, and the certified sextic derivative vanishes in that direction at all 24 points.
-The still-open bridge is from this algebraic `(x,y)` statement to the moving source equations
-`(Δ,Δₜ)` and the §102 factorization/constancy assertion.
+The still-open bridge is precisely the §102 factorization/constancy assertion itself.
 
 The source-facing files added after the standalone-project commit are deliberately small lemmas:
 
@@ -380,19 +377,13 @@ deformations to be zero. Its physical deformation structure derives the coeffici
 parameter derivative from local agreement with the genuine rotation family; it no longer assumes
 that derivative equality. `SingularBranches.lean` now constructs the persistent branch by the
 complex implicit-function theorem and proves persistence of both `Δ=0` and `Δₜ=0`.
-`SingularJacobian.lean` supplies an explicit inverse for the fiber Jacobian under
-`Δ_z ≠ 0` and `Δ_tt ≠ 0`. `ImplicitDeformation.lean` derives the zero singular-value velocity
-from Poincaré's local constancy claim and turns this IFT branch into the physical deformation used
-by the endgame theorem. The remaining source-level task is narrower but still substantive:
-instantiate this interface with the actual complex Kepler equations, verify the two
-nondegeneracy conditions in source coordinates, and prove the §102 factorization/constancy input.
-Independently, `AffineTransversality.lean` now proves from the checked shape basis and separability
-certificate that the exact affine sextic and reduced septic have invertible Jacobian at every
-certified finite point, so the remaining nondegeneracy work is a coordinate-identification issue
-rather than a new finite calculation.
-The new constant-singularity tangent bridge additionally proves that the reduced septic is the
-source-faithful directional-derivative condition at those points; it does not yet prove that the
-actual moving Kepler singular equations furnish the required local branches or §102 constancy.
+`SingularJacobian.lean` supplies an explicit inverse for the generic fiber Jacobian under
+`Δ_z ≠ 0` and `Δ_tt ≠ 0`. `MovingAlgebraicBranches.lean` now gives the direct source-level
+route needed here: it proves that the moving Cayley sextic and reduced septic have the certified
+base equations and Jacobian, constructs all 24 analytic branches, and derives the certified
+rotation-source vanishing from constancy of Poincaré's singularity parameter. Thus the remaining
+source-level task in §§102–103 is the substantive §102 factorization/constancy input itself, not
+another finite computation or coordinate-identification layer.
 
 ## LeanCompCert trust boundary
 
