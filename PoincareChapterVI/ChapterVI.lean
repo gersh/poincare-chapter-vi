@@ -32,6 +32,7 @@ import PoincareChapterVI.Section103.RuppertBounds
 import PoincareChapterVI.Section103.RuppertNormalization
 import PoincareChapterVI.ChapterVIWeierstrass
 import PoincareChapterVI.ChapterVIAnalyticPreparation
+import PoincareChapterVI.ChapterVIJointPreparation
 import LeanPool.PoincareThreeBody.LocalEnergyLeaf
 
 /-!
@@ -114,6 +115,10 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   second fiber derivative. Its exact factorization holds everywhere and it is analytic off the
   axis; matching that specifically normalized piecewise function with the constructed analytic
   unit on the axis is a separate normalization question.
+  `ChapterVIJointPreparation.lean` packages the resulting factorization in the convergent
+  prepared-germ interface. Its joint inverse branch is holomorphic and certified against the
+  actual centered radicand; its unit and unit root restrict to the singular-fiber choices, and on
+  the sheet `sqrt(u²)=u` the prepared branch inherits the explicit nonzero logarithmic primitive.
   `hasSum_chapterVILogSingularityCoefficient` verifies the
   logarithmic Taylor expansion used in §100, and
   `chapterVI_darbouxAsymptotic_of_logarithmicLeadingTerm` connects its exact coefficients plus a

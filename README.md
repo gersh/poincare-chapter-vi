@@ -189,6 +189,11 @@ The strongest newly completed component is the finite algebra in §103:
   factorization is proved everywhere and its analyticity is proved off the axis. Identifying this
   specifically normalized piecewise representative with the constructed analytic unit on the
   axis remains separate from the now-complete existence of a joint analytic square quotient.
+  The joint quotient is packaged as a `ChapterVIConvergentPreparedGerm` with center and kappa
+  identically zero, so the existing holomorphic inverse-branch and contour-transport API applies
+  directly to the actual centered radicand. Its unit and automatically selected unit root agree
+  as germs with the singular-fiber choices; on the sheet `sqrt(u²)=u`, the prepared inverse branch
+  therefore has the previously constructed primitive `A(0) log u + Q(u)`.
 
 This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The

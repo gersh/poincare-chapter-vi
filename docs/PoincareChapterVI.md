@@ -140,6 +140,13 @@ The source-facing files added after the standalone-project commit are deliberate
   factorization everywhere, nonvanishing at D, and analyticity off the axis. Identifying that
   particular axis normalization with the constructed joint analytic unit remains open; placement
   of the source cycle also remains open.
+- `ChapterVIJointPreparation.lean`: packages the twice-divided centered source germ as a
+  `ChapterVIConvergentPreparedGerm` whose center and kappa are identically zero and whose
+  quadratic factor is exactly `u²`. The generic local square-root machinery therefore gives a
+  holomorphic two-variable inverse branch certified against the actual centered radicand. The
+  joint unit and its automatically selected root are proved to restrict to the singular-fiber
+  unit and root as germs. On the sheet `sqrt(u²)=u`, the explicit singular-fiber primitive
+  `A(0) log u + Q(u)` is consequently a primitive of the prepared inverse branch itself.
 - `ChapterVIWeierstrass.lean`: formal Weierstrass preparation over `ℂ⟦z-z₀⟧` followed by completing
   a monic quadratic square.
 - `ChapterVIAnalyticPreparation.lean`: uniqueness of convergent multivariable-series
