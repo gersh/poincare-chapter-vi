@@ -54,6 +54,8 @@ import PoincareChapterVI
 #print axioms PoincareChapterVI.chapterVIDRadialContour_ne_outsidePole
 #print axioms PoincareChapterVI.chapterVIDRadialContour_collision
 #print axioms PoincareChapterVI.chapterVIDCertificateContour_collision
+#print axioms PoincareChapterVI.chapterVIDRationalUnitQuarter_norm
+#print axioms PoincareChapterVI.chapterVIDRationalOuterArcUnit_quadrant
 #print axioms PoincareChapterVI.continuous_chapterVIDOuterArcRadicand
 #print axioms PoincareChapterVI.ChapterVIDOuterArcNonvanishingCertificate.exists_squareRootSheet
 #print axioms PoincareChapterVI.leanCompCert_rpow_real_bracket

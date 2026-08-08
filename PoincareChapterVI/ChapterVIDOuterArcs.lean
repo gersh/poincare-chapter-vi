@@ -12,9 +12,16 @@ import Mathlib.Topology.Algebra.Module.LocallyConvex
 /-!
 # Concrete outer arcs for the D pinch
 
-This file fixes the two compact outer quarters of the certificate-friendly radial contour. The first uses
-angular time `[0,1/4]`; the second uses `[3/4,1]`.  The collision occurs at time `1/2`, so both
-rectangles remain uniformly separated from the local middle arc.
+This file fixes the two compact outer quarters of the certificate-friendly radial contour. The first
+runs from `1` to `i`; the second from `-i` to `1`.  The collision at `-1` is therefore confined to
+the complementary middle arc.
+
+For the compiled certificate the quarters use the exact rational parametrization
+
+`((1-t²) + 2ti) / (1+t²)`, `0 ≤ t ≤ 1`,
+
+rather than evaluating `sin`, `cos`, or `π`.  The final quarter is `-i` times the first.  Lean
+proves algebraically that these points have norm one and the correct endpoints.
 
 The literal transformed radicand on each rectangle is defined and proved continuous.  The only
 remaining datum needed to construct its compatible square-root sheet is an instance of
@@ -51,25 +58,157 @@ theorem continuous_chapterVIDOuterArcTime
     Continuous (chapterVIDOuterArcTime side) := by
   cases side <;> unfold chapterVIDOuterArcTime <;> fun_prop
 
+/-- Rational counterclockwise parametrization of the unit-circle quarter from `1` to `i`. -/
+noncomputable def chapterVIDRationalUnitQuarter (t : I) : ℂ :=
+  (((1 - (t : ℝ) ^ 2) / (1 + (t : ℝ) ^ 2) : ℝ) : ℂ) +
+    (((2 * (t : ℝ)) / (1 + (t : ℝ) ^ 2) : ℝ) : ℂ) * Complex.I
+
+theorem chapterVIDRationalUnitQuarter_denominator_pos (t : I) :
+    0 < 1 + (t : ℝ) ^ 2 := by positivity
+
+theorem continuous_chapterVIDRationalUnitQuarter :
+    Continuous chapterVIDRationalUnitQuarter := by
+  unfold chapterVIDRationalUnitQuarter
+  have hden : ∀ t : I, 1 + (t : ℝ) ^ 2 ≠ 0 :=
+    fun t ↦ ne_of_gt (chapterVIDRationalUnitQuarter_denominator_pos t)
+  have hre : Continuous (fun t : I ↦
+      (1 - (t : ℝ) ^ 2) / (1 + (t : ℝ) ^ 2)) :=
+    (continuous_const.sub (continuous_subtype_val.pow 2)).div
+      (continuous_const.add (continuous_subtype_val.pow 2)) hden
+  have him : Continuous (fun t : I ↦
+      (2 * (t : ℝ)) / (1 + (t : ℝ) ^ 2)) :=
+    (continuous_const.mul continuous_subtype_val).div
+      (continuous_const.add (continuous_subtype_val.pow 2)) hden
+  exact (Complex.ofRealCLM.continuous.comp hre).add
+    ((Complex.ofRealCLM.continuous.comp him).mul continuous_const)
+
+@[simp]
+theorem chapterVIDRationalUnitQuarter_zero :
+    chapterVIDRationalUnitQuarter 0 = 1 := by
+  norm_num [chapterVIDRationalUnitQuarter]
+
+@[simp]
+theorem chapterVIDRationalUnitQuarter_one :
+    chapterVIDRationalUnitQuarter 1 = Complex.I := by
+  norm_num [chapterVIDRationalUnitQuarter]
+
+theorem chapterVIDRationalUnitQuarter_normSq (t : I) :
+    Complex.normSq (chapterVIDRationalUnitQuarter t) = 1 := by
+  rw [Complex.normSq_apply]
+  simp only [chapterVIDRationalUnitQuarter, add_re, add_im, ofReal_re, ofReal_im,
+    mul_re, mul_im, I_re, I_im, mul_zero, mul_one, sub_zero, add_zero]
+  field_simp [ne_of_gt (chapterVIDRationalUnitQuarter_denominator_pos t)]
+  ring
+
+@[simp]
+theorem chapterVIDRationalUnitQuarter_norm (t : I) :
+    ‖chapterVIDRationalUnitQuarter t‖ = 1 := by
+  have hsq := (Complex.normSq_eq_norm_sq
+    (chapterVIDRationalUnitQuarter t)).symm
+  rw [chapterVIDRationalUnitQuarter_normSq] at hsq
+  nlinarith [norm_nonneg (chapterVIDRationalUnitQuarter t)]
+
+theorem chapterVIDRationalUnitQuarter_re_nonneg (t : I) :
+    0 ≤ (chapterVIDRationalUnitQuarter t).re := by
+  simp only [chapterVIDRationalUnitQuarter, add_re, ofReal_re, mul_re, ofReal_im,
+    I_re, I_im, mul_zero, zero_mul, sub_zero, add_zero]
+  exact div_nonneg
+    (by nlinarith [t.property.1, t.property.2,
+      mul_self_le_mul_self t.property.1 t.property.2])
+    (chapterVIDRationalUnitQuarter_denominator_pos t).le
+
+theorem chapterVIDRationalUnitQuarter_im_nonneg (t : I) :
+    0 ≤ (chapterVIDRationalUnitQuarter t).im := by
+  simp only [chapterVIDRationalUnitQuarter, add_im, ofReal_im, mul_im, ofReal_re,
+    I_re, I_im, mul_zero, mul_one, zero_add, add_zero]
+  change 0 ≤ (2 * (t : ℝ)) / (1 + (t : ℝ) ^ 2)
+  exact div_nonneg (mul_nonneg (by norm_num) t.property.1)
+    (chapterVIDRationalUnitQuarter_denominator_pos t).le
+
+/-- The rational unit-circle parametrization for either regular outer quarter. -/
+noncomputable def chapterVIDRationalOuterArcUnit
+    (side : ChapterVIDOuterArcSide) (t : I) : ℂ :=
+  match side with
+  | .initial => chapterVIDRationalUnitQuarter t
+  | .final => -Complex.I * chapterVIDRationalUnitQuarter t
+
+theorem continuous_chapterVIDRationalOuterArcUnit
+    (side : ChapterVIDOuterArcSide) :
+    Continuous (chapterVIDRationalOuterArcUnit side) := by
+  cases side
+  · exact continuous_chapterVIDRationalUnitQuarter
+  · exact continuous_const.mul continuous_chapterVIDRationalUnitQuarter
+
+@[simp]
+theorem chapterVIDRationalOuterArcUnit_norm
+    (side : ChapterVIDOuterArcSide) (t : I) :
+    ‖chapterVIDRationalOuterArcUnit side t‖ = 1 := by
+  cases side
+  · exact chapterVIDRationalUnitQuarter_norm t
+  · simp [chapterVIDRationalOuterArcUnit]
+
+/-- Algebraic identification of the chosen points with the required closed outer quarters. -/
+theorem chapterVIDRationalOuterArcUnit_quadrant
+    (side : ChapterVIDOuterArcSide) (t : I) :
+    match side with
+    | .initial => 0 ≤ (chapterVIDRationalOuterArcUnit side t).re ∧
+        0 ≤ (chapterVIDRationalOuterArcUnit side t).im
+    | .final => 0 ≤ (chapterVIDRationalOuterArcUnit side t).re ∧
+        (chapterVIDRationalOuterArcUnit side t).im ≤ 0 := by
+  cases side
+  · exact ⟨chapterVIDRationalUnitQuarter_re_nonneg t,
+      chapterVIDRationalUnitQuarter_im_nonneg t⟩
+  · simp only [chapterVIDRationalOuterArcUnit, neg_mul, I_mul_re, I_mul_im,
+      neg_re, neg_im]
+    exact ⟨by simpa using chapterVIDRationalUnitQuarter_im_nonneg t,
+      by simpa using neg_nonpos.mpr (chapterVIDRationalUnitQuarter_re_nonneg t)⟩
+
+@[simp]
+theorem chapterVIDRationalOuterArcUnit_initial_zero :
+    chapterVIDRationalOuterArcUnit .initial 0 = 1 := by simp [chapterVIDRationalOuterArcUnit]
+
+@[simp]
+theorem chapterVIDRationalOuterArcUnit_initial_one :
+    chapterVIDRationalOuterArcUnit .initial 1 = Complex.I := by
+  simp [chapterVIDRationalOuterArcUnit]
+
+@[simp]
+theorem chapterVIDRationalOuterArcUnit_final_zero :
+    chapterVIDRationalOuterArcUnit .final 0 = -Complex.I := by
+  simp [chapterVIDRationalOuterArcUnit]
+
+@[simp]
+theorem chapterVIDRationalOuterArcUnit_final_one :
+    chapterVIDRationalOuterArcUnit .final 1 = 1 := by
+  simp [chapterVIDRationalOuterArcUnit]
+
 /-- A point on one of the two outer-arc parameter rectangles.  The first coordinate is the
 radial continuation time and the second is the local arc parameter. -/
 noncomputable def chapterVIDOuterArcPoint
   (side : ChapterVIDOuterArcSide) (st : I × I) : ℂ :=
-  chapterVIDCertificateContourHomotopy (st.1, chapterVIDOuterArcTime side st.2)
+  (chapterVIDCertificateContourRadius st.1 : ℂ) *
+    chapterVIDRationalOuterArcUnit side st.2
 
 theorem continuous_chapterVIDOuterArcPoint
     (side : ChapterVIDOuterArcSide) :
     Continuous (chapterVIDOuterArcPoint side) := by
-  exact chapterVIDCertificateContourHomotopy.continuous.comp
-    (continuous_fst.prodMk
-      ((continuous_chapterVIDOuterArcTime side).comp continuous_snd))
+  exact (Complex.ofRealCLM.continuous.comp
+      (continuous_chapterVIDCertificateContourRadius.comp continuous_fst)).mul
+    ((continuous_chapterVIDRationalOuterArcUnit side).comp continuous_snd)
+
+theorem chapterVIDOuterArcPoint_norm
+    (side : ChapterVIDOuterArcSide) (st : I × I) :
+    ‖chapterVIDOuterArcPoint side st‖ = chapterVIDCertificateContourRadius st.1 := by
+  rw [chapterVIDOuterArcPoint, norm_mul, chapterVIDRationalOuterArcUnit_norm,
+    mul_one, norm_real, Real.norm_eq_abs,
+    abs_of_pos (chapterVIDCertificateContourRadius_pos st.1)]
 
 theorem chapterVIDOuterArcPoint_ne_zero
     (side : ChapterVIDOuterArcSide) (st : I × I) :
     chapterVIDOuterArcPoint side st ≠ 0 := by
   intro hzero
   have hnorm := congrArg norm hzero
-  rw [chapterVIDOuterArcPoint, chapterVIDCertificateContourHomotopy_norm] at hnorm
+  rw [chapterVIDOuterArcPoint_norm] at hnorm
   norm_num at hnorm
   exact (chapterVIDCertificateContourRadius_pos st.1).ne' hnorm
 

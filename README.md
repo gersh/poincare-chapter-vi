@@ -304,6 +304,10 @@ The strongest newly completed component is the finite algebra in §103:
   nonvanishing-certificate types. The exploratory script
   `research/chapter_vi_outer_arc_scan.py` records why this radius was selected; its floating-point
   output is explicitly not accepted as proof.
+- The two regular quarters now use the exact rational unit-circle parametrization
+  `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
+  continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
+  `cos`.
 - `ChapterVILeanCompCertRealBridge.lean` proves the encoding theorem needed by the compiled route:
   LeanCompCert's all-integer fixed-point `rpow` bracket implies the corresponding outward-rounded
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested

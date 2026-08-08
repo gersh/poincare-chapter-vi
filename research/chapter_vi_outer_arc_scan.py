@@ -48,11 +48,11 @@ def laurent_minus(eccentricity: mp.mpf, complement: mp.mpf, x: mp.mpc) -> mp.mpc
     return distance_minus(eccentricity, complement, x) / (2 * x)
 
 
-def source_radicand(parameter: mp.mpf, radius: mp.mpf, angle_turns: mp.mpf) -> mp.mpc:
+def source_radicand(parameter: mp.mpf, radius: mp.mpf, unit: mp.mpc) -> mp.mpc:
     eccentricity = mp.mpf(200) / 10001
     complement = mp.mpf(9999) / 10001
     zeta = parameter ** (mp.mpf(1) / 3)
-    u = radius * mp.exp(2j * mp.pi * angle_turns)
+    u = radius * unit
     x = u**3
     y = zeta * root_to_original(u)
     plus = laurent_plus(eccentricity, complement, x) - 2 * laurent_plus(0, 1, y)
@@ -85,20 +85,22 @@ def scan(samples: int) -> None:
         ("certificate sixth-root radius", certificate_radius),
         ("unsafe linear radius", linear_radius),
     ):
-        minimum = (mp.inf, mp.mpf(0), mp.mpf(0))
+        minimum = (mp.inf, mp.mpf(0), "", mp.mpf(0))
         for i in range(samples + 1):
             s = mp.mpf(i) / samples
             q = parameter(s)
-            for left, right in ((mp.mpf(0), mp.mpf(1) / 4),
-                                (mp.mpf(3) / 4, mp.mpf(1))):
+            for side in ("initial", "final"):
                 for j in range(samples + 1):
-                    angle = left + (right - left) * j / samples
-                    value = abs(source_radicand(q, radius(s), angle))
+                    t = mp.mpf(j) / samples
+                    quarter = ((1 - t**2) + 2j * t) / (1 + t**2)
+                    unit = quarter if side == "initial" else -1j * quarter
+                    value = abs(source_radicand(q, radius(s), unit))
                     if value < minimum[0]:
-                        minimum = (value, s, angle)
+                        minimum = (value, s, side, t)
         print(
             f"{label}: sampled min |radicand| = {mp.nstr(minimum[0], 18)} "
-            f"at s={mp.nstr(minimum[1], 10)}, turn={mp.nstr(minimum[2], 10)}"
+            f"at s={mp.nstr(minimum[1], 10)}, side={minimum[2]}, "
+            f"t={mp.nstr(minimum[3], 10)}"
         )
 
 

@@ -144,7 +144,9 @@ The source-facing files added after the standalone-project commit are deliberate
   converge to a finite endpoint value.
 - `ChapterVIDCertificateContour.lean` and `ChapterVIDOuterArcs.lean`: define the explicit
   sixth-root-scaled contour selected for finite verification, prove its exact endpoints, and
-  specialize the finite nonvanishing interface to the two compact outer quarters. The companion
+  specialize the finite nonvanishing interface to the two compact outer quarters. Their exact
+  rational parametrization `((1-t²)+2ti)/(1+t²)` removes trigonometric constants from the compiled
+  grid; norm one, endpoints, and the relevant quadrants are proved algebraically. The companion
   Python scan is exploratory only; the formal milestone is the future outward-rounded interval
   certificate, not the sampled minimum.
 - `ChapterVILeanCompCertRealBridge.lean`: closes one concrete encoding gap in that certificate.
