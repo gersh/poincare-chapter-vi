@@ -437,6 +437,43 @@ def runNormalizedSlice (displacement : Nat) : IO UInt32 := do
     IO.println s!"normalized slice {sideName side} first/last failing cell: {firstFail}/{lastFail}"
   pure (if failures = 0 then 0 else 1)
 
+def runNormalizedBox (realRadius imagLower imagUpper : Nat) : IO UInt32 := do
+  let mut failures := 0
+  for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+    let localDelta : Rectangle := match side with
+      | .initial =>
+          ⟨⟨-Int.ofNat realRadius, Int.ofNat realRadius⟩,
+            ⟨Int.ofNat imagLower, Int.ofNat imagUpper⟩⟩
+      | .final =>
+          ⟨⟨-Int.ofNat realRadius, Int.ofNat realRadius⟩,
+            ⟨-Int.ofNat imagUpper, -Int.ofNat imagLower⟩⟩
+    let mut operationCount := 0
+    let mut sideFailures := 0
+    let mut failingCells := 0
+    let mut firstFail : Option Nat := none
+    let mut lastFail : Option Nat := none
+    for index in List.finRange
+        ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceCellCount do
+      let operations :=
+        ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceOperationsWithLocalDelta
+          side
+          (ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceParameterInterval
+            side index)
+          localDelta
+      operationCount := operationCount + operations.length
+      let cellFailures := failureCount (batchClaims operations)
+      sideFailures := sideFailures + cellFailures
+      if cellFailures != 0 then
+        failingCells := failingCells + 1
+        if firstFail.isNone then firstFail := some index.val
+        lastFail := some index.val
+    failures := failures + sideFailures
+    IO.println s!"normalized box {sideName side} operations: {operationCount}"
+    IO.println s!"normalized box {sideName side} failed integer claims: {sideFailures}"
+    IO.println s!"normalized box {sideName side} failing cells: {failingCells}"
+    IO.println s!"normalized box {sideName side} first/last failing cell: {firstFail}/{lastFail}"
+  pure (if failures = 0 then 0 else 1)
+
 def cliMain (args : List String) : IO UInt32 := do
   match args with
   | "check-factor-native" :: rest =>
@@ -577,6 +614,24 @@ def cliMain (args : List String) : IO UInt32 := do
       IO.println s!"checked second-derivative shards: {checked}"
       IO.println s!"failed integer claims: {failures}"
       pure (if failures = 0 then 0 else 1)
+  | ["stats-factor-second-derivative-real"] =>
+      for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+        let mut positive := 0
+        let mut negative := 0
+        let mut mixed := 0
+        let mut minimumLower : Option Int := none
+        let mut maximumUpper : Option Int := none
+        for index in List.finRange
+            (ChapterVIDConnectorFactorSecondDerivativeReference.cells side) do
+          let real :=
+            (ChapterVIDConnectorFactorSecondDerivativeReference.trace side index).output.real
+          minimumLower := some (minimumLower.map (min real.lower) |>.getD real.lower)
+          maximumUpper := some (maximumUpper.map (max real.upper) |>.getD real.upper)
+          if 0 < real.lower then positive := positive + 1
+          else if real.upper < 0 then negative := negative + 1
+          else mixed := mixed + 1
+        IO.println s!"second derivative real {sideName side}: positive={positive}, negative={negative}, mixed={mixed}, envelope={minimumLower}/{maximumUpper}"
+      pure 0
   | ["reference-morse-slope"] =>
       let operations := ChapterVIDMorseSlopeCompiled.operations
       let failures := failureCount (batchClaims operations)
@@ -619,6 +674,13 @@ def cliMain (args : List String) : IO UInt32 := do
       | none =>
           IO.eprintln "error: DISPLACEMENT must be a natural number"
           pure 1
+  | ["reference-factor-normalized-box", realText, imagLowerText, imagUpperText] =>
+      match realText.toNat?, imagLowerText.toNat?, imagUpperText.toNat? with
+      | some realRadius, some imagLower, some imagUpper =>
+          runNormalizedBox realRadius imagLower imagUpper
+      | _, _, _ =>
+          IO.eprintln "error: REAL, IMAG-LOWER, and IMAG-UPPER must be natural numbers"
+          pure 1
   | ["reference-coarse", cellsText] =>
       match cellsText.toNat? with
       | some cells =>
@@ -647,7 +709,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | reference-morse-slope | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | emit-morse-slope OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | check-morse-slope [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | stats-factor-second-derivative-real | reference-morse-slope | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | reference-factor-normalized-box REAL IMAG-LOWER IMAG-UPPER | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | emit-morse-slope OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | check-morse-slope [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

@@ -185,6 +185,61 @@ box, this remains nondegenerate when the selected Morse length shrinks. -/
 def normalizedEndpointDeltaRectangle : Rectangle :=
   ⟨⟨-83887, 83887⟩, ⟨-262144, -65536⟩⟩
 
+/-- A precision-20 square containing the complex unit disk.  It is used for the parameter
+perturbation only after the exact `L²` factor has been divided out, so its size is independent of
+the noncomputably selected Morse length. -/
+def normalizedParameterDeltaRectangle : Rectangle :=
+  ⟨⟨-(2 ^ 20), 2 ^ 20⟩, ⟨-(2 ^ 20), 2 ^ 20⟩⟩
+
+/-- Signed real Morse coordinate of the local endpoint. -/
+def signedMorseLength (side : ChapterVIDOuterArcSide) (L : ℝ) : ℝ :=
+  match side with
+  | .initial => -L
+  | .final => L
+
+/-- Exact reconstruction of the moving endpoint displacement from the scale-free input `q`.
+This identity is intentionally stated before interval evaluation: rounding `u-D` first is what
+made every cell of the former fixed-scale campaign fail. -/
+theorem localEndpointDelta_eq_signedMorseLength_mul_normalized
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
+        chapterVIDCollisionLift =
+      ((signedMorseLength side model.rootModel.L : ℝ) : ℂ) *
+        chapterVIDNormalizedLocalEndpointDelta side model.κ model.rootModel.L := by
+  rw [ChapterVIDPrincipalConnectorModel.criticalValue_zero]
+  have hL : model.rootModel.L ≠ 0 := model.rootModel.L_pos.ne'
+  cases side with
+  | initial =>
+      have hLC : (((-model.rootModel.L : ℝ) : ℂ)) ≠ 0 :=
+        Complex.ofReal_ne_zero.mpr (neg_ne_zero.mpr hL)
+      simp only [signedMorseLength,
+        ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+        chapterVIDNormalizedLocalEndpointDelta]
+      exact (mul_div_cancel₀ _ hLC).symm
+  | final =>
+      have hLC : ((model.rootModel.L : ℝ) : ℂ) ≠ 0 :=
+        Complex.ofReal_ne_zero.mpr hL
+      simp only [signedMorseLength,
+        ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+        chapterVIDNormalizedLocalEndpointDelta]
+      exact (mul_div_cancel₀ _ hLC).symm
+
+theorem normalizedParameterDeltaRectangle_contains_of_norm_le_one
+    {z : ℂ} (hz : ‖z‖ ≤ 1) :
+    normalizedParameterDeltaRectangle.Contains z := by
+  have hre := (Complex.abs_re_le_norm z).trans hz
+  have him := (Complex.abs_im_le_norm z).trans hz
+  rw [abs_le] at hre him
+  change
+    (((-(2 ^ 20) : ℤ) : ℝ) / (2 : ℝ) ^ 20 ≤ z.re ∧
+      z.re ≤ (((2 ^ 20 : ℕ) : ℤ) : ℝ) / (2 : ℝ) ^ 20) ∧
+    (((-(2 ^ 20) : ℤ) : ℝ) / (2 : ℝ) ^ 20 ≤ z.im ∧
+      z.im ≤ (((2 ^ 20 : ℕ) : ℤ) : ℝ) / (2 : ℝ) ^ 20)
+  norm_num at ⊢
+  exact ⟨hre, him⟩
+
 theorem normalizedEndpointDeltaRectangle_contains
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDAnchoredConnectorModel massProduct b d)
@@ -217,6 +272,22 @@ theorem normalizedEndpointDeltaRectangle_contains
   constructor
   · constructor <;> linarith
   · constructor <;> linarith
+
+/-- The selected model's relative parameter motion, divided by the exact Morse scale `L²`, lies
+in a fixed compiled input square.  This is the parameter analogue of
+`normalizedEndpointDeltaRectangle_contains`; using the unscaled perturbation was the second
+source of underflow in the former endpoint campaign. -/
+theorem normalizedParameterDeltaRectangle_contains
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d) :
+    normalizedParameterDeltaRectangle.Contains
+      ((model.connectorParameterRoot 0 / chapterVIDZRootBase - 1) /
+        ((model.rootModel.L ^ 2 : ℝ) : ℂ)) := by
+  apply normalizedParameterDeltaRectangle_contains_of_norm_le_one
+  rw [norm_div, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_pos (sq_pos_of_pos model.rootModel.L_pos)]
+  exact (div_le_one (sq_pos_of_pos model.rootModel.L_pos)).mpr
+    model.parameterRootRelativeDelta_norm_le_length_sq
 
 end ChapterVIDMorseSlopeCompiled
 end PoincareChapterVI

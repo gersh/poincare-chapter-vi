@@ -642,6 +642,14 @@ The strongest newly completed component is the finite algebra in §103:
   in the current development environment, while the small batch is closed unconditionally by
   kernel evaluation of the same verified computation.
 
+  The homogeneous input handoff is now explicit as well. Lean reconstructs the literal endpoint
+  displacement by the exact identity `local-D=(±L)q`, without first rounding `local-D`, and proves
+  that `(ζ/ζ_D-1)/L²` belongs to the fixed complex unit square. Diagnostics using four dyadic
+  scale bands show that rescaling the old absolute-box trace is not enough (every terminal cell
+  fails), and every existing terminal second-derivative rectangle straddles zero in its real
+  component. The next compiled artifact therefore consumes these two scale-free inputs directly;
+  it does not rely on scale-band enumeration or a real-curvature shortcut.
+
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
   A hash-bound LeanCompCert receipt plus the explicit `RunAdmission` premise then reconstructs

@@ -108,6 +108,13 @@ homogeneous certificate in `(local-D)/L` and endpoint distance relative to `L`, 
 slope margin. The exponential bridge, quotient-to-sign reduction, and seam assembly are not
 additional gaps.
 
+Testing boxes obtained by multiplying the proved normalized endpoint rectangle by four sample
+dyadic lengths (`1/16`, `1/32`, `1/64`, and `1/128`) makes the diagnosis sharper: all 261 cells on
+both sides fail. The already compiled second-derivative rectangles also straddle zero in their
+real components on all 30 terminal cells. Consequently neither finite scale bands nor the old
+curvature shortcut can close the real-orientation claim; the compiled expression itself must
+retain the homogeneous dependencies.
+
 The center and radius of the scale-free endpoint box are now finite-certified rather than left
 opaque. `ChapterVIDMorseSlopeCompiled.lean` proves
 `(du/dv|_D)^2 = 2/R″(D)`, evaluates the literal `R″(D)` with a 168-operation LeanCompCert batch,
@@ -115,8 +122,11 @@ and obtains `-120 ≤ Re R″(D) ≤ -95` with zero failed claims. The exact pha
 square root, giving `-3/20 < Im(du/dv|_D) < -1/8`. Combining this interval with the retained cone
 proves that the true normalized endpoint displacement lies in the fixed dyadic rectangle
 `[-83887,83887]×[-262144,-65536]` at precision 20, uniformly in the selected `L`. This closes the
-finite input problem for `(local-D)/L`; the next artifact must preserve the corresponding
-homogeneity through the connector coordinate and crossing expression.
+finite input problem for `(local-D)/L`. The same module now proves the exact reconstruction
+`local-D=(±L)q` before rounding and places
+`(ζ/ζ_D-1)/L²` in the fixed unit square from the selector's proved norm inequality. Thus both
+primitive moving inputs to the next LeanCompCert artifact are scale-free; that artifact must
+preserve their homogeneity through the connector coordinate and crossing expression.
 
 This note separates three questions that are easy to conflate:
 
