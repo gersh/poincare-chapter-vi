@@ -441,13 +441,14 @@ The strongest newly completed component is the finite algebra in §103:
   square root is continuous along the path. Square-root uniqueness then transports the compiled
   outer normalization to the positive local Morse root. Two successful seam batches upgrade the
   connector pair to `SeamCompatibleCertifiedConnectorPair` and its five-piece logarithmic limit.
-  `principalPhiAlongCriticalValue` names the literal §94 unit-circle function on the critical
-  ray, and `tendsto_principalPhiAlongCriticalValue` proves its logarithmic asymptotic from exactly
-  the eventual deformation identity to the seam-compatible five-piece sum. Thus an arbitrary
-  `fullContribution` can no longer be confused with the source function. It is not yet proved
-  that the five pieces are a deformation of the original unit-circle integral; that
-  source-contour identity remains a geometric and analytic obligation; the positive-parameter
-  connector nonvanishing and square-root-sheet obligations are now theorems.
+  `ChapterVIDRadialContour.lean` now also proves that the former literal-unit-circle interface
+  was wrong: near D the pole which began outside has moved strictly inside the unit circle, and
+  winding invariance forbids a pole-avoiding continuation which keeps that contour fixed.
+  Analytic continuation must use a jointly moving cycle. The misleading
+  `principalPhiAlongCriticalValue` conditional theorem has therefore been removed rather than
+  treated as a source deformation. What remains is to lift the original §94 germ along the
+  moving radial cycle and identify its near-D lift with the seam-compatible five-piece cycle;
+  the positive-parameter connector nonvanishing and square-root-sheet obligations are theorems.
   The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
@@ -765,9 +766,14 @@ The strongest newly completed component is the finite algebra in §103:
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested
   under both Lean 4.32.1 and this project's Lean 4.33 release candidate.
 
-This does **not** yet complete Poincaré's proof. The remaining obligations are the genuine
-source-cycle deformation in §§95–100 and the source-specific analytic input connecting Chapter V
-to §102. The connector radicand is now certified on both complete positive-critical-value
+This does **not** complete Poincaré's proof. Two newly machine-checked source defects prevent the
+remaining obligations from being discharged by literal transcription. In §§95–100 the cycle
+must move jointly with the parameter: near D the literal unit circle winds around both tracked
+zeros, whereas the continued pinching cycle separates them. In Chapter V no. 85, the printed
+normalization `-ζ H = S` is algebraically incompatible with (13 bis); substitution of
+`Dλ = Bλ ζ^λ` requires `H = -ζ S`. Lean contains an exact rational counterexample to the printed
+formula and proves the intended result with the corrected normalization. The connector radicand
+is now certified on both complete positive-critical-value
 rectangles, and covering-space lifting constructs their continuous square-root sheets. The
 concrete moving algebraic branches, physical derivative identification, formal chain rule,
 identification of the reduced curve with the constant-`z` tangent derivative, and the
@@ -777,20 +783,25 @@ pp. 327--329 is now formalized as
 singularity ratios, together with injective recovery of the two eccentricities from the
 first-kind ratios, forces rank at most two for the complete collision-root differential.
 `not_fourParameterRatioFactorization` connects that statement directly to the certified §103
-contradiction. The relevant Chapter V result is no. 85, equation (13 bis), not no. 80. It is now
-represented source-faithfully by `ChapterVNo85CharacteristicEquation`: one common nonzero
+contradiction. The relevant Chapter V result is no. 85, equation (13 bis), not no. 80. Its
+intended corrected content is represented by `ChapterVNo85CharacteristicEquation`: one common nonzero
 characteristic direction lies in the kernel of the joint differential of the six selected
 coefficients. `scaled_rank_le_five_of_chapterVNo85_characteristicEquation` proves the rank-five
 bound by rank--nullity, and
 `not_chapterVNo85CharacteristicEquation_of_firstKindRecovery` carries it through the
-common-scale quotient and the complete §103 contradiction. What remains in §§102–103 is to derive
+common-scale quotient and the complete §103 contradiction.
+`ChapterVNo85ResonantFirstOrderData` records the actual pre-resonance Fourier coefficient
+equation, including the `Cλ` term; Lean imposes (12 bis), eliminates that term, constructs the
+corrected characteristic direction, and proves the rank-five bound without a separate (13 bis)
+premise. `chapterVNo85_printed_normalization_counterexample` evaluates the printed convention at
+`λ=1, ζ=2, B=S=1` and obtains a nonzero residual. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
 including the function-level logarithmic decomposition and larger-disk analyticity for its
-varying analytic amplitudes, and
-to derive the actual no. 85 characteristic equation, common radius, and identification
-with the collision-root ratios from the full Chapter V uniform-integral relation. Poincare states
-this implication in §102 by referring back to Chapter V, no. 85; it is not a consequence of the
-finite §103 computation.
+varying analytic amplitudes, and to extract the recorded first-order coefficient identities and
+independence condition from a full analytic Chapter V uniform integral. The resulting
+coefficients, common radius, and collision-root ratios must then be identified with the contour
+data. Poincaré states this implication in §102 by referring back to Chapter V, no. 85; it is not
+a consequence of the finite §103 computation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly
 from a regular factor analytic beyond the boundary circle. The remaining reduction must derive
 that larger-disk amplitude statement uniformly from the contour germ and combine it with the contour

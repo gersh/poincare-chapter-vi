@@ -117,12 +117,16 @@ Riemann surface. & Poincar\'e says at the end of \S98 that the discussion is onl
 a complete study of the branches of \(\Phi\) is needed.  The printed text does not construct the
 global sheet-preserving deformation. & Lean proves the concrete root branches, synchronized real
 parameter, and proves that Poincar\'e's exact $u\mapsto t$ map carries the $u$-unit circle to the
-literal \S94 $t$-unit circle through an explicit homotopy of parametrizations.  Lean also proves
+literal \S94 $t$-unit circle through an explicit homotopy of parametrizations at a fixed
+parameter.  It also proves that this fixed circle cannot be the continued cycle near $D$: the
+pole that begins outside has crossed strictly inside, and winding-number invariance forbids a
+pole-avoiding fixed-circle continuation.  Lean further proves
 the outer arcs, affine connectors, and the complete seam tables.  The old bulk rows are
 now used uniformly in the critical-value coordinate, the homogeneous theorem covers every
 positive-fiber collar, and covering-space lifting constructs both connector sheets on
 $[0,1)\times[0,1]$.  Lean also proves that each transformed connector integral is literally the
-corresponding source curve integral.  Deformation of the actual \S94 source cycle remains.\\
+corresponding source curve integral.  Construction of a jointly moving lifted source cycle and
+its identification with the terminal five-piece contour remain.\\
 
 \S99 & Move the double zero to a critical center and reduce the radicand to a quadratic pinch. &
 Formal Weierstrass manipulation by itself would not establish convergence, a jointly analytic
@@ -151,18 +155,20 @@ argument is asserted; this is an application rather than a required proof step. 
 and not needed for the present theorem.\\
 
 \S102 & Infer that a uniform integral forces the singular-point motion to depend on too few
-parameters. & The printed argument does not derive the required two-coordinate coefficient germ,
-common singular radius, label stability, and uniform regular-factor analyticity from the Chapter V
-integral relation.  This is the main remaining source-level logical gap. & The Jacobian rescaling,
-root-label control, conditional Darboux transfer, and interface to the \S103 contradiction are
-formalized.  Lean now proves the complete printed differential chain.  The relevant Chapter~V
-result is no.~85, equation~(13 bis), not no.~80: a common nonzero characteristic direction
-annihilates the six selected coefficient differentials and hence gives rank at most five;
-quotienting the common scale gives rank at most four; independent recovery of the two
-eccentricities gives rank at most two for all collision roots; and the certified \S103 calculation
-contradicts this.  What is not yet derived is equation~(13 bis) from a formal model of the full
-Chapter~V uniform integral and its identification with the actual contour
-coefficients.\\
+parameters. & The reference to Chapter~V no.~85 contains a \textbf{printed normalization error}.
+With $D_\lambda=B_\lambda\zeta^\lambda$, equation~(13) gives
+$dB_\lambda(X_\Phi)=\lambda B_\lambda S$.  The printed relation
+$-\zeta H=S$, or $H=-S/\zeta$, does not make $dD_\lambda(H,X_\Phi)$ vanish;
+the required relation is $H=-\zeta S$.  The printed argument also does not supply the full
+analytic identification of these coefficients with the contour singularities. & Lean formalizes
+the pre-resonance first-order Fourier equation, resonance~(12 bis), equation~(13), independence,
+the corrected cancellation, and the complete rank chain.  An exact rational instance
+$ (\lambda,\zeta,B,S)=(1,2,1,1) $ gives residual $3/2$ for the printed normalization.  With the
+correction, a common nonzero characteristic direction gives rank at most five; quotienting the
+common scale gives rank at most four; independent recovery of the eccentricities gives rank at
+most two; and \S103 contradicts this.  It remains to instantiate the first-order data from the
+full uniform-integral model and identify its six observables with the continued-contour
+singularity data, including the common radius and regular-factor estimates.\\
 
 \S103, p.~331 & Differentiate \(P=\sum U^2\) after defining
 \(V=x\,\partial U/\partial x-U\). & \textbf{Printed formula error:} the text gives
@@ -554,21 +560,28 @@ sheet lives on the natural half-open parameter rectangle.  Gluing that sheet to 
 limit and to the actual source-cycle deformation is analytic topology, not a missing execution
 receipt.
 
-Two further bookkeeping gaps have been removed in Lean.  First,
+One further bookkeeping gap has been removed in Lean:
 \path{connectorIntegral_eq_principal_curveIntegral} constructs the actual source-coordinate
 connector path and proves the exact pullback identity, including both the affine velocity and
-Poincar\'e's nonlinear \(u\mapsto t\) Jacobian.  Second,
-\path{principalPhiAlongCriticalValue} names the literal \S94 unit-circle function on the critical
-ray, and its asymptotic theorem accepts precisely the eventual deformation equality to the
-five-piece sum.  Thus neither a transformed connector integral nor an arbitrary
-\texttt{fullContribution} is silently identified with the historical source integral.
+Poincar\'e's nonlinear \(u\mapsto t\) Jacobian.  The former second interface,
+\path{principalPhiAlongCriticalValue}, has deliberately been removed.  It re-evaluated the
+literal unit circle at the current parameter and therefore named the wrong analytic-continuation
+object.  Theorems in \path{ChapterVIDRadialContour.lean} prove that the outside collision pole
+eventually lies inside that circle, and \path{ChapterVIWindingObstruction.lean} proves that no
+pole-avoiding continuation can preserve the incompatible winding numbers.  The missing object is
+a lift of the original germ along a jointly moving cycle.
 
 For \S102, the primary text on pp.~326--329 gives a staged parameter count rather than assuming a
 two-coordinate factorization at the outset.  The new theorem
 \path{collisionOrientation_rank_le_two_of_ratio_rank_le_four} formalizes that count for an
 arbitrary family of collision roots.  The theorem
 \path{not_fourParameterRatioFactorization} then connects the resulting rank bound directly to the
-24 certified moving branches of \S103.
+24 certified moving branches of \S103.  The same file now formalizes the preceding Chapter~V
+calculation rather than assuming (13 bis): it derives equation~(13) from the first-order Fourier
+coefficient identity and resonance, proves the corrected $H=-\zeta S$ cancellation, proves the
+characteristic direction nonzero from independence, and obtains rank five by rank--nullity.  The
+exact theorem \path{chapterVNo85_printed_normalization_counterexample} records why the printed
+$-\zeta H=S$ cannot be used literally.
 
 \section{Independent checks and reproducibility}
 
@@ -608,28 +621,29 @@ optional independently compiled rerun; it is not required for the unconditional 
 
 \section{Precise project status}
 
-This work closes the local connector-seam obstruction at the certified point \(D\).  In
-particular, the finite collar table, the scale-aware derivative orientation, the crossing signs,
-and their connection to the existing five-piece logarithmic-limit theorem are no longer open.
-It does not by itself complete Poincar\'e's entire Chapter VI proof.
+This work closes the local connector-seam obstruction at the certified point \(D\).  It also
+shows that the two obligations previously described as literal source transcription cannot both
+be proved as stated: the fixed-current-unit-circle continuation is topologically impossible, and
+the normalization printed in Chapter~V no.~85 is algebraically false.  The corrected finite
+no.~85 calculation is now formalized.  Poincar\'e's complete Chapter~VI proof is not thereby
+complete.
 
-Two source-level obligations remain outside the scope of the finite certificate:
+Two corrected source-reconstruction obligations remain outside the scope of the finite
+certificate:
 \begin{enumerate}
-\item In \S\S95--100, the actual continued source-sheet cycle from the literal \S94 integral must
-be deformed to the certified five-piece contour while avoiding all moving singularities.  The
-local prepared chart and the certified five-piece contour are available, but their identification
-with the historical source cycle and control of the complementary regular arcs remain to be
-proved.  The connector part of this item is now closed on the positive-parameter domain: the bulk
-rows are uniform in the critical-value coordinate, the homogeneous theorem covers every collar,
-and covering-space lifting constructs a sheet on $[0,1)\times[0,1]$.  The missing object is the
-deformation region between the literal unit-circle cycle and the five-piece cycle, not another
-connector table.
+\item In \S\S95--100, one must lift the original \S94 germ along a \emph{jointly moving} closed
+source cycle that avoids every moving radicand zero, then identify its near-$D$ representative
+with the certified five-piece contour and control the complementary regular arcs.  It is not
+enough to deform the unit circle re-evaluated at the terminal parameter: Lean proves that the
+relevant pole has changed sides of that fixed circle.  The connector part is closed on the
+positive-parameter domain, including its square-root sheet; what is missing is the global joint
+cycle and sheet transport.
 
-\item In \S102, the common characteristic equation for the six coefficient observables must be
-derived from a formal model of the Chapter V no.~85 uniform-integral relation, and those
-observables must be identified with the common-radius singularity data of the actual contour
-integral.  Once supplied, the five-to-four-to-two theorem, the Darboux transfer, and the \S103
-finite algebraic contradiction apply without another rank premise.
+\item In \S102, one must instantiate the now-formalized pre-resonance Fourier identities,
+resonance, and independence from a full analytic model of the Chapter~V uniform integral, and
+identify the six rescaled coefficients with the common-radius singularity data of the continued
+contour.  Once supplied, the corrected (13 bis) construction, five-to-four-to-two rank chain,
+Darboux transfer, and \S103 contradiction apply without another finite-algebra premise.
 \end{enumerate}
 
 These are analytic source-reconstruction problems, not further rows missing from the interval
@@ -652,8 +666,12 @@ exported model-existence theorem\\
 \path{ChapterVIDConnectorFullBulk.lean} & uniform two-dimensional reuse of the bulk table,
 positive-fiber collar closure, and continuous square-root sheets on the two half-open connector
 rectangles\\
-\path{ChapterVISection102.lean} & literal no.~85 equation-(13 bis) kernel statement and
-the complete rank chain from six scaled values to the \S103 contradiction\\
+\path{ChapterVIWindingObstruction.lean}, \path{ChapterVIDRadialContour.lean} & winding invariance,
+the concrete outside-to-inside crossing, and impossibility of the former fixed-unit-circle
+continuation premise\\
+\path{ChapterVISection102.lean} & pre-resonance no.~85 Fourier equation, exact counterexample to
+the printed normalization, corrected equation-(13 bis) kernel construction, and complete rank
+chain from six scaled values to the \S103 contradiction\\
 \path{HomogeneousAdmissibility/*.lean} & independently buildable kernel proofs for all 32
 shards\\
 \path{ConnectorCertificateMain.lean} & reference, statistics, emission, and native-check

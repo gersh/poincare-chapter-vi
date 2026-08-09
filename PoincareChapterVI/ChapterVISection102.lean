@@ -100,6 +100,194 @@ structure ChapterVNo85CharacteristicEquation
   characteristicDirection_ne_zero : characteristicDirection ≠ 0
   equation13bis : coefficientDifferential characteristicDirection = 0
 
+/-! ### The no. 85 Fourier calculation and the printed normalization error
+
+For a resonant Fourier mode `(m₁,m₂) = λ(p,q)`, equation (13) on p. 247 says
+
+`dBλ(XΦ) = λ Bλ S`,
+
+where `S = p ∂Φ₀/∂x₁ + q ∂Φ₀/∂x₂` and
+`XΦ = (∂Φ₀/∂uᵢ, -∂Φ₀/∂zᵢ)`.  If
+`Dλ = Bλ ζ^λ`, its differential in the `(ζ,z,u)` variables is the map below.
+
+There is a genuine typographical normalization error in the 1892 text.  The displayed
+definition `-ζ H = S` does not imply (13 bis).  Direct substitution requires `H = -ζ S`.
+The two following theorems make both the repaired cancellation and the failure of the printed
+normalization kernel-checkable rather than silently correcting the source.
+-/
+
+/-- Differential of one rescaled Fourier coefficient `Dλ = Bλ ζ^λ`, with the derivative of
+`Bλ` supplied as a linear map on the five fixed-axis orbital variables.  Natural exponents are
+enough for the six positive coefficients used in §102. -/
+def chapterVNo85CoefficientDifferential
+    (modeIndex : ℕ) (ζ B : ℂ) (dB : FiveOrbitalParameters →ₗ[ℂ] ℂ) :
+    (ℂ × FiveOrbitalParameters) →ₗ[ℂ] ℂ where
+  toFun direction :=
+    (modeIndex : ℂ) * B * ζ ^ (modeIndex - 1) * direction.1 +
+      ζ ^ modeIndex * dB direction.2
+  map_add' left right := by
+    simp only [Prod.fst_add, Prod.snd_add, map_add]
+    ring
+  map_smul' scalar direction := by
+    simp only [Prod.smul_fst, Prod.smul_snd, RingHom.id_apply, map_smul]
+    ring
+
+/-- The six selected `Dλ` differentials, packaged in the output coordinates already used by
+the §102 rank chain. -/
+def chapterVNo85SixCoefficientDifferential
+    (headIndex : ℕ) (tailIndex : Fin 5 → ℕ) (ζ headCoefficient : ℂ)
+    (tailCoefficient : Fin 5 → ℂ)
+    (headDerivative : FiveOrbitalParameters →ₗ[ℂ] ℂ)
+    (tailDerivative : Fin 5 → FiveOrbitalParameters →ₗ[ℂ] ℂ) :
+    (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues where
+  toFun direction :=
+    (chapterVNo85CoefficientDifferential headIndex ζ headCoefficient headDerivative direction,
+      fun i ↦ chapterVNo85CoefficientDifferential (tailIndex i) ζ
+        (tailCoefficient i) (tailDerivative i) direction)
+  map_add' left right := by
+    ext i <;> simp [chapterVNo85CoefficientDifferential] <;> ring
+  map_smul' scalar direction := by
+    ext i <;> simp [chapterVNo85CoefficientDifferential]
+
+private theorem chapterVNo85CoefficientDifferential_corrected_direction
+    (modeIndex : ℕ) (ζ B S : ℂ) (dB : FiveOrbitalParameters →ₗ[ℂ] ℂ)
+    (secularDirection : FiveOrbitalParameters)
+    (equation13 : dB secularDirection = (modeIndex : ℂ) * B * S) :
+    chapterVNo85CoefficientDifferential modeIndex ζ B dB
+      (-ζ * S, secularDirection) = 0 := by
+  cases modeIndex with
+  | zero => simpa [chapterVNo85CoefficientDifferential] using equation13
+  | succ index =>
+      change ((index + 1 : ℕ) : ℂ) * B * ζ ^ index * (-ζ * S) +
+        ζ ^ (index + 1) * dB secularDirection = 0
+      rw [equation13, pow_succ]
+      push_cast
+      ring
+
+/-- Source-corrected derivation of equation (13 bis) from the six resonant first-order Fourier
+coefficient identities.  The only extra premise is exactly Poincaré's exclusion of his first
+alternative: the characteristic vector must not vanish. -/
+def chapterVNo85CharacteristicEquation_of_firstOrderFourierIdentities
+    (headIndex : ℕ) (tailIndex : Fin 5 → ℕ) (ζ S headCoefficient : ℂ)
+    (tailCoefficient : Fin 5 → ℂ)
+    (headDerivative : FiveOrbitalParameters →ₗ[ℂ] ℂ)
+    (tailDerivative : Fin 5 → FiveOrbitalParameters →ₗ[ℂ] ℂ)
+    (secularDirection : FiveOrbitalParameters)
+    (headEquation13 :
+      headDerivative secularDirection = (headIndex : ℂ) * headCoefficient * S)
+    (tailEquation13 : ∀ i,
+      tailDerivative i secularDirection = (tailIndex i : ℂ) * tailCoefficient i * S)
+    (characteristicDirection_ne_zero :
+      (-ζ * S, secularDirection) ≠ (0 : ℂ × FiveOrbitalParameters)) :
+    ChapterVNo85CharacteristicEquation
+      (chapterVNo85SixCoefficientDifferential headIndex tailIndex ζ headCoefficient
+        tailCoefficient headDerivative tailDerivative) where
+  characteristicDirection := (-ζ * S, secularDirection)
+  characteristicDirection_ne_zero := characteristicDirection_ne_zero
+  equation13bis := by
+    ext i
+    · exact chapterVNo85CoefficientDifferential_corrected_direction
+        headIndex ζ headCoefficient S headDerivative secularDirection headEquation13
+    · exact chapterVNo85CoefficientDifferential_corrected_direction
+        (tailIndex i) ζ (tailCoefficient i) S (tailDerivative i) secularDirection
+        (tailEquation13 i)
+
+/-- A rational counterexample to the normalization printed on p. 247.  Here `λ=1`, `ζ=2`,
+`B=S=1`, and the secular derivative is the first-coordinate projection evaluated on its unit
+vector. Equation (13) holds, but the printed direction `H=-S/ζ` gives residual `3/2`, not zero.
+This proves that the displayed definition `-ζH=S` cannot literally yield (13 bis). -/
+theorem chapterVNo85_printed_normalization_counterexample :
+    let dB : FiveOrbitalParameters →ₗ[ℂ] ℂ :=
+      { toFun := fun parameter ↦ parameter.1 0
+        map_add' := by intro left right; simp
+        map_smul' := by intro scalar parameter; simp }
+    let secularDirection : FiveOrbitalParameters := (fun _ ↦ 1, fun _ ↦ 0)
+    dB secularDirection = 1 ∧
+      chapterVNo85CoefficientDifferential 1 2 1 dB (-(1 / 2), secularDirection) ≠ 0 := by
+  dsimp
+  constructor
+  · simp
+  · norm_num [chapterVNo85CoefficientDifferential]
+
+/-- The source-facing finite algebra extracted from the first-order Poisson equation on
+pp. 246--247.  Before imposing resonance, the coefficient of the Fourier mode
+`λ(p y₁ + q y₂)` is
+
+`-Bλ λ S + Cλ λ T + dBλ(XΦ) = 0`.
+
+Here `T = p ∂F₀/∂x₁ + q ∂F₀/∂x₂`; equation (12 bis) is `T=0`.  The last field is the pointwise
+independence condition excluding Poincaré's first alternative.  It is stated as
+`S ≠ 0 ∨ XΦ ≠ 0`, which, together with `ζ ≠ 0`, makes the corrected characteristic direction
+nonzero. -/
+structure ChapterVNo85ResonantFirstOrderData where
+  headIndex : ℕ
+  tailIndex : Fin 5 → ℕ
+  ζ : ℂ
+  ζ_ne_zero : ζ ≠ 0
+  S : ℂ
+  T : ℂ
+  headCoefficient : ℂ
+  tailCoefficient : Fin 5 → ℂ
+  headIntegralCoefficient : ℂ
+  tailIntegralCoefficient : Fin 5 → ℂ
+  headDerivative : FiveOrbitalParameters →ₗ[ℂ] ℂ
+  tailDerivative : Fin 5 → FiveOrbitalParameters →ₗ[ℂ] ℂ
+  secularDirection : FiveOrbitalParameters
+  headFirstOrderCoefficient :
+    -headCoefficient * (headIndex : ℂ) * S +
+        headIntegralCoefficient * (headIndex : ℂ) * T +
+        headDerivative secularDirection = 0
+  tailFirstOrderCoefficient : ∀ i,
+    -tailCoefficient i * (tailIndex i : ℂ) * S +
+        tailIntegralCoefficient i * (tailIndex i : ℂ) * T +
+        tailDerivative i secularDirection = 0
+  resonance12bis : T = 0
+  independentAtResonance : S ≠ 0 ∨ secularDirection ≠ 0
+
+namespace ChapterVNo85ResonantFirstOrderData
+
+theorem headEquation13 (data : ChapterVNo85ResonantFirstOrderData) :
+    data.headDerivative data.secularDirection =
+      (data.headIndex : ℂ) * data.headCoefficient * data.S := by
+  have h := data.headFirstOrderCoefficient
+  rw [data.resonance12bis] at h
+  simp only [mul_zero] at h
+  linear_combination h
+
+theorem tailEquation13 (data : ChapterVNo85ResonantFirstOrderData) (i : Fin 5) :
+    data.tailDerivative i data.secularDirection =
+      (data.tailIndex i : ℂ) * data.tailCoefficient i * data.S := by
+  have h := data.tailFirstOrderCoefficient i
+  rw [data.resonance12bis] at h
+  simp only [mul_zero] at h
+  linear_combination h
+
+theorem correctedCharacteristicDirection_ne_zero
+    (data : ChapterVNo85ResonantFirstOrderData) :
+    (-data.ζ * data.S, data.secularDirection) ≠
+      (0 : ℂ × FiveOrbitalParameters) := by
+  rintro hzero
+  have hfirst : -data.ζ * data.S = 0 := congrArg Prod.fst hzero
+  have hsecond : data.secularDirection = 0 := congrArg Prod.snd hzero
+  rcases data.independentAtResonance with hS | hX
+  · exact hS (by
+      apply (mul_eq_zero.mp hfirst).resolve_left
+      exact neg_ne_zero.mpr data.ζ_ne_zero)
+  · exact hX hsecond
+
+/-- Complete algebraic passage from the first-order uniform-integral Fourier identity and the
+resonance equation to the corrected common-kernel form of (13 bis). -/
+def characteristicEquation (data : ChapterVNo85ResonantFirstOrderData) :
+    ChapterVNo85CharacteristicEquation
+      (chapterVNo85SixCoefficientDifferential data.headIndex data.tailIndex data.ζ
+        data.headCoefficient data.tailCoefficient data.headDerivative data.tailDerivative) :=
+  chapterVNo85CharacteristicEquation_of_firstOrderFourierIdentities
+    data.headIndex data.tailIndex data.ζ data.S data.headCoefficient data.tailCoefficient
+    data.headDerivative data.tailDerivative data.secularDirection data.headEquation13
+    data.tailEquation13 data.correctedCharacteristicDirection_ne_zero
+
+end ChapterVNo85ResonantFirstOrderData
+
 /-- Poincaré's no. 85 statement in its equivalent parameter-count form: after the two angular
 momenta have been fixed, the six selected coefficient observables factor infinitesimally through
 five independent variables.  This formulation does not assume a chosen equation among the six
@@ -162,6 +350,18 @@ theorem scaled_rank_le_five_of_chapterVNo85_characteristicEquation
     LinearMap.finrank_range_add_finrank_ker coefficientDifferential
   have hdomain : Module.finrank ℂ (ℂ × FiveOrbitalParameters) = 6 := by simp
   omega
+
+/-- The source-facing no. 85-to-§102 result with no separate characteristic-equation premise:
+the pre-resonance first-order Fourier equations, resonance (12 bis), and pointwise independence
+produce the rank-five bound for the six selected rescaled coefficients. -/
+theorem scaled_rank_le_five_of_chapterVNo85_resonantFirstOrderData
+    (data : ChapterVNo85ResonantFirstOrderData) :
+    Module.finrank ℂ
+      (chapterVNo85SixCoefficientDifferential data.headIndex data.tailIndex data.ζ
+        data.headCoefficient data.tailCoefficient data.headDerivative
+        data.tailDerivative).range ≤ 5 :=
+  scaled_rank_le_five_of_chapterVNo85_characteristicEquation _
+    data.characteristicEquation
 
 /-- Coordinate-free form of the scale-quotient argument.  It is useful when `ScaledValues`
 contains the complete finite family of collision branches rather than only five selected
@@ -803,6 +1003,39 @@ theorem not_chapterVNo85CharacteristicEquation_of_firstKindRecovery
     (scaled_rank_le_five_of_chapterVNo85_characteristicEquation
       scaledDifferential equation)
     hratios
+
+/-- The complete §102--§103 contradiction starting with the source-facing, pre-resonance
+first-order Fourier data.  Thus the corrected finite algebra no longer enters the endgame through
+an independently assumed instance of equation (13 bis). -/
+theorem not_chapterVNo85ResonantFirstOrderData_of_firstKindRecovery
+    (data : ChapterVNo85ResonantFirstOrderData)
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ]
+      (FiniteSingularPoint → ℂ))
+    (projectivization : SixScaledSingularityValues →ₗ[ℂ]
+      (Eccentricity × (FiniteSingularPoint → ℂ)))
+    (hfirstKind : Function.Injective firstKind)
+    (hscale :
+      chapterVNo85SixCoefficientDifferential data.headIndex data.tailIndex data.ζ
+          data.headCoefficient data.tailCoefficient data.headDerivative data.tailDerivative
+          (1, 0) =
+        commonSingularityScaleDirection)
+    (hprojectivization :
+      projectivization commonSingularityScaleDirection = 0)
+    (hratios :
+      projectivization.comp
+          ((chapterVNo85SixCoefficientDifferential data.headIndex data.tailIndex data.ζ
+              data.headCoefficient data.tailCoefficient data.headDerivative
+              data.tailDerivative).comp
+            (LinearMap.inr ℂ ℂ FiveOrbitalParameters)) =
+        combinedRatioDifferential firstKind collisionEccentricity
+          concreteSecondKindRootDifferential.toLinearMap) :
+    False := by
+  exact not_chapterVNo85CharacteristicEquation_of_firstKindRecovery
+    firstKind collisionEccentricity
+    (chapterVNo85SixCoefficientDifferential data.headIndex data.tailIndex data.ζ
+      data.headCoefficient data.tailCoefficient data.headDerivative data.tailDerivative)
+    data.characteristicEquation projectivization hfirstKind hscale hprojectivization hratios
 
 /-- Literal five-variable no. 85 form of the complete differential contradiction.  The sole
 source-facing premise is now exactly Poincaré's claim that the six coefficient observables depend

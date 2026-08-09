@@ -334,4 +334,30 @@ theorem chapterVI_not_both_movingPoleAvoidances_of_coalescence
     outsideAvoidance.mapsInterior, outsideAvoidance.zero_not_mem_closure,
     outsideAvoidance.contDiff_translatedHomotopy⟩
 
+/-- A contour that is kept equal to the literal unit circle cannot analytically continue past a
+pole which moves from outside that circle to inside it.  This is the one-pole version of the
+pinch obstruction and is the precise reason a continued Poincaré cycle must move jointly with
+the source parameter. -/
+theorem chapterVI_not_movingPoleAvoidance_unitCircle_of_crossing
+    {outsidePoint insidePoint : ℂ}
+    (pole : Path outsidePoint insidePoint)
+    (contour : ContinuousMap.Homotopy
+      (chapterVIUnitCirclePath : C(I, ℂ))
+      (chapterVIUnitCirclePath : C(I, ℂ)))
+    (hclosed : ∀ s : I, contour (s, 0) = contour (s, 1))
+    (houtside : 1 < ‖outsidePoint‖)
+    (hinside : ‖insidePoint‖ < 1) :
+    ¬ Nonempty (ChapterVIMovingPoleAvoidance contour pole) := by
+  rintro ⟨avoidance⟩
+  have hinvariant := chapterVIWindingIntegral_eq_of_closedHomotopy
+    (chapterVITranslateContourHomotopy contour pole)
+    (chapterVITranslateContourHomotopy_closed pole hclosed)
+    avoidance.mapsInterior avoidance.zero_not_mem_closure
+    avoidance.contDiff_translatedHomotopy
+  rw [chapterVIWindingIntegral_translate,
+    chapterVIWindingIntegral_translate,
+    chapterVIWindingIntegral_unitCircle_eq_zero houtside,
+    chapterVIWindingIntegral_unitCircle_eq_one hinside] at hinvariant
+  exact zero_ne_one hinvariant
+
 end PoincareChapterVI

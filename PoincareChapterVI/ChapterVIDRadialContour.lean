@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gershon Bialer
 -/
 
+import Mathlib.Topology.Subpath
 import PoincareChapterVI.ChapterVIDRootCoordinates
+import PoincareChapterVI.ChapterVIWindingObstruction
 
 /-!
 # A canonical radial contour pinched by Poincare's two D branches
@@ -333,6 +335,67 @@ theorem chapterVIDRadialContourRadius_pos (s : I) :
       exact le_antisymm s.property.2 (not_lt.mp hs)
     rw [hs_one, chapterVIDRadialContourRadius_one]
     exact chapterVIDInsidePoleRadius_pos 1
+
+/-- At the collision both tracked poles lie strictly inside the literal unit circle.  This is
+the quantitative reason the *current-parameter* unit circle is not the continued pinching
+cycle near D. -/
+theorem chapterVIDCollisionLift_norm_lt_one :
+    ‖chapterVIDCollisionLift‖ < 1 := by
+  have hpow := congrArg norm chapterVIDCollisionLift_pow
+  rw [norm_pow, chapterVIDX, norm_real, Real.norm_eq_abs,
+    abs_of_neg chapterVIDRoot_lt_zero] at hpow
+  have hcube : ‖chapterVIDCollisionLift‖ ^ 3 < (1 : ℝ) ^ 3 := by
+    rw [hpow]
+    linarith [chapterVIDRoot_mem.1, chapterVIDRoot_mem.2]
+  exact (pow_lt_pow_iff_left₀ (norm_nonneg chapterVIDCollisionLift)
+    (by norm_num : (0 : ℝ) ≤ 1) (by norm_num : (3 : ℕ) ≠ 0)).mp hcube
+
+/-- By continuity, the pole that began outside the coefficient circle is eventually inside it
+as the collision is approached. -/
+theorem eventually_chapterVIDOutsidePoleRadius_lt_one :
+    ∀ᶠ s : I in 𝓝 (1 : I), chapterVIDOutsidePoleRadius s < 1 := by
+  have hend : chapterVIDOutsidePoleRadius (1 : I) < 1 := by
+    simpa [chapterVIDOutsidePoleRadius] using chapterVIDCollisionLift_norm_lt_one
+  exact continuous_chapterVIDOutsidePoleRadius.continuousAt
+    (Iio_mem_nhds hend)
+
+/-- Near D the literal unit circle winds once around both tracked radicand zeros.  The continued
+pinching contour, by contrast, must keep the inside zero on one side and the outside zero on the
+other.  Thus the historical continuation is a jointly moving cycle, not a fixed-parameter
+deformation of the current literal unit circle. -/
+theorem eventually_chapterVIWindingIntegral_unitCircle_outsidePole_eq_one :
+    ∀ᶠ s : I in 𝓝 (1 : I),
+      chapterVIWindingIntegral (chapterVIDOutsidePolePath s)
+        chapterVIUnitCirclePath = 1 := by
+  filter_upwards [eventually_chapterVIDOutsidePoleRadius_lt_one] with s hs
+  exact chapterVIWindingIntegral_unitCircle_eq_one hs
+
+theorem eventually_chapterVIWindingIntegral_unitCircle_insidePole_eq_one :
+    ∀ᶠ s : I in 𝓝 (1 : I),
+      chapterVIWindingIntegral (chapterVIDInsidePolePath s)
+        chapterVIUnitCirclePath = 1 := by
+  filter_upwards [eventually_chapterVIDOutsidePoleRadius_lt_one] with s hs
+  exact chapterVIWindingIntegral_unitCircle_eq_one
+    ((chapterVIDInsidePoleRadius_le_outside s).trans_lt hs)
+
+/-- The old source interface—re-evaluating the literal unit-circle integral at parameters near
+D and then deforming that current unit circle—cannot describe analytic continuation along the
+outside D branch.  Any genuine lift must instead use a jointly moving contour. -/
+theorem eventually_chapterVID_no_fixedUnitCircleContinuation :
+    ∀ᶠ endpoint : I in 𝓝 (1 : I),
+      ∀ contour : ContinuousMap.Homotopy
+          (chapterVIUnitCirclePath : C(I, ℂ))
+          (chapterVIUnitCirclePath : C(I, ℂ)),
+        (∀ s : I, contour (s, 0) = contour (s, 1)) →
+        ¬ Nonempty (ChapterVIMovingPoleAvoidance contour
+          (chapterVIDOutsidePolePath.subpath 0 endpoint)) := by
+  filter_upwards [eventually_chapterVIDOutsidePoleRadius_lt_one] with endpoint hendpoint
+  intro contour hclosed
+  apply chapterVI_not_movingPoleAvoidance_unitCircle_of_crossing
+    (chapterVIDOutsidePolePath.subpath 0 endpoint) contour hclosed
+  · simpa [chapterVIDOutsidePoleRadius] using
+      one_lt_chapterVIDOutsideEndpointLift_norm
+  · simpa [chapterVIDOutsidePoleRadius] using hendpoint
 
 /-- Every point of the contour at time `s` has the chosen intermediate radius. -/
 theorem chapterVIDRadialContourHomotopy_norm (s t : I) :
