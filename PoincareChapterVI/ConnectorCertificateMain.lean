@@ -2,6 +2,7 @@ import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference
 import PoincareChapterVI.ChapterVIDConnectorFactorNormalizedDerivativeCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorSecondDerivativeReference
+import PoincareChapterVI.ChapterVIDHomogeneousAdmissibility
 import PoincareChapterVI.ChapterVIDMorseSlopeCompiled
 import LeanCompCert.NativeCheck
 
@@ -243,6 +244,45 @@ def nativeCert (side : ChapterVIDOuterArcSide) (shard : Fin (shardCount side)) :
     certifiedValue := some 0 }
 
 end SecondDerivative
+
+namespace Homogeneous
+
+open ChapterVIDHomogeneousCompiledTable
+
+def parseShard (value : String) : Option (Fin 16) := do
+  let index ← value.toNat?
+  if h : index < 16 then some ⟨index, h⟩ else none
+
+def withShard (sideText shardText : String)
+    (action : ChapterVIDOuterArcSide → Fin 16 → IO UInt32) : IO UInt32 := do
+  match parseSide sideText, parseShard shardText with
+  | some side, some shard => action side shard
+  | _, _ =>
+      IO.eprintln "error: SIDE must be initial|final and homogeneous SHARD must be 0..15"
+      pure 1
+
+def artifact (side : ChapterVIDOuterArcSide) (shard : Fin 16) :=
+  ChapterVILeanCompCertAttestation.batchArtifact (shardArtifactName side shard)
+    (shardOperations side shard)
+
+def emittedC (side : ChapterVIDOuterArcSide) (shard : Fin 16) :
+    Except (Array String) String :=
+  match (artifact side shard).source? with
+  | some source => .ok source
+  | none => .error #[s!"LeanCompCert could not emit homogeneous seam shard {
+      sideName side}/{shard.val}"]
+
+def nativeCert (side : ChapterVIDOuterArcSide) (shard : Fin 16) :
+    LeanCompCert.NativeCheck.Cert :=
+  { name := shardArtifactName side shard
+    emitted := emittedC side shard
+    certifiedValue := some 0 }
+
+def nativeCerts (_ : Unit) : List LeanCompCert.NativeCheck.Cert :=
+  ([.initial, .final] : List ChapterVIDOuterArcSide).flatMap fun side ↦
+    (List.finRange 16).map fun shard ↦ nativeCert side shard
+
+end Homogeneous
 
 def runReference (cells : Nat) (localBox : ChapterVIDOuterArcSide → Rectangle) : IO UInt32 := do
   if cells = 0 then
@@ -502,6 +542,13 @@ def cliMain (args : List String) : IO UInt32 := do
   | "check-morse-slope" :: rest =>
       LeanCompCert.NativeCheck.run [MorseSlope.nativeCert]
         (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+  | "check-homogeneous-native" :: rest =>
+      LeanCompCert.NativeCheck.run (Homogeneous.nativeCerts ())
+        (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+  | "check-homogeneous-shard" :: sideText :: shardText :: rest =>
+      Homogeneous.withShard sideText shardText fun side shard ↦
+        LeanCompCert.NativeCheck.run [Homogeneous.nativeCert side shard]
+          (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
   | ["stats-factor-shard", sideText, shardText] =>
       withFactorShard sideText shardText fun side shard ↦ do
         let shardOperations := referenceShardOperations side shard
@@ -578,6 +625,24 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.FS.writeFile file source
           IO.println s!"wrote {file}"
           pure 0
+  | ["stats-homogeneous-shard", sideText, shardText] =>
+      Homogeneous.withShard sideText shardText fun side shard ↦ do
+        let operations :=
+          ChapterVIDHomogeneousCompiledTable.shardOperations side shard
+        IO.println "cells: 10"
+        IO.println s!"operations: {operations.length}"
+        IO.println s!"integer claims: {(batchClaims operations).length}"
+        pure 0
+  | ["emit-homogeneous-shard", sideText, shardText, file] =>
+      Homogeneous.withShard sideText shardText fun side shard ↦ do
+        match Homogeneous.emittedC side shard with
+        | .error errors =>
+            for error in errors do IO.eprintln error
+            pure 1
+        | .ok source =>
+            IO.FS.writeFile file source
+            IO.println s!"wrote {file}"
+            pure 0
   | ["reference-factor-shards"] =>
       let mut checked := 0
       let mut failures := 0
@@ -641,6 +706,35 @@ def cliMain (args : List String) : IO UInt32 := do
       IO.println s!"morse curvature real raw interval: [{
         ChapterVIDMorseSlopeCompiled.curvatureTrace.output.real.lower}, {
         ChapterVIDMorseSlopeCompiled.curvatureTrace.output.real.upper}]"
+      pure (if failures = 0 then 0 else 1)
+  | ["reference-homogeneous-shards"] =>
+      let mut checked := 0
+      let mut failures := 0
+      let mut endpointLower : Option Int := none
+      let mut distanceLower : Option Int := none
+      let mut argumentL1Upper : Option Int := none
+      for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+        for shard in List.finRange 16 do
+          failures := failures + failureCount (batchClaims
+            (ChapterVIDHomogeneousCompiledTable.shardOperations side shard))
+          checked := checked + 1
+          for offset in List.finRange 10 do
+            let trace := ChapterVIDHomogeneousCompiledTable.referenceCellTrace side
+              (ChapterVIDHomogeneousCompiledTable.shardCellIndex shard offset)
+            endpointLower := some (endpointLower.map
+              (min trace.endpointCoefficient.real.lower) |>.getD
+                trace.endpointCoefficient.real.lower)
+            distanceLower := some (distanceLower.map
+              (min trace.distanceCoefficient.output.real.lower) |>.getD
+                trace.distanceCoefficient.output.real.lower)
+            argumentL1Upper := some (argumentL1Upper.map
+              (max trace.argumentNorm.upper) |>.getD trace.argumentNorm.upper)
+      IO.println s!"checked homogeneous shards: {checked}"
+      IO.println s!"checked homogeneous cells: {checked * 10}"
+      IO.println s!"failed integer claims: {failures}"
+      IO.println s!"minimum endpoint-coefficient lower numerator / 2^20: {endpointLower}"
+      IO.println s!"minimum distance-coefficient lower numerator / 2^20: {distanceLower}"
+      IO.println s!"maximum exponential-argument L1 numerator / 2^20: {argumentL1Upper}"
       pure (if failures = 0 then 0 else 1)
   | ["reference-factor-normalized"] =>
       let mut failures := 0
@@ -709,7 +803,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | stats-factor-second-derivative-real | reference-morse-slope | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | reference-factor-normalized-box REAL IMAG-LOWER IMAG-UPPER | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | emit-morse-slope OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | check-morse-slope [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-homogeneous-shards | stats-homogeneous-shard SIDE SHARD | emit-homogeneous-shard SIDE SHARD OUTPUT.c | check-homogeneous-shard SIDE SHARD [OPTIONS] | check-homogeneous-native [OPTIONS] | reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | stats-factor-second-derivative-real | reference-morse-slope | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | reference-factor-normalized-box REAL IMAG-LOWER IMAG-UPPER | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | emit-morse-slope OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | check-morse-slope [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

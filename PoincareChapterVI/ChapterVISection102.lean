@@ -40,8 +40,87 @@ open Asymptotics Filter
 
 private abbrev Orientation := Fin 3 → ℂ
 private abbrev Essential := Fin 2 → ℂ
+private abbrev Eccentricity := Fin 2 → ℂ
+private abbrev FiveOrbitalParameters := Eccentricity × Orientation
+private abbrev FourRatioParameters := Fin 4 → ℂ
 private abbrev FiniteSingularPoint :=
   { point : Fin 2 → ℂ // point ∈ finiteIntersectionPoints }
+
+/-! ## Poincare's five-to-four-to-two rank reduction -/
+
+/-- Differential of the five ratios on p. 327, split into the two elementary first-kind
+coordinates and an arbitrary family of second-kind collision roots.  The latter may also vary
+with eccentricity, exactly as in Poincare's block-triangular Jacobian on p. 329. -/
+def combinedRatioDifferential
+    {RootValues : Type*} [AddCommGroup RootValues] [Module ℂ RootValues]
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ] RootValues)
+    (collisionOrientation : Orientation →ₗ[ℂ] RootValues) :
+    FiveOrbitalParameters →ₗ[ℂ] (Eccentricity × RootValues) where
+  toFun parameter :=
+    (firstKind parameter.1,
+      collisionEccentricity parameter.1 + collisionOrientation parameter.2)
+  map_add' left right := by
+    ext <;> simp <;> abel
+  map_smul' scalar parameter := by simp [smul_add]
+
+/-- Poincare's complete parameter count on pp. 327--329.  If the five singularity ratios have
+differential rank at most four, while the two first-kind ratios independently recover the two
+eccentricities, then the differential of *all* second-kind roots with eccentricities fixed has
+rank at most two in the three orientation variables.
+
+This theorem supplies the exact intermediate implication that was previously encoded only by
+the stronger assumption `TwoCoordinateDifferentialFactorization`. -/
+theorem collisionOrientation_rank_le_two_of_ratio_rank_le_four
+    {RootValues : Type*} [AddCommGroup RootValues] [Module ℂ RootValues]
+    [Module.Finite ℂ RootValues]
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ] RootValues)
+    (collisionOrientation : Orientation →ₗ[ℂ] RootValues)
+    (hfirstKind : Function.Injective firstKind)
+    (hratio : Module.finrank ℂ
+      (combinedRatioDifferential firstKind collisionEccentricity
+        collisionOrientation).range ≤ 4) :
+    Module.finrank ℂ collisionOrientation.range ≤ 2 := by
+  let combined := combinedRatioDifferential firstKind collisionEccentricity
+    collisionOrientation
+  have hfirst_eq_zero (parameter : LinearMap.ker combined) : parameter.1.1 = 0 := by
+    have hzero := parameter.2
+    have hfst := congrArg Prod.fst hzero
+    change firstKind parameter.1.1 = 0 at hfst
+    exact hfirstKind (hfst.trans (map_zero firstKind).symm)
+  let orientationProjection : LinearMap.ker combined →ₗ[ℂ] Orientation :=
+    (LinearMap.snd ℂ Eccentricity Orientation).comp
+      (LinearMap.ker combined).subtype
+  have horientation_mem (parameter : LinearMap.ker combined) :
+      orientationProjection parameter ∈ LinearMap.ker collisionOrientation := by
+    have hzero := parameter.2
+    have hsnd := congrArg Prod.snd hzero
+    change collisionEccentricity parameter.1.1 +
+      collisionOrientation parameter.1.2 = 0 at hsnd
+    rw [hfirst_eq_zero parameter, map_zero, zero_add] at hsnd
+    exact hsnd
+  let kernelProjection : LinearMap.ker combined →ₗ[ℂ]
+      LinearMap.ker collisionOrientation :=
+    LinearMap.codRestrict (LinearMap.ker collisionOrientation)
+      orientationProjection horientation_mem
+  have hprojection : Function.Injective kernelProjection := by
+    intro left right heq
+    apply Subtype.ext
+    apply Prod.ext
+    · rw [hfirst_eq_zero left, hfirst_eq_zero right]
+    · exact congrArg (fun point : LinearMap.ker collisionOrientation ↦ point.1) heq
+  have hker_le : Module.finrank ℂ (LinearMap.ker combined) ≤
+      Module.finrank ℂ (LinearMap.ker collisionOrientation) :=
+    kernelProjection.finrank_le_finrank_of_injective hprojection
+  have hcombined := LinearMap.finrank_range_add_finrank_ker combined
+  have horientation := LinearMap.finrank_range_add_finrank_ker collisionOrientation
+  have hdomain : Module.finrank ℂ FiveOrbitalParameters = 5 := by simp
+  have horientationDomain : Module.finrank ℂ Orientation = 3 := by simp
+  change Module.finrank ℂ combined.range ≤ 4 at hratio
+  rw [hdomain] at hcombined
+  rw [horientationDomain] at horientation
+  omega
 
 /-- If a linear root differential kills every direction killed by a two-coordinate map, then
 its rank is at most two.  This is the intrinsic rank form of Poincaré's parameter count. -/
@@ -452,6 +531,54 @@ theorem not_concreteSecondKindRootDifferential_rank_le_two
     False :=
   not_rankAtMostTwo_secondKindRootDifferential
     (concreteSecondKindRootDifferentialData hrank)
+
+/-- Exact pp. 327--329 interface to the certified §103 contradiction.  It is enough to prove
+Poincare's preceding claim that the differential of the five singularity ratios has rank at
+most four.  The two first-kind ratios must recover the eccentricities injectively; arbitrary
+eccentricity dependence of the collision roots is allowed.  The theorem above then derives,
+rather than assumes, the rank-at-most-two conclusion for all 24 concrete collision branches. -/
+theorem not_ratioRankAtMostFour_of_firstKindRecovery
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ]
+      (FiniteSingularPoint → ℂ))
+    (hfirstKind : Function.Injective firstKind)
+    (hratio : Module.finrank ℂ
+      (combinedRatioDifferential firstKind collisionEccentricity
+        concreteSecondKindRootDifferential.toLinearMap).range ≤ 4) :
+    False :=
+  not_concreteSecondKindRootDifferential_rank_le_two
+    (collisionOrientation_rank_le_two_of_ratio_rank_le_four
+      firstKind collisionEccentricity
+      concreteSecondKindRootDifferential.toLinearMap hfirstKind hratio)
+
+/-- Literal “depend on four variables” form of the preceding theorem.  A factorization of the
+five ratio differentials through a four-dimensional coordinate space automatically has rank at
+most four, so it is incompatible with the certified §103 collision family once the two
+eccentricities are recovered by the first-kind ratios. -/
+theorem not_fourParameterRatioFactorization
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ]
+      (FiniteSingularPoint → ℂ))
+    (ratioCoordinates : FiveOrbitalParameters →ₗ[ℂ] FourRatioParameters)
+    (ratioRecovery : FourRatioParameters →ₗ[ℂ]
+      (Eccentricity × (FiniteSingularPoint → ℂ)))
+    (hfirstKind : Function.Injective firstKind)
+    (hfactor :
+      combinedRatioDifferential firstKind collisionEccentricity
+          concreteSecondKindRootDifferential.toLinearMap =
+        ratioRecovery.comp ratioCoordinates) :
+    False := by
+  apply not_ratioRankAtMostFour_of_firstKindRecovery firstKind
+    collisionEccentricity hfirstKind
+  rw [hfactor]
+  calc
+    Module.finrank ℂ (ratioRecovery.comp ratioCoordinates).range ≤
+        Module.finrank ℂ ratioRecovery.range :=
+      Submodule.finrank_mono
+        (LinearMap.range_comp_le_range ratioCoordinates ratioRecovery)
+    _ ≤ Module.finrank ℂ FourRatioParameters :=
+      LinearMap.finrank_range_le ratioRecovery
+    _ = 4 := by simp
 
 /-- Source-facing §102--103 contradiction: no two-coordinate coefficient family satisfying the
 isolated Darboux recovery hypotheses can produce the 24 concrete second-kind branches. -/

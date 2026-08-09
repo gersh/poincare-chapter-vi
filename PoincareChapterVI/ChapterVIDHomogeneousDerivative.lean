@@ -607,4 +607,70 @@ theorem ChapterVIDAnchoredConnectorModel.orientedLineDerivative_eq_homogeneousCo
     (chapterVIDRootFactorDerivativeParameterCoefficient
       (model.homogeneousConnectorCoordinate side t))
 
+/-! ## Semantic target for the finite homogeneous table -/
+
+/-- The two scale-free coefficient signs certified by the finite collar table.  This is the
+smallest numerical interface needed after the exact homogeneous cancellation: neither the
+literal derivative nor its vanishing scale appears in the certificate. -/
+structure ChapterVIDAnchoredConnectorModel.HomogeneousCoefficientCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) : Prop where
+  endpoint_nonnegative : ∀ t : Set.Icc (0 : ℝ) 1,
+    (t : ℝ) ∈ ChapterVIDConnectorFactorMonotonicity.collarInterval side →
+      0 ≤ (model.homogeneousEndpointCoefficient side (t : ℝ)).re
+  distance_nonnegative : ∀ t : Set.Icc (0 : ℝ) 1,
+    (t : ℝ) ∈ ChapterVIDConnectorFactorMonotonicity.collarInterval side →
+      0 ≤ (model.homogeneousDistanceCoefficient side (t : ℝ)).re
+
+/-- The homogeneous coefficient table proves the oriented derivative directly.  The weights
+are `L > 0` and a square, so no division by the collapsing Morse scale is required. -/
+theorem ChapterVIDAnchoredConnectorModel.HomogeneousCoefficientCertificate.toOrientedRealDerivativeCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : model.HomogeneousCoefficientCertificate side) :
+    ChapterVIDConnectorFactorCrossing.OrientedRealDerivativeCertificate
+      model.toChapterVIDPrincipalConnectorModel side := by
+  refine ⟨?_⟩
+  intro t ht
+  have htUnit : (t : ℝ) ∈ Set.Icc (0 : ℝ) 1 := t.property
+  have hdecomposition :=
+    model.orientedLineDerivative_eq_homogeneousCoefficients side htUnit
+  have hendpoint := certificate.endpoint_nonnegative t ht
+  have hdistance := certificate.distance_nonnegative t ht
+  have horiented :
+      0 ≤ ChapterVIDConnectorFactorCrossing.orientedLineDerivative
+        model.toChapterVIDPrincipalConnectorModel side (t : ℝ) := by
+    rw [hdecomposition]
+    exact add_nonneg
+      (mul_nonneg model.rootModel.L_pos.le hendpoint)
+      (mul_nonneg (sq_nonneg _) hdistance)
+  cases side with
+  | initial =>
+      simpa [ChapterVIDConnectorFactorCrossing.orientedLineDerivative] using horiented
+  | final =>
+      simpa [ChapterVIDConnectorFactorCrossing.orientedLineDerivative] using horiented
+
+/-- Compatibility with the pre-existing normalized compiled-campaign interface. -/
+theorem ChapterVIDAnchoredConnectorModel.HomogeneousCoefficientCertificate.toNormalizedRealDerivativeCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : model.HomogeneousCoefficientCertificate side) :
+    ChapterVIDConnectorFactorCrossing.NormalizedRealDerivativeCertificate model side := by
+  refine ⟨?_⟩
+  intro t ht
+  have horiented := (certificate.toOrientedRealDerivativeCertificate model side).oriented t ht
+  have hscale := ChapterVIDConnectorFactorCrossing.realDerivativeScale_pos
+    model side (t : ℝ)
+  unfold ChapterVIDConnectorFactorCrossing.normalizedOrientedLineDerivative
+  apply div_nonneg
+  · cases side with
+    | initial =>
+        simpa [ChapterVIDConnectorFactorCrossing.orientedLineDerivative] using horiented
+    | final =>
+        simpa [ChapterVIDConnectorFactorCrossing.orientedLineDerivative] using horiented
+  · exact hscale.le
+
 end PoincareChapterVI

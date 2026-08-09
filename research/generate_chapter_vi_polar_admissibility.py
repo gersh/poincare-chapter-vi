@@ -27,6 +27,11 @@ theorem shard_admissible_{side}_{index} :
   · decide +kernel
   · decide +kernel
 
+set_option maxRecDepth 1000000 in
+theorem shard_allHold_{side}_{index} :
+    ∀ claim ∈ batchClaims (shardOperations .{side} {index}), claim.Holds := by
+  decide +kernel
+
 end PoincareChapterVI.ChapterVIDOuterArcPolarCompiledGrid
 """
 
@@ -58,12 +63,25 @@ theorem shard_admissible (side : ChapterVIDOuterArcSide) (i : Fin 28) :
   cases side with
 {case_text}
 
+/-- Every signed comparison in every polar shard is proved by kernel reduction. -/
+theorem shard_allHold (side : ChapterVIDOuterArcSide) (i : Fin 28) :
+    ∀ claim ∈ batchClaims (shardOperations side i), claim.Holds := by
+  cases side with
+{case_text.replace('shard_admissible_', 'shard_allHold_')}
+
 /-- The only external observation required by the compiled route: every emitted shard returned
 the zero failure count.  Admissibility is proved above in Lean's kernel. -/
 structure CompiledRunVerdict : Prop where
   returnsZero : ∀ side i,
     (batchComputation (shardArtifactName side i) (shardOperations side i)).Returns
       ((0 : Nat) : Int)
+
+/-- Unconditional verified-program verdict for the reference polar table. -/
+theorem referenceRunVerdict : CompiledRunVerdict where
+  returnsZero side i :=
+    ChapterVILeanCompCertIntervalBridge.returns_zero_of_allHold
+      (shardArtifactName side i) (batchClaims (shardOperations side i))
+      (shard_admissible side i) (shard_allHold side i)
 
 theorem CompiledRunVerdict.toCompiledVerdict (run : CompiledRunVerdict) : CompiledVerdict where
   shard side i := ⟨shard_admissible side i, run.returnsZero side i⟩

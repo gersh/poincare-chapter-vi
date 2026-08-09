@@ -35,4 +35,24 @@ theorem shard_admissible (side : ChapterVIDOuterArcSide)
     · exact shard_admissible_final_1
     · exact shard_admissible_final_2
 
+/-- Every signed comparison in every curvature shard is proved by kernel reduction. -/
+theorem shard_allHold (side : ChapterVIDOuterArcSide)
+    (shard : Fin (shardCount side)) :
+    ∀ claim ∈ batchClaims (shardOperations side shard), claim.Holds := by
+  cases side with
+  | initial =>
+    fin_cases shard
+    · exact shard_allHold_initial_0
+    · exact shard_allHold_initial_1
+    · exact shard_allHold_initial_2
+    · exact shard_allHold_initial_3
+    · exact shard_allHold_initial_4
+    · exact shard_allHold_initial_5
+    · exact shard_allHold_initial_6
+  | final =>
+    fin_cases shard
+    · exact shard_allHold_final_0
+    · exact shard_allHold_final_1
+    · exact shard_allHold_final_2
+
 end PoincareChapterVI.ChapterVIDConnectorFactorSecondDerivativeReference

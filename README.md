@@ -358,15 +358,15 @@ The strongest newly completed component is the finite algebra in §103:
   proves nonvanishing and constructs the compatible global continuous square-root sheet.
 - The large finite sweep is split into 56 radial-row artifacts of 13,824 integer claims each.
   `ChapterVIDOuterArcPolarAdmissibility.lean` kernel-checks every shard's 64-bit no-overflow
-  conditions and exposes `CompiledRunVerdict`: the only remaining premise is that every
-  reproducible CompCert artifact returned zero. `lake exe chapter-vi-polar-cert reference`
+  conditions and every signed comparison. LeanCompCert's verified denotation theorem now
+  constructs an unconditional `referenceRunVerdict`; no external execution premise is needed.
+  `lake exe chapter-vi-polar-cert reference`
   performs the fast reference sweep; `emit SIDE INDEX OUTPUT.c` emits one self-checking restricted
   C shard; `check-shard SIDE INDEX` checks one shard; and `check-native` runs the full cached
   CompCert workflow when `ccomp` is installed.
-  As LeanCompCert's trust model requires, a successful external run is an observation rather than
-  a kernel proof of `Returns`; using it to construct `CompiledRunVerdict` requires an explicit
-  attested or otherwise named run-admission boundary. The analytic and interval theorems remain
-  conditional on that transparent premise and introduce no native-evaluation axiom themselves.
+  The receipt interface remains available for independently compiled reruns. Such a run is an
+  observation and still requires an explicit admission boundary, but the reference theorem no
+  longer uses it.
 - `ChapterVIDOuterArcRegularity.lean` uses those compiled sheets to close the analytic regular-arc
   obligation. It pulls the literal principal numerator back through
   `t(u)=u exp((100/30003)(u^-3-u^3))`, formally differentiates this map and both rational quarter
@@ -403,9 +403,11 @@ The strongest newly completed component is the finite algebra in §103:
   compiled boundary. For an affine connector, a finite nonvanishing cover now constructs its
   compatible square-root sheet and proves that its normalized integral has a finite collision
   limit. Lean also proves the exact path-level decomposition into the two outer quarters, two
-  connectors, and the local pinched middle arc. What remains is to choose the two concrete
-  source connectors, certify their literal radicands, and identify the resulting closed contour
-  with the continued source cycle.
+  connectors, and the local pinched middle arc. The concrete connector specialization now
+  constructs each actual source-coordinate path and proves by the chain rule that its normalized
+  interval integral is literally the curve integral of Poincare's principal source one-form.
+  What remains is to certify nonvanishing on the two full parameter-by-connector rectangles and
+  identify the resulting closed contour with the continued source cycle.
 - `ChapterVIDMovingRootBridge.lean`, `ChapterVIDGlobalRootModel.lean`,
   `ChapterVIDRootConnectors.lean`, `ChapterVIDConnectorIntegral.lean`, and
   `ChapterVIDConnectorPlacement.lean` now make that boundary
@@ -429,9 +431,13 @@ The strongest newly completed component is the finite algebra in §103:
   square root is continuous along the path. Square-root uniqueness then transports the compiled
   outer normalization to the positive local Morse root. Two successful seam batches upgrade the
   connector pair to `SeamCompatibleCertifiedConnectorPair` and its five-piece logarithmic limit.
-  It is not yet claimed that the five pieces are the deformation of the original unit-circle
-  integral; that source-contour identity remains a geometric theorem. Producing the concrete
-  compiled radicand and branch-cut grids per side is the remaining certificate-generation task.
+  `principalPhiAlongCriticalValue` names the literal §94 unit-circle function on the critical
+  ray, and `tendsto_principalPhiAlongCriticalValue` proves its logarithmic asymptotic from exactly
+  the eventual deformation identity to the seam-compatible five-piece sum. Thus an arbitrary
+  `fullContribution` can no longer be confused with the source function. It is not yet proved
+  that the five pieces are a deformation of the original unit-circle integral; that
+  source-contour identity and the two full-rectangle nonvanishing witnesses remain geometric and
+  analytic obligations.
   The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
@@ -622,11 +628,9 @@ The strongest newly completed component is the finite algebra in §103:
   `1024` still fails 94 cells per side, while `2048`, `4096`, `8192`, `12288`, `16384`, and
   `262144` pass all 84,564 operations; overly large values eventually leave the valid sign region.
   Thus the existing absolute trace is arithmetically viable but cannot be uniform in the
-  noncomputable length `L`. The remaining compiled route must evaluate a genuinely homogeneous
-  expression in `(local-D)/L` and endpoint distance relative to `L`, using the newly proved slope
-  margin, rather than forcing `local-D` into an absolute raw-unit box. The arithmetic checker,
-  exponential bridge, quotient-to-sign reduction, and final seam-continuation assembly are
-  complete.
+  noncomputable length `L`. This diagnosis motivates the homogeneous campaign described below:
+  it evaluates `(local-D)/L` and endpoint distance relative to `L` rather than forcing `local-D`
+  into an absolute raw-unit box.
 
   `ChapterVIDMorseSlopeCompiled.lean` now supplies the first genuinely scale-free primitive for
   that route. Lean proves the exact identity
@@ -642,16 +646,35 @@ The strongest newly completed component is the finite algebra in §103:
   in the current development environment, while the small batch is closed unconditionally by
   kernel evaluation of the same verified computation.
 
-  The homogeneous input handoff is now explicit as well. Lean reconstructs the literal endpoint
-  displacement by the exact identity `local-D=(±L)q`, without first rounding `local-D`, and proves
-  that `(ζ/ζ_D-1)/L²` belongs to the fixed complex unit square. The model selector also retains
-  the outer endpoint's motion as `O(L²)`; its normalized quotient lies in the same square, and an
-  exact theorem rebuilds `outer-local` from the collapsed connector direction, the `L²` outer
-  motion, and the `Lq` local motion. Diagnostics using four dyadic
-  scale bands show that rescaling the old absolute-box trace is not enough (every terminal cell
-  fails), and every existing terminal second-derivative rectangle straddles zero in its real
-  component. The next compiled artifact therefore consumes these two scale-free inputs directly;
-  it does not rely on scale-band enumeration or a real-curvature shortcut.
+  `ChapterVIDHomogeneousDerivative.lean` and
+  `ChapterVIDHomogeneousCompiledTable.lean` now finish that scale-free route. Lean first proves
+  the exact identity
+  `orientedDerivative = L * endpointCoefficient + distance² * distanceCoefficient`; no interval
+  division by the collapsing scale is used. The two coefficients retain the shared normalized
+  endpoint, outer-motion, parameter-motion, coordinate, and direction dependencies. A
+  precision-20 table covers `0 ≤ distance ≤ 261/1024` by 160 cells on each connector side. Every
+  row computes the coordinate powers, the relative exponential remainder, the exact root-factor
+  coefficients, and the two homogeneous coefficients, and asserts strict positive lower bounds.
+  The 320 rows are packaged as 32 ten-row LeanCompCert artifacts. Generated kernel proofs establish
+  64-bit admissibility and all 23,197 signed comparisons for every artifact; LeanCompCert's
+  verified denotation theorem then proves that every reference program returns zero. The
+  independent reference checker also reports zero failed claims, with
+  worst formal lower numerators `3638` and `68596` over `2^20` for the endpoint and distance
+  coefficients, respectively. Lean
+  then proves that sound rows imply positivity of the literal analytic coefficients, converts
+  those signs to `OrientedRealDerivativeCertificate` on both collars, and feeds them directly into
+  the existing seam-compatible five-piece logarithmic-limit theorem. Thus the connector seam's
+  new analytic/numerical hole is closed without an execution-receipt premise for this table. The
+  earlier Python/CSV interval table remains as a compact independent audit, not as a premise of
+  the Lean theorem. A receipt interface is retained for optional emitted-C reruns.
+
+  The corresponding executable commands are `reference-homogeneous-shards`,
+  `stats-homogeneous-shard SIDE SHARD`, `emit-homogeneous-shard SIDE SHARD OUTPUT.c`,
+  `check-homogeneous-shard SIDE SHARD [OPTIONS]`, and `check-homogeneous-native [OPTIONS]`.
+  The generator `research/generate_chapter_vi_homogeneous_admissibility.py` reproduces the 32
+  independently buildable kernel admissibility and claim proofs. As with the Morse-slope artifact, native
+  execution of the emitted C additionally requires `ccomp`; it is not installed in the current
+  development environment.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
@@ -663,11 +686,12 @@ The strongest newly completed component is the finite algebra in §103:
   The concrete `1024 / 261` layout is now Lean data in
   `ChapterVIDConnectorFactorBulkReference.lean`. The full campaign is divided into 32 adjacent
   32-cell bulk artifacts per connector side, plus one exact endpoint-anchor artifact per side.
-  Generated kernel proofs establish 64-bit admissibility for each shard, and
+  Generated kernel proofs establish 64-bit admissibility and every signed comparison for each
+  shard, and
   `ChapterVIDConnectorFactorBulkCompiled.lean` reconstructs every operation's
-  semantic certificate from the shard containing it. A family of hash-bound receipts constructs
-  `ReferenceCompiledRunVerdict`, which in turn supplies the existing factor-bulk continuation
-  theorem without emitting a second monolithic artifact. The executable commands are
+  semantic certificate from the shard containing it. The bulk, endpoint-anchor, first-derivative,
+  and second-derivative modules now export unconditional reference run verdicts. Hash-bound
+  receipts are retained as an optional independent execution path. The executable commands are
   `reference-factor-shards`, `stats-factor-shard SIDE SHARD`,
   `emit-factor-shard SIDE SHARD OUTPUT.c`, `emit-factor-anchor SIDE OUTPUT.c`,
   `check-factor-shard SIDE SHARD [OPTIONS]`, `check-factor-anchor SIDE [OPTIONS]`, and
@@ -679,7 +703,7 @@ The strongest newly completed component is the finite algebra in §103:
   `emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c`, and
   `check-factor-second-derivative-shard SIDE SHARD [OPTIONS]`. The 66-artifact bulk evaluator and
   41-artifact derivative evaluator and 10-artifact second-derivative evaluator all report zero
-  failed claims. The old bulk theorem's collar
+  failed claims; Lean's kernel proves the same claims in the trusted path. The old bulk theorem's collar
   inequality `261 / 1024 ≤ collar.width` remains visible only on that old fixed-cutoff route;
   the punctured interface does not assume it.
 - The two regular quarters now use the exact rational unit-circle parametrization
@@ -735,11 +759,19 @@ This does **not** yet complete Poincaré's proof. The main remaining obligations
 complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
 concrete moving algebraic branches, physical derivative identification, formal chain rule,
 identification of the reduced curve with the constant-`z` tangent derivative, and the
-three-versus-two rank contradiction are now established. What remains in §§102–103 is to derive
+three-versus-two rank contradiction are now established. The exact parameter count printed on
+pp. 327--329 is now formalized as
+`collisionOrientation_rank_le_two_of_ratio_rank_le_four`: rank at most four for the five
+singularity ratios, together with injective recovery of the two eccentricities from the
+first-kind ratios, forces rank at most two for the complete collision-root differential.
+`not_fourParameterRatioFactorization` connects that statement directly to the certified §103
+contradiction. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
 including the function-level logarithmic decomposition and larger-disk analyticity for its
 varying analytic amplitudes, and
-to derive the coefficient family and common radius from the Chapter V uniform-integral relation.
+to derive the coefficient family, common radius, and four-parameter ratio factorization from the
+Chapter V uniform-integral relation. Poincare states this implication in §102 by referring back
+to Chapter V, no. 80; it is not a consequence of the finite §103 computation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly
 from a regular factor analytic beyond the boundary circle. The remaining reduction must derive
 that larger-disk amplitude statement uniformly from the contour germ and combine it with the contour

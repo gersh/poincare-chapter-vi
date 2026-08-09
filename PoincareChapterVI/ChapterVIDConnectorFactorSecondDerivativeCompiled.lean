@@ -36,6 +36,13 @@ structure ReferenceCompiledRunVerdict : Prop where
     (batchComputation (shardArtifactName side shard)
       (shardOperations side shard)).Returns ((0 : Nat) : Int)
 
+/-- Unconditional verified-program verdict for all second-derivative shards. -/
+theorem referenceRunVerdict : ReferenceCompiledRunVerdict where
+  returnsZero side shard :=
+    ChapterVILeanCompCertIntervalBridge.returns_zero_of_allHold
+      (shardArtifactName side shard) (batchClaims (shardOperations side shard))
+      (shard_admissible side shard) (shard_allHold side shard)
+
 theorem ReferenceCompiledRunVerdict.ofReceipts
     (crypto : LeanCompCert.Attest.ReceiptCrypto)
     (receipt : (side : ChapterVIDOuterArcSide) → Fin (shardCount side) →

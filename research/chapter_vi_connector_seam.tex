@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage{amsmath,amssymb,amsthm,booktabs,longtable,array,pdflscape}
 \usepackage[hidelinks]{hyperref}
 
 \newtheorem{theorem}{Theorem}
@@ -10,6 +10,7 @@
 \newcommand{\re}{\operatorname{Re}}
 \newcommand{\impart}{\operatorname{Im}}
 \newcommand{\ii}{\mathrm i}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \title{A scale-free proof of the connector seam sign at Poincar\'e's point \(D\)}
 \author{}
@@ -46,6 +47,130 @@ for the first factor.
 This does not prove the global source-contour deformation in \S\S95--100 or the
 source-specific boundary-logarithm reduction in \S102. It removes the scale-sensitive seam
 obstruction that occurs before those broader tasks.
+
+\section{Map to Poincar\'e's printed proof}\label{sec:source-map}
+
+The following table distinguishes three different situations: an actual algebraic or typographical
+error in the printed formulas; a substantial argument that Poincar\'e explicitly sketches but does
+not prove; and a modern analytic hypothesis that is needed to make his intended inference rigorous.
+Calling all three an ``error'' would be misleading.  The third column therefore states the precise
+defect, and labels genuine formula errors explicitly.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{landscape}
+\begin{longtable}{L{0.075\linewidth}L{0.205\linewidth}L{0.285\linewidth}L{0.355\linewidth}}
+\toprule
+source & printed role & error, omission, or rigor issue & what this project adds and present status\\
+\midrule
+\endfirsthead
+\noalign{\vskip 18pt}
+\toprule
+source & printed role & error, omission, or rigor issue & what this project adds and present status\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+\S\S90--92 & Introduce the perturbing Hamiltonian, osculating variables, and the first
+homological equation. & No isolated formula error is asserted here.  The issue is scope: the
+current theorem models the circular restricted principal term, not every coordinate and uniform
+first-integral hypothesis of the full three-body discussion. & The repository formalizes the
+restricted Hamiltonian derivative, product-rule obstruction, and coordinate-independent algebra.
+A faithful full-source theorem would still need the exact Chapter V--VI coordinate maps and
+uniform-integral definition.\\
+
+\S93 & Use Darboux's principle to read coefficient asymptotics from boundary logarithms. & The
+printed application suppresses the uniform analytic estimates needed when amplitudes and
+parameters vary.  A local logarithm alone does not imply that the remaining factor is analytic on
+a larger common disk. & Formal coefficient extraction, equal-modulus separation, finite-jet and
+Tannery variants, and the larger-disk regular-factor transfer are proved.  Their source-specific
+uniform hypotheses remain to be derived from the actual contour integral.\\
+
+\S94 & Form the one-variable Laurent function \(\Phi(z)\) by integrating a Fourier ray around the
+unit circle. & Infinite-series convergence, interchange of sum and contour integral, and branch
+choices are not fully exposed in the printed argument. & Lean defines the literal normalized
+contour integral, proves the finite and absolutely summable affine-ray coefficient extraction, and
+constructs the explicit unit-circle path.  The complete physical Fourier series and its common
+annulus are still source inputs.\\
+
+\S95 & Locate possible singularities when moving poles obstruct contour deformation. & Solving
+the discriminant equations finds candidates but does not show that the original cycle is actually
+pinched.  Genuine versus apparent singularities require sheet and cycle data. & The project proves
+closed-contour homotopy invariance, winding obstructions, exact cycle splitting, and a local
+vanishing-cycle theorem.  Placement of the actual source-sheet cycle into the certified contour
+remains global work.\\
+
+\S96, p.~290 & Derive algebraic collision equations using half-angle variables. & \textbf{Printed
+formula error:} equation (10) contains \(x^2-1\), while the preceding equation and the stated
+reciprocity require \(x^2+1\). & The corrected reciprocal equation is derived and formalized; the
+resulting collision cubics, source radicand, concrete candidate \(D\), and fiber double-zero facts
+are checked exactly.\\
+
+\S\S97--98 & Decide which candidates are admissible and continue the integration cycle on the
+Riemann surface. & Poincar\'e says at the end of \S98 that the discussion is only sketched and that
+a complete study of the branches of \(\Phi\) is needed.  The printed text does not construct the
+global sheet-preserving deformation. & Lean proves the concrete root branches, synchronized real
+parameter, outer arcs, affine connectors, the complete one-dimensional seam tables, and the two
+compatible connector seam signs conditional on full-rectangle nonvanishing.  It now also proves
+that each transformed connector integral is literally the corresponding source curve integral.
+The two full parameter-by-connector nonvanishing witnesses and deformation of the actual \S94
+source cycle remain.\\
+
+\S99 & Move the double zero to a critical center and reduce the radicand to a quadratic pinch. &
+Formal Weierstrass manipulation by itself would not establish convergence, a jointly analytic
+coordinate change, its Jacobian, or a nonzero pulled-back numerator. & Complex implicit-function,
+Hadamard-division, analytic Morse-coordinate, Jacobian one-form, transversality, literal numerator,
+and compact local vanishing-cycle theorems are proved for \(D\).\\
+
+\S99, p.~323 & State the leading pulled-back amplitude \(\theta_{0,0}\). & \textbf{Printed formula
+error:} after \(\Delta=\tfrac12\Delta_{tt}(t-t_0)^2+\cdots\), the printed factor multiplies by
+\(\tfrac12\Delta_{tt}\); the preceding defining identity instead gives a factor proportional to
+\(\sqrt{2/\Delta_{tt}}\), up to sheet sign. & The project derives the amplitude from the actual
+inverse Morse coordinate and Jacobian.  Its exact value has the reciprocal-square-root behavior
+required by the defining identity, rather than assuming the inconsistent printed expression.\\
+
+\S100 & Integrate the prepared inverse square root to obtain
+\(\Phi_2+\Phi_3\log(z-z_0)\), then apply Darboux. & The local primitive is plausible, but the
+passage to the global source contour and the larger-common-disk control of varying analytic
+amplitudes are omitted.  Nonconstant log amplitudes cannot simply be absorbed into an analytic
+remainder. & Lean proves the function-level logarithmic primitive, straight-arc integral, nonzero
+local coefficient, three- and five-piece asymptotic interfaces, and the required Darboux transfer
+under explicit uniform hypotheses.  The source-cycle deformation and regular remainder are still
+needed.\\
+
+\S101 & Give the Pallas numerical example. & No defect relevant to the logical nonintegrability
+argument is asserted; this is an application rather than a required proof step. & Not formalized,
+and not needed for the present theorem.\\
+
+\S102 & Infer that a uniform integral forces the singular-point motion to depend on too few
+parameters. & The printed argument does not derive the required two-coordinate coefficient germ,
+common singular radius, label stability, and uniform regular-factor analyticity from the Chapter V
+integral relation.  This is the main remaining source-level logical gap. & The Jacobian rescaling,
+root-label control, conditional Darboux transfer, and interface to the \S103 contradiction are
+formalized.  Lean now also proves the printed five-to-four-to-two rank step: rank at most four for
+the five ratios, plus independent recovery of the two eccentricities, forces rank at most two for
+all collision roots.  Derivation of the rank-four premise from the actual uniform integral remains
+open.\\
+
+\S103, p.~331 & Differentiate \(P=\sum U^2\) after defining
+\(V=x\,\partial U/\partial x-U\). & \textbf{Printed formula error:} the text gives
+\(xP_x=2\sum VU+P\); substitution gives \(xP_x=2\sum VU+2P\).  Since the next step restricts to
+\(P=0\), this typo does not change the reduced equation. & Lean verifies both the corrected global
+identity and its on-curve specialization.  It also proves the concrete sextic/septic geometry,
+24-point locus, local multiplicities, moving analytic branches, differential identity, and final
+finite rank contradiction.\\
+
+\end{longtable}
+\end{landscape}
+\endgroup
+
+The contribution of the present note is concentrated in the \S\S97--100 rows: it closes the
+scale-sensitive sign needed to join the global outer sheets to the positive local Morse sheet.
+It deliberately does not use that local success to conceal the still-open source-cycle and
+\S102 hypotheses.
 
 \section{The centered collision factor}
 
@@ -179,7 +304,7 @@ Cover the distance interval by the 160 uniform cells
 \[
  I_j=[1671j/2^{20},1671(j+1)/2^{20}],\qquad 0\leq j<160.
 \]
-Indeed, (160\cdot1671/2^{20}=0.254974365234375>261/1024).
+Indeed, \(160\cdot1671/2^{20}=0.254974365234375>261/1024\).
 On each cell and side, rectangular complex interval arithmetic evaluates
 \eqref{eq:direction-coordinate}, the Appendix formulas, and \eqref{eq:X}--\eqref{eq:Z}.
 The exponential remainder \(E(a)\) is enclosed by
@@ -213,7 +338,7 @@ maximum upper endpoint of \(\re Z_s\) & 0.776610992074 & 0.776610992074\\
 The worst lower bound for \(X_s\) occurs in cell \(159\), at the outer collar boundary;
 the worst lower bound for \(Z_s\) occurs in cell \(0\), at the local endpoint.
 The two row lists agree exactly after conjugating the imaginary coordinate, so the checked
-one-side table in \texttt{research/chapter\_vi\_connector\_seam\_table.csv} represents both
+one-side table in \path{research/chapter_vi_connector_seam_table.csv} represents both
 connectors. The verifier recomputes this symmetry rather than assuming it.
 
 The calculation is reproduced by
@@ -223,6 +348,60 @@ python3 research/check_chapter_vi_connector_seam.py
 The script uses only the Python standard library. Every elementary binary64 result is widened
 by one representable number toward each infinity. This is strong independent evidence and is
 close to a conventional interval proof, but it is not a kernel-checked certificate.
+
+\section{LeanCompCert formalization}
+
+The same calculation is now encoded independently in
+\path{ChapterVIDHomogeneousCompiledTable.lean}.  Its primitive intervals and all intermediate
+rectangles have denominator $2^{20}$.  A row is not merely a list of final decimal endpoints: it
+is a straight-line trace containing the checked additions, multiplications, reciprocals, powers,
+and the rigorous exponential-remainder enclosure that produce those endpoints.  Lean proves by
+structural interval lemmas that soundness of these operations implies containment of the literal
+complex expressions in \eqref{eq:X}--\eqref{eq:Z}.
+
+There are 160 distance cells on each side.  Ten rows, together with a 39-operation fixed prelude,
+form one artifact with 2609 dyadic operations and 23197 signed-integer claims.  Thus the complete
+table consists of 32 independently checkable artifacts and 320 semantic rows.  Generated Lean
+theorems, evaluated by the kernel rather than a native-decision shortcut, prove that every
+artifact lies inside LeanCompCert's signed 64-bit fragment and that every one of its 23197
+signed claims holds.  LeanCompCert's verified denotation theorem therefore proves that every
+reference artifact returns zero.  The independent reference evaluation gives
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+quantity & worst precision-20 numerator\\
+\midrule
+lower bound for $\re X_s$ & $3638$\\
+lower bound for $\re Z_s$ & $68596$\\
+upper bound for the exponential argument's $\ell^1$ norm & $250724$\\
+failed signed-integer claims & $0$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Hence the formal table proves the slightly more conservative but still strict bounds
+
+\[
+  \re X_s\geq\frac{3638}{2^{20}}>0,
+  \qquad
+  \re Z_s\geq\frac{68596}{2^{20}}>0,
+  \qquad
+  \lVert a\rVert_1\leq\frac{250724}{2^{20}}<1.
+\]
+
+The reference verdict is thus unconditional: it is derived from kernel proofs of the claims and
+the verified program semantics, not from an empirical execution premise.  From that verdict,
+ordinary Lean theorems prove the two coefficient inequalities, the oriented derivative signs,
+the two crossing certificates, and finally the seam-compatible five-piece logarithmic limit.
+LeanCompCert can also derive emitted C from the exact operation lists; a hash-bound receipt
+interface is retained for optional independently compiled reruns.  Neither such a receipt nor the
+Python table is used by the reference Lean theorem.
+
+The reference computation is reproduced by
+\begin{verbatim}
+lake exe chapter-vi-connector-cert reference-homogeneous-shards
+\end{verbatim}
+and reports 32 checked shards, 320 checked cells, and zero failed claims.
 
 \section{Conclusion for the seam}
 
@@ -242,11 +421,12 @@ and
 
 \begin{proof}
 The oriented derivative is the left side of \eqref{eq:homogeneous-identity}.
-Proposition~\ref{prop:interval}, \(L>0\), and \(\delta^2\geq0\) give
+The formal LeanCompCert bounds, \(L>0\), and \(\delta^2\geq0\) give
 \[
  L\re X_s+\delta^2\re Z_s
- \geq0.0041922727090L+0.0655826074416\delta^2>0.
+ \geq\frac{3638}{2^{20}}L+\frac{68596}{2^{20}}\delta^2>0.
 \]
+Proposition~\ref{prop:interval} gives the stronger independent Python bounds quoted above.
 The orientation reverses the initial connector and leaves the final connector unchanged.
 \end{proof}
 
@@ -268,6 +448,205 @@ existing positive-real result for the companion factor supplies the other square
 Their product gives the compatible radicand sheet on each connector, and the two local seam
 signs are the required positive Morse signs. Together with the already constructed outer arcs
 and pinched middle arc, this supplies the seam-compatible five-piece logarithmic contribution.
+
+\section{What the certificate actually computes}\label{sec:certificate-computation}
+
+The certificate is needed because the endpoint displacement tends to zero with the selected
+Morse length.  A direct rectangular enclosure of the unscaled derivative forgets that several
+small quantities are the same quantity.  It consequently replaces exact cancellation by an
+interval containing both signs.  The certificate does not establish a new abstract continuity
+principle.  It verifies the finite uniform inequalities that remain after the analytic proof has
+retained the common scale symbolically.
+
+For each side and distance cell, the Lean definition constructs the following dependency graph:
+\[
+\begin{array}{c}
+(D,y_D,c,b,10001^{-1}),\quad L,\delta,q_s,r_s,p\\[2pt]
+\downarrow\\[-2pt]
+L^2r_s,\ Lq_s,\ V_s=B_s+L^2r_s-sLq_s,\ u=D+sLq_s+\delta V_s\\[2pt]
+\downarrow\\[-2pt]
+u^{-1},u^{-2},u^{-3},u^{-4},\ H(u),M(u),a=(u-D)H(u)\\[2pt]
+\downarrow\\[-2pt]
+E(a),\ P(u),\ K(u)\\[2pt]
+\downarrow\\[-2pt]
+X_s,\ Z_s,\ \re X_s>0,\ \re Z_s>0.
+\end{array}
+\]
+Every arrow is represented by primitive dyadic interval operations.  Products check all four
+endpoint products with outward rounding.  Positive reciprocals first certify that the input
+interval is strictly positive and then certify both reciprocal endpoints.  Complex products are
+four real products followed by exact signed additions.  Powers and the removable inverse-power
+differences in Appendix~\ref{sec:formulas} are built from these primitives; no floating-point
+transcendental function occurs in the artifact.
+
+The relative exponential is treated analytically.  Lean proves
+\[
+ e^a=1+a+a^2E(a),\qquad \lVert a\rVert\leq1\Longrightarrow \lVert E(a)\rVert\leq1,
+\]
+and the table checks the stronger raw bound
+\(\lVert a\rVert_1\leq250724/2^{20}<1\).  It then encloses the unknown complex value
+\(E(a)\) by the unit square.  Thus the finite computation only performs rational interval
+arithmetic; the transcendental estimate is an ordinary analytic theorem.
+
+The fixed prelude contains 39 operations for the collision constants and base coefficients.
+Each cell contributes 257 further operations.  One ten-cell shard therefore has
+\[
+ 39+10\cdot257=2609
+\]
+operations.  Flattening their interval obligations produces 23197 signed product comparisons.
+There are 16 shards per side, so the full formal cover contains 32 artifacts and 320 cells.
+The fixed prelude is repeated in each shard to make every artifact independently checkable.
+
+\section{From integer comparisons to the analytic theorem}
+
+The formal proof has five distinct layers.
+
+\begin{enumerate}
+\item \emph{Primitive containment.}  Lean proves that the actual constants and normalized moving
+inputs lie in the declared dyadic boxes.  In particular the inverse-Morse derivative estimate and
+the selector supply the box for \(q_s\), rather than treating it as numerical input.
+
+\item \emph{Word-size admissibility.}  For each shard the generated theorem
+\path{shard_admissible_SIDE_INDEX} proves in the kernel that every signed intermediate used
+by LeanCompCert fits the verified 64-bit fragment.
+
+\item \emph{Arithmetic truth.}  The companion theorem
+\path{shard_allHold_SIDE_INDEX} proves all 23197 signed comparisons by kernel reduction.
+LeanCompCert's verified program-denotation theorem converts admissibility plus these comparisons
+into the unconditional theorem that the corresponding checker program returns zero.
+
+\item \emph{Interval semantics.}  The generic multiplication, reciprocal, and complex-trace
+lemmas turn the zero verdict into containment of every literal real or complex expression.
+The theorem \path{CellTrace.coefficients_pos_of_allSound} extracts the strict signs of
+\(\re X_s\) and \(\re Z_s\) for an arbitrary point covered by a row.
+
+\item \emph{Calculus and sheet assembly.}  Lean identifies the row's coordinate with the literal
+affine connector coordinate, invokes the exact identity
+\eqref{eq:homogeneous-identity}, and constructs an
+oriented-real derivative certificate on each collar.  Existing one-variable calculus turns
+these into the two positive crossing certificates.  The already certified companion factor,
+outer arcs, and connector regularity then construct compatible square-root sheets and the
+five-piece logarithmic limit.
+\end{enumerate}
+
+The exported reference-model existence theorem has no numerical run,
+receipt, floating-point, or CSV premise.  Its axiom audit contains only the standard mathlib
+foundational axioms \texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound}.
+
+The same construction has now been applied to every older finite table consumed by the seam
+assembly: the 56 outer-polar shards, 64 connector-factor bulk shards, two endpoint anchors,
+41 first-derivative shards, and 10 second-derivative shards.  For each shard Lean proves both
+word-size admissibility and all signed comparisons, then obtains the zero-return theorem from
+LeanCompCert's verified semantics.  Consequently
+\path{exists_seamCompatibleContribution_tendsto_of_referenceCertificates} has no compiled-run
+premise.  Its two remaining arguments are the genuinely analytic nonvanishing witnesses on the
+complete connector rectangles; they are not finite-execution receipts and must not be confused
+with the now-closed arithmetic layer.
+
+Two further bookkeeping gaps have been removed in Lean.  First,
+\path{connectorIntegral_eq_principal_curveIntegral} constructs the actual source-coordinate
+connector path and proves the exact pullback identity, including both the affine velocity and
+Poincar\'e's nonlinear \(u\mapsto t\) Jacobian.  Second,
+\path{principalPhiAlongCriticalValue} names the literal \S94 unit-circle function on the critical
+ray, and its asymptotic theorem accepts precisely the eventual deformation equality to the
+five-piece sum.  Thus neither a transformed connector integral nor an arbitrary
+\texttt{fullContribution} is silently identified with the historical source integral.
+
+For \S102, the primary text on pp.~326--329 gives a staged parameter count rather than assuming a
+two-coordinate factorization at the outset.  The new theorem
+\path{collisionOrientation_rank_le_two_of_ratio_rank_le_four} formalizes that count for an
+arbitrary family of collision roots.  The theorem
+\path{not_fourParameterRatioFactorization} then connects the resulting rank bound directly to the
+24 certified moving branches of \S103.
+
+\section{Independent checks and reproducibility}
+
+The kernel proof and the compact Python computation intentionally use different implementations.
+They agree on the sign and have comfortably positive margins; the Python implementation obtains
+the stronger enclosures in Proposition~\ref{prop:interval}, while the formal table obtains the
+more conservative dyadic bounds used in Theorem~\ref{thm:orientation}.  The following commands
+reproduce the checks from the repository root:
+
+\begin{verbatim}
+python3 research/check_chapter_vi_connector_seam.py
+lake build PoincareChapterVI.ChapterVIDHomogeneousAdmissibility
+lake exe chapter-vi-connector-cert reference-homogeneous-shards
+lake env lean PoincareChapterVI/AxiomAudit.lean
+lake build
+\end{verbatim}
+
+The observed reference summary is
+\begin{verbatim}
+checked homogeneous shards: 32
+checked homogeneous cells: 320
+failed integer claims: 0
+minimum endpoint-coefficient lower numerator / 2^20: 3638
+minimum distance-coefficient lower numerator / 2^20: 68596
+maximum exponential-argument L1 numerator / 2^20: 250724
+\end{verbatim}
+
+The executable can also emit any shard as straight-line C and submit it to CompCert:
+\begin{verbatim}
+lake exe chapter-vi-connector-cert \
+  emit-homogeneous-shard initial 0 shard.c
+lake exe chapter-vi-connector-cert \
+  check-homogeneous-shard initial 0
+\end{verbatim}
+The second command requires the CompCert driver \texttt{ccomp} on \texttt{PATH}.  It is an
+optional independently compiled rerun; it is not required for the unconditional kernel theorem.
+
+\section{Precise project status}
+
+This work closes the local connector-seam obstruction at the certified point \(D\).  In
+particular, the finite collar table, the scale-aware derivative orientation, the crossing signs,
+and their connection to the existing five-piece logarithmic-limit theorem are no longer open.
+It does not by itself complete Poincar\'e's entire Chapter VI proof.
+
+Two source-level obligations remain outside the scope of the certificate:
+\begin{enumerate}
+\item In \S\S95--100, the actual continued source-sheet cycle from the literal \S94 integral must
+be deformed to the certified five-piece contour while avoiding all moving singularities.  The
+local prepared chart and the certified five-piece contour are available, but their identification
+with the historical source cycle and control of the complementary regular arcs remain to be
+proved.  Before the rectangle-based sheet construction can be invoked unconditionally, the two
+literal connector radicands must also be proved nonzero on their full compact rectangles; the
+completed one-dimensional seam table does not imply that two-dimensional statement.
+
+\item In \S102, the coefficient germ, common radius, uniform regular-factor analyticity, and
+rank-at-most-four factorization of the five singularity ratios must be derived from the Chapter V
+no.~80 uniform-integral relation and the actual contour integral.  Once supplied, the new
+five-to-four-to-two theorem, the Darboux transfer, and the \S103 finite algebraic contradiction
+apply.
+\end{enumerate}
+
+These are analytic source-reconstruction problems, not further rows missing from the interval
+table.  Enlarging the present certificate would not discharge them.
+
+\section{Formal source map}
+
+The main files supporting this note are:
+\begin{center}
+\begin{tabular}{L{0.43\textwidth}L{0.48\textwidth}}
+\toprule
+file & role\\
+\midrule
+\path{ChapterVIDHomogeneousDerivative.lean} & exact homogeneous cancellation and semantic
+coefficient certificate\\
+\path{ChapterVIDHomogeneousCompiledTable.lean} & dyadic traces, cell cover, semantic soundness,
+and seam theorem bridge\\
+\path{ChapterVIDHomogeneousAdmissibility.lean} & aggregate unconditional reference verdict and
+exported model-existence theorem\\
+\path{HomogeneousAdmissibility/*.lean} & independently buildable kernel proofs for all 32
+shards\\
+\path{ConnectorCertificateMain.lean} & reference, statistics, emission, and native-check
+commands\\
+\path{check_chapter_vi_connector_seam.py} & independent outward-rounded Python audit\\
+\path{chapter_vi_connector_seam_table.csv} & compact symmetric Python table\\
+\path{generate_chapter_vi_homogeneous_admissibility.py} & reproducible generator for the
+kernel shard modules\\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \appendix
 \section{Explicit coefficient formulas}\label{sec:formulas}

@@ -654,6 +654,172 @@ def connectorIntegral
     (model.connectorTransformedNumerator side) sheet
     (model.connectorRectangleSource side) (model.connectorRectangleTarget side)
 
+/-- The root-coordinate connector is literally the affine connector between its two named
+endpoints.  This identity is useful when passing from the interval integral to a source path. -/
+theorem rectanglePoint_eq_affineConnectorPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (point : I × I) :
+    model.rectanglePoint side point =
+      chapterVIAffineConnectorPoint
+        (model.connectorRectangleSource side)
+        (model.connectorRectangleTarget side) (point.1, (point.2 : ℝ)) := by
+  unfold connectorRectangleSource connectorRectangleTarget
+    ChapterVIDPrincipalConnectorModel.rectanglePoint
+    ChapterVIDPrincipalGlobalRootModel.connectorPoint
+    chapterVIAffineConnectorPoint
+  simp only [AffineMap.lineMap_apply]
+  norm_num
+
+/-- The connector as an actual path in Poincare's original source contour coordinate. -/
+def connectorSourcePath
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) :
+    Path (model.connectorSourceContour side (s, 0))
+      (model.connectorSourceContour side (s, 1)) where
+  toFun τ := model.connectorSourceContour side (s, (τ : ℝ))
+  continuous_toFun := model.continuous_connectorSourceContour.comp
+    (continuous_const.prodMk continuous_subtype_val)
+  source' := rfl
+  target' := rfl
+
+@[simp]
+theorem connectorSourcePath_apply
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s τ : I) :
+    model.connectorSourcePath side s τ =
+      model.connectorSourceContour side (s, (τ : ℝ)) :=
+  rfl
+
+/-- On the integration interval, the source path is the exact nonlinear image of the affine
+root-coordinate connector. -/
+theorem connectorSourcePath_eq_affineConnectorPoint
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    model.connectorSourcePath side s ⟨t, ht⟩ =
+      chapterVIDRootToOriginalContour
+        (chapterVIAffineConnectorPoint
+          (model.connectorRectangleSource side)
+          (model.connectorRectangleTarget side) (s, t)) := by
+  rw [connectorSourcePath_apply, connectorSourceContour, rectanglePointReal]
+  rw [chapterVIConnectorClamp_of_mem ht]
+  congr 1
+  exact model.rectanglePoint_eq_affineConnectorPoint side (s, ⟨t, ht⟩)
+
+/-- The derivative of the literal source connector contains both the affine root-coordinate
+velocity and Poincare's exact nonlinear `u -> t` Jacobian. -/
+theorem hasDerivAt_connectorSourcePathRaw
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (s : I) {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    HasDerivAt
+      (fun τ : ℝ ↦ chapterVIDRootToOriginalContour
+        (chapterVIAffineConnectorPoint
+          (model.connectorRectangleSource side)
+          (model.connectorRectangleTarget side) (s, τ)))
+      (ChapterVIDOuterArcRegularity.rootToSourceDerivative
+          (chapterVIAffineConnectorPoint
+            (model.connectorRectangleSource side)
+            (model.connectorRectangleTarget side) (s, t)) *
+        chapterVIAffineConnectorVelocity
+          (model.connectorRectangleSource side)
+          (model.connectorRectangleTarget side) s) t := by
+  have hpoint :
+      chapterVIAffineConnectorPoint
+          (model.connectorRectangleSource side)
+          (model.connectorRectangleTarget side) (s, t) =
+        model.rectanglePointReal side (s, t) := by
+    rw [rectanglePointReal, chapterVIConnectorClamp_of_mem ht]
+    exact (model.rectanglePoint_eq_affineConnectorPoint side (s, ⟨t, ht⟩)).symm
+  have hne : chapterVIAffineConnectorPoint
+      (model.connectorRectangleSource side)
+      (model.connectorRectangleTarget side) (s, t) ≠ 0 := by
+    rw [hpoint]
+    exact model.rectanglePointReal_ne_zero (s, t)
+  exact (ChapterVIDOuterArcRegularity.hasDerivAt_rootToOriginalContour hne).comp t
+    (hasDerivAt_chapterVIAffineConnectorPoint
+      (model.connectorRectangleSource side)
+      (model.connectorRectangleTarget side) s t)
+
+/-- The normalized connector integral is literally the curve integral of Poincare's principal
+source one-form whenever the chosen global source root restricts to the certified connector
+sheet.  No numerical computation is used in this identity. -/
+theorem connectorIntegral_eq_principal_curveIntegral
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (sheet : ChapterVIContinuousSquareRootSheet (model.rectangleRadicand side))
+    (sourceRoot : ℂ × ℂ → ℂ) (s : I)
+    (hsourceRoot : ∀ τ : I,
+      sourceRoot
+          (chapterVIDCriticalParameterInverseAtD (model.criticalValue s : ℂ),
+            model.connectorSourcePath side s τ) =
+        sheet.root (s, τ)) :
+    model.connectorIntegral side sheet s =
+      (2 * Real.pi * Complex.I : ℂ)⁻¹ *
+        ∫ᶜ t in model.connectorSourcePath side s,
+          chapterVIComplexScalarOneForm
+            (chapterVIDPrincipalPhiIntegrand massProduct b d sourceRoot
+              (chapterVIDCriticalParameterInverseAtD
+                (model.criticalValue s : ℂ))) t := by
+  unfold connectorIntegral chapterVIConnectorIntegral
+  congr 1
+  rw [curveIntegral_def]
+  apply intervalIntegral.integral_congr
+  intro t ht
+  rw [Set.uIcc_of_le zero_le_one] at ht
+  let rawPath : ℝ → ℂ := fun τ ↦ chapterVIDRootToOriginalContour
+    (chapterVIAffineConnectorPoint
+      (model.connectorRectangleSource side)
+      (model.connectorRectangleTarget side) (s, τ))
+  have heq : Set.EqOn (model.connectorSourcePath side s).extend rawPath
+      (Set.Icc (0 : ℝ) 1) := by
+    intro τ hτ
+    rw [Path.extend_apply (model.connectorSourcePath side s) hτ]
+    exact model.connectorSourcePath_eq_affineConnectorPoint side s hτ
+  rw [curveIntegralFun_def, derivWithin_congr heq (heq ht), heq ht]
+  have hderiv := model.hasDerivAt_connectorSourcePathRaw side s ht
+  change HasDerivAt rawPath _ t at hderiv
+  rw [hderiv.hasDerivWithinAt.derivWithin
+    (uniqueDiffOn_Icc_zero_one t ht)]
+  rw [chapterVIComplexScalarOneForm_apply]
+  have hrootPoint :
+      chapterVIAffineConnectorPoint
+          (model.connectorRectangleSource side)
+          (model.connectorRectangleTarget side) (s, t) =
+        model.rectanglePointReal side (s, t) := by
+    rw [rectanglePointReal, chapterVIConnectorClamp_of_mem ht]
+    exact (model.rectanglePoint_eq_affineConnectorPoint side (s, ⟨t, ht⟩)).symm
+  have hpath : rawPath t = model.connectorSourceContour side (s, t) := by
+    unfold rawPath connectorSourceContour
+    rw [hrootPoint]
+  rw [hpath]
+  have hnumerator :
+      model.connectorSourceNumerator side (s, t) =
+        chapterVIDPrincipalSourceNumerator massProduct b d
+          (chapterVIDCriticalParameterInverseAtD (model.criticalValue s : ℂ),
+            model.connectorSourceContour side (s, t)) := by
+    unfold connectorSourceNumerator chapterVIDPrincipalSourceNumerator
+      chapterVIPrincipalSourceNumerator connectorParameterRoot
+    rfl
+  have hroot :
+      sourceRoot
+          (chapterVIDCriticalParameterInverseAtD (model.criticalValue s : ℂ),
+            model.connectorSourceContour side (s, t)) =
+        chapterVIConnectorSheetRoot sheet (s, t) := by
+    simpa [connectorSourcePath_apply, chapterVIConnectorSheetRoot,
+      chapterVIConnectorClamp_of_mem ht] using hsourceRoot ⟨t, ht⟩
+  unfold chapterVIDPrincipalPhiIntegrand
+  rw [← hnumerator, hroot]
+  unfold connectorTransformedNumerator
+  rw [hrootPoint]
+  ring
+
 /-- The two compiled covers produce a compatible connector sheet and an ordinary finite
 collision limit for the literal transformed integral. -/
 theorem exists_sheet_tendsto_connectorIntegral_of_certificate

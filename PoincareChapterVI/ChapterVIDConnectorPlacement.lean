@@ -332,6 +332,14 @@ def SeamCompatibleCertifiedConnectorPair.fivePieceContribution
     (compatible : SeamCompatibleCertifiedConnectorPair run model) : ℝ → ℂ :=
   compatible.pair.fivePieceContribution
 
+/-- Poincare's literal §94 unit-circle function, evaluated along the positive critical-value
+coordinate approaching D.  Naming this function prevents the abstract `fullContribution` field
+of the general three-arc interface from being mistaken for the source contour integral. -/
+def principalPhiAlongCriticalValue
+    (massProduct : ℂ) (b d : ℤ) (sourceRoot : ℂ × ℂ → ℂ) (k : ℝ) : ℂ :=
+  chapterVIDPrincipalPhi massProduct b d sourceRoot
+    (chapterVIDCriticalParameterInverseAtD (k : ℂ))
+
 /-- A seam-compatible pair inherits the logarithmic limit, now with the branch equalities needed
 to interpret all five summands as one continued square-root sheet. -/
 theorem SeamCompatibleCertifiedConnectorPair.tendsto_fivePiece_inv_neg_log_smul
@@ -345,6 +353,31 @@ theorem SeamCompatibleCertifiedConnectorPair.tendsto_fivePiece_inv_neg_log_smul
       (𝓝 ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
         chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
   compatible.pair.tendsto_fivePiece_inv_neg_log_smul
+
+/-- Source-exact end of the §94--100 argument.  If a single square-root sheet on Poincare's
+literal source contour is transported from the unit circle to the five certified pieces, the
+actual `chapterVIDPrincipalPhi` has the computed nonzero logarithmic coefficient.  The sole
+hypothesis is now an equality whose left side is the literal §94 definition, rather than an
+unconstrained placeholder function. -/
+theorem SeamCompatibleCertifiedConnectorPair.tendsto_principalPhiAlongCriticalValue
+    {run : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict}
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    (compatible : SeamCompatibleCertifiedConnectorPair run model)
+    (sourceRoot : ℂ × ℂ → ℂ)
+    (hdeformation : ∀ᶠ k : ℝ in 𝓝[>] 0,
+      principalPhiAlongCriticalValue massProduct b d sourceRoot k =
+        compatible.fivePieceContribution k) :
+    Tendsto
+      (fun k : ℝ ↦ (-Real.log k)⁻¹ •
+        principalPhiAlongCriticalValue massProduct b d sourceRoot k)
+      (𝓝[>] 0)
+      (𝓝 ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+        chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) := by
+  apply Filter.Tendsto.congr' _
+    compatible.tendsto_fivePiece_inv_neg_log_smul
+  filter_upwards [hdeformation] with k hk
+  rw [hk]
 
 /-- End-to-end certified-connector statement: nonvanishing witnesses for the coordinate and
 radicand on each side, together with the already compiled outer run, produce a five-piece

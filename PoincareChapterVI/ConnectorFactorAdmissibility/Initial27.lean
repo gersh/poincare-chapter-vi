@@ -14,4 +14,10 @@ theorem shard_admissible_initial_27 :
   · decide +kernel
   · decide +kernel
 
+set_option maxRecDepth 1000000 in
+theorem shard_allHold_initial_27 :
+    ∀ claim ∈ batchClaims
+      (referenceShardOperations .initial ⟨27, by decide⟩), claim.Holds := by
+  decide +kernel
+
 end PoincareChapterVI.ChapterVIDConnectorFactorBulkReference

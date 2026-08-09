@@ -15,4 +15,9 @@ theorem shard_admissible_initial_23 :
   · decide +kernel
   · decide +kernel
 
+set_option maxRecDepth 1000000 in
+theorem shard_allHold_initial_23 :
+    ∀ claim ∈ batchClaims (shardOperations .initial 23), claim.Holds := by
+  decide +kernel
+
 end PoincareChapterVI.ChapterVIDOuterArcPolarCompiledGrid

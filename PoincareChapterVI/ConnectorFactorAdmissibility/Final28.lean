@@ -14,4 +14,10 @@ theorem shard_admissible_final_28 :
   · decide +kernel
   · decide +kernel
 
+set_option maxRecDepth 1000000 in
+theorem shard_allHold_final_28 :
+    ∀ claim ∈ batchClaims
+      (referenceShardOperations .final ⟨28, by decide⟩), claim.Holds := by
+  decide +kernel
+
 end PoincareChapterVI.ChapterVIDConnectorFactorBulkReference

@@ -97,4 +97,55 @@ theorem shard_admissible (side : ChapterVIDOuterArcSide)
     · exact shard_admissible_final_19
     · exact shard_admissible_final_20
 
+/-- Every signed comparison in every derivative shard is proved by kernel reduction. -/
+theorem shard_allHold (side : ChapterVIDOuterArcSide)
+    (shard : Fin (shardCount side)) :
+    ∀ claim ∈ batchClaims (shardOperations side shard), claim.Holds := by
+  cases side with
+  | initial =>
+    fin_cases shard
+    · exact shard_allHold_initial_0
+    · exact shard_allHold_initial_1
+    · exact shard_allHold_initial_2
+    · exact shard_allHold_initial_3
+    · exact shard_allHold_initial_4
+    · exact shard_allHold_initial_5
+    · exact shard_allHold_initial_6
+    · exact shard_allHold_initial_7
+    · exact shard_allHold_initial_8
+    · exact shard_allHold_initial_9
+    · exact shard_allHold_initial_10
+    · exact shard_allHold_initial_11
+    · exact shard_allHold_initial_12
+    · exact shard_allHold_initial_13
+    · exact shard_allHold_initial_14
+    · exact shard_allHold_initial_15
+    · exact shard_allHold_initial_16
+    · exact shard_allHold_initial_17
+    · exact shard_allHold_initial_18
+    · exact shard_allHold_initial_19
+  | final =>
+    fin_cases shard
+    · exact shard_allHold_final_0
+    · exact shard_allHold_final_1
+    · exact shard_allHold_final_2
+    · exact shard_allHold_final_3
+    · exact shard_allHold_final_4
+    · exact shard_allHold_final_5
+    · exact shard_allHold_final_6
+    · exact shard_allHold_final_7
+    · exact shard_allHold_final_8
+    · exact shard_allHold_final_9
+    · exact shard_allHold_final_10
+    · exact shard_allHold_final_11
+    · exact shard_allHold_final_12
+    · exact shard_allHold_final_13
+    · exact shard_allHold_final_14
+    · exact shard_allHold_final_15
+    · exact shard_allHold_final_16
+    · exact shard_allHold_final_17
+    · exact shard_allHold_final_18
+    · exact shard_allHold_final_19
+    · exact shard_allHold_final_20
+
 end PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference

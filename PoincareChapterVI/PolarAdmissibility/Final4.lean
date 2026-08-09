@@ -15,4 +15,9 @@ theorem shard_admissible_final_4 :
   · decide +kernel
   · decide +kernel
 
+set_option maxRecDepth 1000000 in
+theorem shard_allHold_final_4 :
+    ∀ claim ∈ batchClaims (shardOperations .final 4), claim.Holds := by
+  decide +kernel
+
 end PoincareChapterVI.ChapterVIDOuterArcPolarCompiledGrid

@@ -127,12 +127,84 @@ theorem shard_admissible (side : ChapterVIDOuterArcSide) (i : Fin 28) :
     · exact shard_admissible_final_26
     · exact shard_admissible_final_27
 
+/-- Every signed comparison in every polar shard is proved by kernel reduction. -/
+theorem shard_allHold (side : ChapterVIDOuterArcSide) (i : Fin 28) :
+    ∀ claim ∈ batchClaims (shardOperations side i), claim.Holds := by
+  cases side with
+  | initial =>
+    fin_cases i
+    · exact shard_allHold_initial_0
+    · exact shard_allHold_initial_1
+    · exact shard_allHold_initial_2
+    · exact shard_allHold_initial_3
+    · exact shard_allHold_initial_4
+    · exact shard_allHold_initial_5
+    · exact shard_allHold_initial_6
+    · exact shard_allHold_initial_7
+    · exact shard_allHold_initial_8
+    · exact shard_allHold_initial_9
+    · exact shard_allHold_initial_10
+    · exact shard_allHold_initial_11
+    · exact shard_allHold_initial_12
+    · exact shard_allHold_initial_13
+    · exact shard_allHold_initial_14
+    · exact shard_allHold_initial_15
+    · exact shard_allHold_initial_16
+    · exact shard_allHold_initial_17
+    · exact shard_allHold_initial_18
+    · exact shard_allHold_initial_19
+    · exact shard_allHold_initial_20
+    · exact shard_allHold_initial_21
+    · exact shard_allHold_initial_22
+    · exact shard_allHold_initial_23
+    · exact shard_allHold_initial_24
+    · exact shard_allHold_initial_25
+    · exact shard_allHold_initial_26
+    · exact shard_allHold_initial_27
+  | final =>
+    fin_cases i
+    · exact shard_allHold_final_0
+    · exact shard_allHold_final_1
+    · exact shard_allHold_final_2
+    · exact shard_allHold_final_3
+    · exact shard_allHold_final_4
+    · exact shard_allHold_final_5
+    · exact shard_allHold_final_6
+    · exact shard_allHold_final_7
+    · exact shard_allHold_final_8
+    · exact shard_allHold_final_9
+    · exact shard_allHold_final_10
+    · exact shard_allHold_final_11
+    · exact shard_allHold_final_12
+    · exact shard_allHold_final_13
+    · exact shard_allHold_final_14
+    · exact shard_allHold_final_15
+    · exact shard_allHold_final_16
+    · exact shard_allHold_final_17
+    · exact shard_allHold_final_18
+    · exact shard_allHold_final_19
+    · exact shard_allHold_final_20
+    · exact shard_allHold_final_21
+    · exact shard_allHold_final_22
+    · exact shard_allHold_final_23
+    · exact shard_allHold_final_24
+    · exact shard_allHold_final_25
+    · exact shard_allHold_final_26
+    · exact shard_allHold_final_27
+
 /-- The only external observation required by the compiled route: every emitted shard returned
 the zero failure count.  Admissibility is proved above in Lean's kernel. -/
 structure CompiledRunVerdict : Prop where
   returnsZero : ∀ side i,
     (batchComputation (shardArtifactName side i) (shardOperations side i)).Returns
       ((0 : Nat) : Int)
+
+/-- Unconditional verified-program verdict for the reference polar table. -/
+theorem referenceRunVerdict : CompiledRunVerdict where
+  returnsZero side i :=
+    ChapterVILeanCompCertIntervalBridge.returns_zero_of_allHold
+      (shardArtifactName side i) (batchClaims (shardOperations side i))
+      (shard_admissible side i) (shard_allHold side i)
 
 theorem CompiledRunVerdict.toCompiledVerdict (run : CompiledRunVerdict) : CompiledVerdict where
   shard side i := ⟨shard_admissible side i, run.returnsZero side i⟩

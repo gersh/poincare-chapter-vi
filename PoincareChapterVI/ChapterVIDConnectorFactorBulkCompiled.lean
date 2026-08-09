@@ -91,6 +91,18 @@ structure ReferenceAnchorCompiledRunVerdict : Prop where
     (batchComputation (anchorArtifactName side) (referenceAnchorOperations side)).Returns
       ((0 : Nat) : Int)
 
+/-- Both small endpoint-anchor computations are discharged by kernel reduction. -/
+theorem referenceAnchor_allHold (side : ChapterVIDOuterArcSide) :
+    ∀ claim ∈ batchClaims (referenceAnchorOperations side), claim.Holds := by
+  cases side <;> decide +kernel
+
+/-- Unconditional verified-program verdict for the two endpoint anchors. -/
+theorem referenceAnchorRunVerdict : ReferenceAnchorCompiledRunVerdict where
+  returnsZero side :=
+    ChapterVILeanCompCertIntervalBridge.returns_zero_of_allHold
+      (anchorArtifactName side) (batchClaims (referenceAnchorOperations side))
+      (referenceAnchor_admissible side) (referenceAnchor_allHold side)
+
 theorem ReferenceAnchorCompiledRunVerdict.ofReceipts
     (crypto : LeanCompCert.Attest.ReceiptCrypto)
     (receipt : ChapterVIDOuterArcSide → LeanCompCert.Attest.RunReceipt)
@@ -170,6 +182,13 @@ structure ReferenceCompiledRunVerdict : Prop where
   returnsZero : ∀ side shard,
     (batchComputation (shardArtifactName side shard)
       (referenceShardOperations side shard)).Returns ((0 : Nat) : Int)
+
+/-- Unconditional verified-program verdict for all connector-factor shards. -/
+theorem referenceRunVerdict : ReferenceCompiledRunVerdict where
+  returnsZero side shard :=
+    ChapterVILeanCompCertIntervalBridge.returns_zero_of_allHold
+      (shardArtifactName side shard) (batchClaims (referenceShardOperations side shard))
+      (shard_admissible side shard) (shard_allHold side shard)
 
 /-- A family of receipts for the exact Lean-derived shard artifacts yields the complete compiled
 run verdict.  `RunAdmission` is intentionally explicit and records the empirical execution
