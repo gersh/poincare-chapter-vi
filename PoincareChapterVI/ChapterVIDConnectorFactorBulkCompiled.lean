@@ -18,6 +18,8 @@ continuation theorem; no monolithic kernel evaluation or monolithic C artifact i
 
 noncomputable section
 
+open scoped unitInterval
+
 namespace PoincareChapterVI.ChapterVIDConnectorFactorBulkReference
 
 open ChapterVILeanCompCertBatch
@@ -207,6 +209,47 @@ theorem ReferenceCompiledRunVerdict.operationSound
   exact allSound_of_returns_zero (shardArtifactName side shard)
     (referenceShardOperations side shard) (shard_admissible side shard)
     (run.returnsZero side shard) operation hshard
+
+theorem ReferenceCompiledRunVerdict.cellOperationSound
+    (run : ReferenceCompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (index : Fin meshCells)
+    (operation : DyadicOperation 20)
+    (hoperation : operation ∈ cellOperations model side index) : operation.Sound := by
+  apply run.operationSound side operation
+  rw [referenceOperations, List.mem_flatMap]
+  refine ⟨index, by simp, ?_⟩
+  rw [← cellOperations_eq_reference]
+  exact hoperation
+
+/-- Semantic collision-factor reconstruction for any row of the sharded direct campaign. -/
+theorem ReferenceCompiledRunVerdict.cell_facts
+    (run : ReferenceCompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (index : Fin meshCells)
+    (point : I × I) (hregion : point ∈ (cell model side index).region) :
+    (0 < (plusSeparation side index).value (model.rectangleFactorPlus side point)) ∧
+      0 < (minusSeparation side index).value (model.rectangleFactorMinus side point) := by
+  let selected := cell model side index
+  have hcoordinate : ∀ operation ∈ selected.coordinateOperations, operation.Sound := by
+    intro operation hoperation
+    apply run.cellOperationSound model side index operation
+    simp [cellOperations, selected, hoperation]
+  have htrace : ∀ operation ∈ selected.trace.operations, operation.Sound := by
+    intro operation hoperation
+    apply run.cellOperationSound model side index operation
+    simp [cellOperations, selected, hoperation]
+  have hplusSound := run.cellOperationSound model side index
+    (separationOperation selected.trace.factorPlus (plusSeparation side index))
+    (by simp [cellOperations, selected])
+  have hminusSound := run.cellOperationSound model side index
+    (separationOperation selected.trace.factorMinus (minusSeparation side index))
+    (by simp [cellOperations, selected])
+  have hcontains := selected.factors_contain_of_allSound hcoordinate htrace point hregion
+  exact ⟨(plusSeparation side index).value_pos_of_lower_pos hcontains.1 hplusSound,
+    (minusSeparation side index).value_pos_of_lower_pos hcontains.2 hminusSound⟩
 
 def assembledArtifactName (side : ChapterVIDOuterArcSide) : String :=
   s!"chapter_vi_connector_factor_{ChapterVIDOuterArcPolarCompiledGrid.sideName side}_assembled"

@@ -53,9 +53,15 @@ This constructs both endpoint anchors internally. The ten LeanCompCert curvature
 prove strict first-factor path-derivative positivity throughout all 30 punctured terminal cells.
 Those same shards also check a positive-real separation for the companion factor throughout the
 closed terminal intervals, and Lean reconstructs the literal model factor from each accepted row.
-The analytic selection complements rather than replaces the compiled campaign: a receipt alone
-cannot encode the noncomputable inverse-Morse scale. What remains is packaging the terminal
-monotonicity with the bulk factor certificates into the final seam continuation.
+`ChapterVIDConnectorFactorMonotonicity.lean` now joins all 492 first-order rows, all 30 curvature
+rows, the endpoint anchors, and the direct factor boundary rows. The literal first-factor
+imaginary part is strictly increasing throughout each complete 261-cell collar, its outer collar
+boundary has the expected imaginary sign, and the companion factor remains in the positive real
+half-plane. Hence the first factor has at most one real-axis crossing in a collar. The analytic
+selection complements rather than replaces the compiled campaign: a receipt alone cannot encode
+the noncomputable inverse-Morse scale. What remains is a scale-aware proof that this possible
+crossing lies on the positive, rather than negative, real ray, followed by the final seam
+continuation assembly.
 
 This note separates three questions that are easy to conflate:
 

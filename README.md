@@ -568,8 +568,13 @@ The strongest newly completed component is the finite algebra in §103:
   derivative positivity on every non-endpoint point of all 30 terminal cells. The same ten
   terminal artifacts also certify that the companion collision factor stays in the positive real
   half-plane on all 30 cells; Lean reconstructs this as a fact about the literal connector model.
-  The remaining D connector task is to package this terminal monotonicity with the bulk factor
-  certificates into the final seam-continuation theorem.
+  `ChapterVIDConnectorFactorMonotonicity.lean` joins the 41 first-order shards, ten curvature
+  shards, endpoint anchors, and direct factor boundary rows. It proves that the literal
+  first-factor imaginary part is strictly increasing across each complete 261-cell collar, that
+  the companion factor is positive-real throughout, and that the first factor starts with the
+  expected outer-oriented imaginary sign. Thus a real-axis crossing is unique if it occurs. The
+  remaining D connector task is the scale-aware positive-real chart at that possible crossing,
+  followed by the final seam-continuation assembly.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

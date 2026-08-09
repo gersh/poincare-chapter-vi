@@ -156,6 +156,32 @@ theorem ReferenceCompiledRunVerdict.radicandOperationSound
   simp [trace, ChapterVILeanCompCertCartesianFactorDerivativeTrace.Trace.operations,
     hoperation]
 
+/-- Every derivative row puts the actual companion collision factor in the positive real
+half-plane. -/
+theorem ReferenceCompiledRunVerdict.modelCompanion_re_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ReferenceCompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    (point : I × I)
+    (hregion : point ∈ meshRegion (meshIndex side index)) :
+    0 < (model.rectangleFactorMinus side point).re := by
+  let cell := (terminalCell model side (meshIndex side index)).toCoarseEndpointCell.toCell
+  have hcellRegion : cell.region = meshRegion (meshIndex side index) := by
+    cases side <;> rfl
+  have hcoordinate : ∀ operation ∈ cell.coordinateOperations, operation.Sound := by
+    intro operation hoperation
+    apply run.coordinateOperationSound side index operation
+    cases side <;> exact hoperation
+  have htrace : ∀ operation ∈ cell.trace.operations, operation.Sound := by
+    intro operation hoperation
+    apply run.radicandOperationSound side index operation
+    cases side <;> exact hoperation
+  have hfactors := cell.factors_contain_of_allSound hcoordinate htrace point
+    (by rw [hcellRegion]; exact hregion)
+  apply run.companion_re_pos side index
+  cases side <;> exact hfactors.2
+
 /-- A compiled derivative row applies to the literal affine connector in the model.  In
 particular, the coordinate, anomaly, and connector direction enclosures are reconstructed from
 the row's checked line-map and Cartesian-radicand operations rather than accepted as premises. -/
