@@ -155,12 +155,13 @@ parameters. & The printed argument does not derive the required two-coordinate c
 common singular radius, label stability, and uniform regular-factor analyticity from the Chapter V
 integral relation.  This is the main remaining source-level logical gap. & The Jacobian rescaling,
 root-label control, conditional Darboux transfer, and interface to the \S103 contradiction are
-formalized.  Lean now proves the complete printed differential chain.  A literal no.~80
-factorization of six coefficient differentials through five variables gives rank at most five;
+formalized.  Lean now proves the complete printed differential chain.  The relevant Chapter~V
+result is no.~85, equation~(13 bis), not no.~80: a common nonzero characteristic direction
+annihilates the six selected coefficient differentials and hence gives rank at most five;
 quotienting the common scale gives rank at most four; independent recovery of the two
 eccentricities gives rank at most two for all collision roots; and the certified \S103 calculation
-contradicts this.  What is not yet derived is that five-variable factorization from a formal model
-of the full Chapter~V uniform integral and its identification with the actual contour
+contradicts this.  What is not yet derived is equation~(13 bis) from a formal model of the full
+Chapter~V uniform integral and its identification with the actual contour
 coefficients.\\
 
 \S103, p.~331 & Differentiate \(P=\sum U^2\) after defining
@@ -624,8 +625,8 @@ and covering-space lifting constructs a sheet on $[0,1)\times[0,1]$.  The missin
 deformation region between the literal unit-circle cycle and the five-piece cycle, not another
 connector table.
 
-\item In \S102, the five-variable factorization of the six coefficient observables must be
-derived from a formal model of the Chapter V no.~80 uniform-integral relation, and those
+\item In \S102, the common characteristic equation for the six coefficient observables must be
+derived from a formal model of the Chapter V no.~85 uniform-integral relation, and those
 observables must be identified with the common-radius singularity data of the actual contour
 integral.  Once supplied, the five-to-four-to-two theorem, the Darboux transfer, and the \S103
 finite algebraic contradiction apply without another rank premise.
@@ -651,7 +652,7 @@ exported model-existence theorem\\
 \path{ChapterVIDConnectorFullBulk.lean} & uniform two-dimensional reuse of the bulk table,
 positive-fiber collar closure, and continuous square-root sheets on the two half-open connector
 rectangles\\
-\path{ChapterVISection102.lean} & literal no.~80 five-variable differential factorization and
+\path{ChapterVISection102.lean} & literal no.~85 equation-(13 bis) kernel statement and
 the complete rank chain from six scaled values to the \S103 contradiction\\
 \path{HomogeneousAdmissibility/*.lean} & independently buildable kernel proofs for all 32
 shards\\

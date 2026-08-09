@@ -154,8 +154,10 @@ This note separates three questions that are easy to conflate:
 2. Which individual reductions have been checked in this Lean repository?
 3. What would be required for a faithful modern proof of the decisive argument?
 
-The primary text is [Chapter VI, §§90–103][chapter-vi]. For the §102 dependency argument, see
-especially [p. 326][page-326], [p. 327][page-327], [p. 328][page-328], and [p. 329][page-329].
+The primary text is [Chapter VI, §§90–103][chapter-vi]. The dependency invoked in §102 is
+Chapter V, no. 85: equation (13 bis) is on [p. 247][page-247], and its Jacobian/parameter-count
+conclusion is on [p. 248][page-248]. For §102 itself, see [p. 325][page-325], [p. 326][page-326],
+[p. 327][page-327], [p. 328][page-328], and [p. 329][page-329].
 The page-level facsimiles are linked below where the printed formula matters.
 
 ## Bottom line
@@ -172,9 +174,9 @@ source-level analytic and geometric steps still open are:
   branch and proving that the resulting logarithmic term has the required nonzero coefficient;
 - deriving the logarithmic decomposition from the contour pinch and proving that its amplitudes
   extend analytically beyond the common boundary circle;
-- deriving the literal five-variable coefficient factorization from the full Chapter V no. 80
+- deriving the literal characteristic equation (13 bis) from the full Chapter V no. 85
   uniform-integral input and identifying those coefficient observables with the singularity
-  ratios recovered from the actual contour.  Given that factorization, Lean now proves rank
+  ratios recovered from the actual contour. Given that kernel equation, Lean now proves rank
   `6 → 5 → 4 → 2` and the complete §103 contradiction.
 
 The formerly separate connector nonvanishing item is closed on the domain actually used by the
@@ -202,7 +204,7 @@ transcription of the 1892 text.
 | §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | The exact source germ, double-zero checks, analytic center, joint division, Morse coordinate, critical-value coordinate, transversality, and literal nonzero §94 amplitude are formalized. `ChapterVILocalVanishingCycle.lean` extracts one rectangle where the literal radicand is exactly `k+v²` and proves that the actual symmetric middle integral has the nonzero `-log k` coefficient. `ChapterVICycleDecomposition.lean` proves exact three-arc localization, and `ChapterVIThreeArcAsymptotic.lean` transfers the local coefficient to the full contour. The compiled outer quarters and connectors now assemble with compatible sheets into the five-piece logarithmic limit. | Prove that the actual source-sheet contour is deformable to the certified five-piece contour and control the complementary regular arcs |
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIJointPreparation.lean` proves the exact logarithmic primitive on the singular fiber. `ChapterVILocalVanishingCycle.lean` proves the parameter-dependent logarithmic asymptotic for the literal principal source term, and `ChapterVIThreeArcAsymptotic.lean` isolates the exact global continuation/regular-remainder premise. `ChapterVIDarbouxTransfer.lean` and `ChapterVIDarbouxSpectrum.lean` prove the downstream coefficient machinery. | Discharge the source-sheet and regular-remainder premise, then prove the larger-disk analyticity needed by Darboux uniformly in orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
-| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102.lean` formalizes no. 80 as factorization of six coefficient differentials through five variables and proves the exact rank chain `6 → 5 → 4 → 2`, ending in the certified §103 contradiction. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, and prevents root-label permutation. | Starting from the full source Hamiltonian and a putative uniform integral, construct that five-variable coefficient factorization and identify its observables with the contour singularity data, including common-radius and regular-factor estimates |
+| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102.lean` formalizes Chapter V no. 85, equation (13 bis), as a common nonzero characteristic direction in the kernel of six coefficient differentials and proves the exact rank chain `6 → 5 → 4 → 2`, ending in the certified §103 contradiction. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, and prevents root-label permutation. | Starting from the full source Hamiltonian and a putative uniform integral, derive equation (13 bis) and identify its observables with the contour singularity data, including common-radius and regular-factor estimates |
 | §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
 
 ## What the current Lean files actually establish
@@ -775,7 +777,7 @@ equations and Jacobian, constructs all 24 analytic branches, computes their deri
 linear map of the rotation parameters, and derives the certified rotation-source vanishing from
 first-order stationarity of Poincaré's singularity parameter. Thus the remaining source-level
 task in §§102–103 is the substantive analytic derivation of the rank-at-most-four ratio premise
-from Chapter V no. 80 and the contour coefficient germ. The passage from that premise to the
+from Chapter V no. 85, equation (13 bis), and the contour coefficient germ. The passage from that premise to the
 rank-at-most-two bound is now a kernel-checked theorem, not another finite computation or
 coordinate-identification layer.
 
@@ -802,6 +804,7 @@ coefficient cutoff.
 - Henri Poincaré, [*Les méthodes nouvelles de la mécanique céleste*, volume I, Chapter VI
   (§§90–103)][chapter-vi], 1892.
 - Henri Poincaré, [facsimiles p. 290][page-290], [p. 323][page-323], and [p. 331][page-331].
+- Henri Poincaré, Chapter V no. 85 facsimiles [p. 247][page-247] and [p. 248][page-248].
 - Henri Poincaré, §102 facsimiles [p. 326][page-326], [p. 327][page-327],
   [p. 328][page-328], and [p. 329][page-329].
 - Henri Poincaré, [*Sur les périodes des intégrales doubles et le développement de la fonction
@@ -818,6 +821,9 @@ coefficient cutoff.
 [chapter-vi]: https://fr.wikisource.org/wiki/Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste/Chap.06
 [page-290]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/302
 [page-323]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/335
+[page-247]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/259
+[page-248]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/260
+[page-325]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/337
 [page-326]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/338
 [page-327]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/339
 [page-328]: https://fr.wikisource.org/wiki/Page:Henri_Poincar%C3%A9_-_Les_m%C3%A9thodes_nouvelles_de_la_m%C3%A9canique_c%C3%A9leste,_Tome_1,_1892.djvu/340

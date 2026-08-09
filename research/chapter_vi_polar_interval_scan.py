@@ -149,7 +149,7 @@ def radial_cell(fx: Fixed, i: int, cells: int, power: int) -> tuple[Interval, In
 
 
 def unit_cell(fx: Fixed, side: int, i: int, cells: int, power: int,
-              symmetric: bool) -> Rectangle:
+              symmetric: bool, full_circle: bool = False) -> Rectangle:
     def node(j: int) -> Fraction:
         if symmetric:
             j = min(j, cells)
@@ -161,7 +161,15 @@ def unit_cell(fx: Fixed, side: int, i: int, cells: int, power: int,
     denominator_inv = fx.reciprocal(fx.add(fx.one, t2))
     re = fx.mul(fx.sub(fx.one, t2), denominator_inv)
     im = fx.mul(fx.mul(fx.rational(Fraction(2)), t), denominator_inv)
-    return (re, im) if side == 0 else (im, fx.neg(re))
+    if not full_circle:
+        return (re, im) if side == 0 else (im, fx.neg(re))
+    # Counterclockwise quarters: 1 -> i -> -1 -> -i -> 1.
+    return (
+        (re, im),
+        (fx.neg(im), re),
+        (fx.neg(re), fx.neg(im)),
+        (im, fx.neg(re)),
+    )[side]
 
 
 def radicand(fx: Fixed, zeta: Interval, radius: Interval, unit: Rectangle) -> Rectangle:
@@ -209,17 +217,28 @@ def main() -> None:
     parser.add_argument("--angular-cells", type=int, default=64)
     parser.add_argument("--angular-power", type=int, default=1)
     parser.add_argument("--angular-symmetric", action="store_true")
+    parser.add_argument("--full-circle", action="store_true",
+                        help="scan all four quarters instead of the two regular right quarters")
+    parser.add_argument("--radial-cells-to-use", type=int,
+                        help="use only this many initial radial cells; useful for a compact "
+                             "pre-collision cutoff")
     args = parser.parse_args()
     fx = Fixed(args.precision)
     minimum = None
     bad = 0
-    for ri in range(args.radial_cells + 1):
+    radial_cells_to_use = (args.radial_cells + 1 if args.radial_cells_to_use is None
+                           else args.radial_cells_to_use)
+    if not 0 < radial_cells_to_use <= args.radial_cells + 1:
+        parser.error("--radial-cells-to-use must lie in [1, radial-cells+1]")
+    side_count = 4 if args.full_circle else 2
+    for ri in range(radial_cells_to_use):
         zeta, radius = radial_cell(fx, ri, args.radial_cells, args.radial_power)
-        for side in range(2):
+        for side in range(side_count):
             for ti in range(args.angular_cells + 1):
                 value = radicand(fx, zeta, radius,
                                   unit_cell(fx, side, ti, args.angular_cells,
-                                            args.angular_power, args.angular_symmetric))
+                                            args.angular_power, args.angular_symmetric,
+                                            args.full_circle))
                 lower = value[0][0]
                 if lower <= 0:
                     bad += 1
@@ -230,7 +249,9 @@ def main() -> None:
     lower, ri, side, ti, value = minimum
     print(f"minimum real lower = {lower / fx.scale:.12g}")
     print(f"bad cells = {bad}")
-    print(f"at radial={ri}, side={'initial' if side == 0 else 'final'}, angular={ti}")
+    side_names = ("initial", "final") if not args.full_circle else (
+        "right-upper", "left-upper", "left-lower", "right-lower")
+    print(f"at radial={ri}, side={side_names[side]}, angular={ti}")
     print(f"rectangle = re[{value[0][0] / fx.scale:.12g}, {value[0][1] / fx.scale:.12g}] "
           f"im[{value[1][0] / fx.scale:.12g}, {value[1][1] / fx.scale:.12g}]")
 

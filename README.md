@@ -777,17 +777,19 @@ pp. 327--329 is now formalized as
 singularity ratios, together with injective recovery of the two eccentricities from the
 first-kind ratios, forces rank at most two for the complete collision-root differential.
 `not_fourParameterRatioFactorization` connects that statement directly to the certified §103
-contradiction. The no. 80 parameter count is now also represented literally by
-`ChapterVNo80FiveVariableFactorization`: factorization of the six coefficient differentials
-through five variables proves rank at most five, and
-`not_chapterVNo80FiveVariableFactorization_of_firstKindRecovery` carries that premise through
-the common-scale quotient and the complete §103 contradiction. What remains in §§102–103 is to derive
+contradiction. The relevant Chapter V result is no. 85, equation (13 bis), not no. 80. It is now
+represented source-faithfully by `ChapterVNo85CharacteristicEquation`: one common nonzero
+characteristic direction lies in the kernel of the joint differential of the six selected
+coefficients. `scaled_rank_le_five_of_chapterVNo85_characteristicEquation` proves the rank-five
+bound by rank--nullity, and
+`not_chapterVNo85CharacteristicEquation_of_firstKindRecovery` carries it through the
+common-scale quotient and the complete §103 contradiction. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
 including the function-level logarithmic decomposition and larger-disk analyticity for its
 varying analytic amplitudes, and
-to derive the actual five-variable coefficient factorization, common radius, and identification
+to derive the actual no. 85 characteristic equation, common radius, and identification
 with the collision-root ratios from the full Chapter V uniform-integral relation. Poincare states
-this implication in §102 by referring back to Chapter V, no. 80; it is not a consequence of the
+this implication in §102 by referring back to Chapter V, no. 85; it is not a consequence of the
 finite §103 computation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly
 from a regular factor analytic beyond the boundary circle. The remaining reduction must derive

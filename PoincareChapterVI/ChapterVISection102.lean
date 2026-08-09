@@ -25,9 +25,12 @@ LeanCompCert certificate gives the contradiction.
 
 The file now derives that rank conclusion from `TwoCoordinateDarbouxFactorization`: isolated
 coefficient sequences factor through two essential coordinates and have Poincaré's stated
-Darboux leading term.  Constructing that data from the putative uniform integral in Chapter V,
-the contour integral, and the singularity classification in §§93--100 remains the historical
-analytic input.
+Darboux leading term.  It also records the exact differential content of Chapter V, no. 85,
+equation (13 bis): one nonzero characteristic direction annihilates every selected `D_λ`
+differential, so rank--nullity bounds the six coefficients by five parameters.  Constructing the
+characteristic equation from the putative uniform integral and identifying its `D_λ` with the
+contour coefficients remain the historical analytic input.
+
 -/
 
 noncomputable section
@@ -81,22 +84,27 @@ theorem commonSingularityScaleDirection_ne_zero :
   have := congrArg Prod.fst h
   norm_num [commonSingularityScaleDirection] at this
 
-/-- Differential form of the relation among six arbitrary Chapter-V coefficient observables
-(`D_λ` in no. 80).  The relation is recorded by its nonzero gradient; this is exactly the
-regular-point consequence used by Poincare, and is weaker than choosing five global coordinate
-functions through which every coefficient factors. -/
-structure ChapterVNo80DifferentialRelation
+/-- Differential form of Poincaré's Chapter V, no. 85, equation (13 bis).  The displayed
+first-order equation says that the same characteristic direction
+
+`(H, ∂Φ0/∂uᵢ, -∂Φ0/∂zᵢ)`
+
+annihilates every coefficient `D_λ`.  The alternative in which this direction vanishes is the
+case Poincaré excludes by independence of the putative uniform integral.  Unlike an output-side
+relation among six coefficient values, this is the literal domain-kernel statement printed in
+(13 bis). -/
+structure ChapterVNo85CharacteristicEquation
     (coefficientDifferential :
       (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues) where
-  gradient : SixScaledSingularityValues →ₗ[ℂ] ℂ
-  gradient_ne_zero : gradient ≠ 0
-  annihilates : gradient.comp coefficientDifferential = 0
+  characteristicDirection : ℂ × FiveOrbitalParameters
+  characteristicDirection_ne_zero : characteristicDirection ≠ 0
+  equation13bis : coefficientDifferential characteristicDirection = 0
 
-/-- Poincaré's no. 80 statement in its literal parameter-count form: after the two angular
+/-- Poincaré's no. 85 statement in its equivalent parameter-count form: after the two angular
 momenta have been fixed, the six selected coefficient observables factor infinitesimally through
 five independent variables.  This formulation does not assume a chosen equation among the six
 outputs. -/
-structure ChapterVNo80FiveVariableFactorization
+structure ChapterVNo85FiveVariableFactorization
     (coefficientDifferential :
       (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues) where
   fiveVariableDifferential :
@@ -108,11 +116,11 @@ structure ChapterVNo80FiveVariableFactorization
 
 /-- Factoring the six Chapter-V observables through five variables gives the rank-five
 conclusion directly, without first choosing a defining relation or a regular point of it. -/
-theorem scaled_rank_le_five_of_chapterVNo80_fiveVariableFactorization
+theorem scaled_rank_le_five_of_chapterVNo85_fiveVariableFactorization
     (coefficientDifferential :
       (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues)
     (factorization :
-      ChapterVNo80FiveVariableFactorization coefficientDifferential) :
+      ChapterVNo85FiveVariableFactorization coefficientDifferential) :
     Module.finrank ℂ coefficientDifferential.range ≤ 5 := by
   have hrange : coefficientDifferential.range ≤
       factorization.coefficientFromFiveVariables.range := by
@@ -128,34 +136,32 @@ theorem scaled_rank_le_five_of_chapterVNo80_fiveVariableFactorization
       LinearMap.finrank_range_le _
     _ = 5 := by simp
 
-/-- One nontrivial Chapter-V relation among six observables makes their joint differential have
-rank at most five.  This is the previously implicit `no. 80 -> rank <= 5` linear-algebra step. -/
-theorem scaled_rank_le_five_of_chapterVNo80_relation
+/-- The common nonzero characteristic direction from equation (13 bis) makes the joint
+differential of the six `D_λ` have rank at most five.  This is the source-faithful no. 85 to
+rank-five step: it uses the kernel in the six-dimensional parameter space, not an unrelated
+regular-value equation in the output space. -/
+theorem scaled_rank_le_five_of_chapterVNo85_characteristicEquation
     (coefficientDifferential :
       (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues)
-    (relation : ChapterVNo80DifferentialRelation coefficientDifferential) :
+    (equation : ChapterVNo85CharacteristicEquation coefficientDifferential) :
     Module.finrank ℂ coefficientDifferential.range ≤ 5 := by
-  have hrange_le : coefficientDifferential.range ≤ LinearMap.ker relation.gradient := by
-    rintro value ⟨parameter, rfl⟩
-    have h := LinearMap.congr_fun relation.annihilates parameter
-    simpa using h
-  have hgradientRange : Module.finrank ℂ relation.gradient.range = 1 := by
-    have hrangeTop : relation.gradient.range = ⊤ := by
-      rw [LinearMap.range_eq_top]
-      exact LinearMap.surjective_iff_ne_zero.mpr relation.gradient_ne_zero
-    rw [hrangeTop]
-    simp
+  have hdirectionKernel : equation.characteristicDirection ∈
+      LinearMap.ker coefficientDifferential := equation.equation13bis
+  have hspan : Submodule.span ℂ {equation.characteristicDirection} ≤
+      LinearMap.ker coefficientDifferential := by
+    rw [Submodule.span_le]
+    simpa using hdirectionKernel
+  have hkernelPositive :
+      1 ≤ Module.finrank ℂ (LinearMap.ker coefficientDifferential) := by
+    have hspanRank : Module.finrank ℂ
+        (Submodule.span ℂ {equation.characteristicDirection}) = 1 := by
+      rw [finrank_span_singleton equation.characteristicDirection_ne_zero]
+    rw [← hspanRank]
+    exact Submodule.finrank_mono hspan
   have hrankNullity :=
-    LinearMap.finrank_range_add_finrank_ker relation.gradient
-  have hdomain : Module.finrank ℂ SixScaledSingularityValues = 6 := by simp
-  have hkernel : Module.finrank ℂ (LinearMap.ker relation.gradient) = 5 := by
-    rw [hgradientRange, hdomain] at hrankNullity
-    omega
-  calc
-    Module.finrank ℂ coefficientDifferential.range ≤
-        Module.finrank ℂ (LinearMap.ker relation.gradient) :=
-      Submodule.finrank_mono hrange_le
-    _ = 5 := hkernel
+    LinearMap.finrank_range_add_finrank_ker coefficientDifferential
+  have hdomain : Module.finrank ℂ (ℂ × FiveOrbitalParameters) = 6 := by simp
+  omega
 
 /-- Coordinate-free form of the scale-quotient argument.  It is useful when `ScaledValues`
 contains the complete finite family of collision branches rather than only five selected
@@ -766,16 +772,17 @@ theorem not_scaledSingularityRankAtMostFive_of_firstKindRecovery
     scaledDifferential projectivization scaleDirection hscale
     hprojectivization hscaleNonzero hrank
 
-/-- Source-faithful no. 80 form: a nontrivial differential relation among the six Chapter-V
-coefficient observables supplies the rank-five premise, after which Poincare's common-scale
-quotient and the certified section 103 calculation give the contradiction. -/
-theorem not_chapterVNo80Relation_of_firstKindRecovery
+/-- Source-faithful no. 85 form: equation (13 bis) supplies a common nonzero characteristic
+direction annihilating the six Chapter-V coefficient observables.  Rank--nullity supplies the
+rank-five premise, after which Poincaré's common-scale quotient and the certified §103 calculation
+give the contradiction. -/
+theorem not_chapterVNo85CharacteristicEquation_of_firstKindRecovery
     (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
     (collisionEccentricity : Eccentricity →ₗ[ℂ]
       (FiniteSingularPoint → ℂ))
     (scaledDifferential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ]
       SixScaledSingularityValues)
-    (relation : ChapterVNo80DifferentialRelation scaledDifferential)
+    (equation : ChapterVNo85CharacteristicEquation scaledDifferential)
     (projectivization : SixScaledSingularityValues →ₗ[ℂ]
       (Eccentricity × (FiniteSingularPoint → ℂ)))
     (hfirstKind : Function.Injective firstKind)
@@ -793,20 +800,21 @@ theorem not_chapterVNo80Relation_of_firstKindRecovery
     firstKind collisionEccentricity scaledDifferential projectivization
     commonSingularityScaleDirection hfirstKind hscale hprojectivization
     commonSingularityScaleDirection_ne_zero
-    (scaled_rank_le_five_of_chapterVNo80_relation scaledDifferential relation)
+    (scaled_rank_le_five_of_chapterVNo85_characteristicEquation
+      scaledDifferential equation)
     hratios
 
-/-- Literal five-variable no. 80 form of the complete differential contradiction.  The sole
+/-- Literal five-variable no. 85 form of the complete differential contradiction.  The sole
 source-facing premise is now exactly Poincaré's claim that the six coefficient observables depend
 on five variables; the five-to-four-to-two losses and the section 103 contradiction are theorems. -/
-theorem not_chapterVNo80FiveVariableFactorization_of_firstKindRecovery
+theorem not_chapterVNo85FiveVariableFactorization_of_firstKindRecovery
     (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
     (collisionEccentricity : Eccentricity →ₗ[ℂ]
       (FiniteSingularPoint → ℂ))
     (scaledDifferential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ]
       SixScaledSingularityValues)
     (factorization :
-      ChapterVNo80FiveVariableFactorization scaledDifferential)
+      ChapterVNo85FiveVariableFactorization scaledDifferential)
     (projectivization : SixScaledSingularityValues →ₗ[ℂ]
       (Eccentricity × (FiniteSingularPoint → ℂ)))
     (hfirstKind : Function.Injective firstKind)
@@ -824,7 +832,7 @@ theorem not_chapterVNo80FiveVariableFactorization_of_firstKindRecovery
     firstKind collisionEccentricity scaledDifferential projectivization
     commonSingularityScaleDirection hfirstKind hscale hprojectivization
     commonSingularityScaleDirection_ne_zero
-    (scaled_rank_le_five_of_chapterVNo80_fiveVariableFactorization
+    (scaled_rank_le_five_of_chapterVNo85_fiveVariableFactorization
       scaledDifferential factorization)
     hratios
 
