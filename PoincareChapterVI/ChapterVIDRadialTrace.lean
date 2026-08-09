@@ -181,6 +181,49 @@ theorem Trace.outputs_contain_of_allSound {precision : ℕ}
     simpa [chapterVIDCertificateContourRadius] using
       hradiusMul.contains_mul hsixth hfactor⟩
 
+/-- Internal scalar enclosures needed when differentiating the certificate radius. -/
+theorem Trace.velocity_inputs_contain_of_allSound {precision : ℕ}
+    {endpoint : EndpointTrace (precision := precision)} {input : Interval precision}
+    (trace : Trace endpoint input) (hvalid : trace.Valid)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    {s : I} (hs : input.Contains (s : ℝ))
+    (hqD : endpoint.qD.Contains chapterVIDCriticalParameterModulus)
+    (hcorrection : endpoint.correction.Contains chapterVIDCertificateContourCorrection) :
+    trace.q.Contains (chapterVIDCertificateParameter s) ∧
+      trace.qSixthRoot.Contains
+        (chapterVIDCertificateParameter s ^ ((6 : ℝ)⁻¹)) ∧
+      trace.correctionFactor.Contains
+        (chapterVIDCertificateContourCorrectionFactor s) := by
+  have hone := ChapterVISignedDyadicInterval.pointInt_contains precision 1
+  have hqDelta := ChapterVISignedDyadicInterval.sub_contains hqD hone
+  have hqMul : ChapterVISignedDyadicInterval.MulCertificate
+      input trace.qDelta trace.qDeltaProduct :=
+    hall (.mul input trace.qDelta trace.qDeltaProduct)
+      (by simp [Trace.operations])
+  have hqProduct := hqMul.contains_mul hs hqDelta
+  have hq : trace.q.Contains (chapterVIDCertificateParameter s) := by
+    simpa [Trace.q, Trace.one, Trace.qDelta, chapterVIDCertificateParameter,
+      AffineMap.lineMap_apply, mul_assoc, add_comm] using
+      ChapterVISignedDyadicInterval.add_contains hone hqProduct
+  have hsixthSound : ∀ operation ∈ trace.qSixthTrace.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [Trace.operations, hoperation])
+  have hsixth := trace.qSixthTrace.output_contains_of_valid hvalid.2
+    hsixthSound (chapterVIDCertificateParameter_pos s).le hq
+  have hcorrectionDelta := ChapterVISignedDyadicInterval.sub_contains hcorrection hone
+  have hcorrectionMul : ChapterVISignedDyadicInterval.MulCertificate
+      input trace.correctionDelta trace.correctionDeltaProduct :=
+    hall (.mul input trace.correctionDelta trace.correctionDeltaProduct)
+      (by simp [Trace.operations])
+  have hcorrectionProduct := hcorrectionMul.contains_mul hs hcorrectionDelta
+  have hfactor : trace.correctionFactor.Contains
+      (chapterVIDCertificateContourCorrectionFactor s) := by
+    simpa [Trace.correctionFactor, Trace.correctionDelta, Trace.one,
+      chapterVIDCertificateContourCorrectionFactor, AffineMap.lineMap_apply,
+      mul_assoc, add_comm] using
+      ChapterVISignedDyadicInterval.add_contains hone hcorrectionProduct
+  exact ⟨hq, hsixth, hfactor⟩
+
 end ChapterVIDRadialTrace
 
 end PoincareChapterVI

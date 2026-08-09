@@ -180,8 +180,23 @@ After those corrections, the central source-level analytic and geometric steps s
   chosen radial parameter and deforming it into the now-certified near-D five-piece family while
   avoiding every moving zero. The preceding interval is no longer open:
   `ChapterVIDGlobalLiftedPrefix.lean` gives a principal lift of the ordinary angular
-  root-coordinate circle from zero through the exact cutoff `2717/2744`. Linking its initial
-  sheet through the existing `u -> t` source-coordinate homotopy is still part of the obligation;
+  root-coordinate circle from zero through the exact cutoff `2717/2744`.
+  `ChapterVIDCircleReparametrization.lean` now closes the initial link: the exact `u -> t` map on
+  the unit circle is the strictly increasing angular warp
+  `θ - (200/30003) sin(3θ)`, and the certified initial principal sheet is transported through
+  its continuous inverse. `ChapterVIDRadialTailReduction.lean` reduces the remaining tail to a
+  nonnegative endpoint-circle table and a strictly negative radial-derivative table.
+  `ChapterVIDRadialTailDerivative.lean` and `ChapterVIDRadialTailPathDerivative.lean` prove the
+  exact total derivative, specialize it to the sixth-root radial path, and turn a negative table
+  into strict antitonicity. The signed-dyadic trace and six-row cover are implemented in
+  `ChapterVILeanCompCertRadialTailDerivativeTrace.lean` and
+  `ChapterVIDRadialTailDerivativeCompiledGrid.lean`, but no unconditional verdict is claimed:
+  the first direct 20-bit layout loses radial dependency across large cancelling Laurent terms.
+  `ChapterVILeanCompCertHighOrderAnomalyTrace.lean` proves a degree-five Taylor enclosure with
+  `|a|^6/512` remainder and the derivative trace now uses it. The failed verdict is essentially
+  unchanged, which rules out the exponential remainder as the main loss. A cell-centered radial
+  Taylor model (or equivalent dependency-preserving factorization), the endpoint table, and the
+  deformation to the five-piece family are still required;
 - proving which candidate singularities pinch the integration cycle and are genuine rather than
   apparent;
 - controlling the complementary regular arcs during the long-range transport;

@@ -746,6 +746,39 @@ The strongest newly completed component is the finite algebra in §103:
   `((1-t²)+2ti)/(1+t²)` (and its `-i` rotation). Lean proves norm one, endpoints, quadrants, and
   continuity. Thus the compiled grid no longer needs interval implementations of `π`, `sin`, or
   `cos`.
+- `ChapterVIDCircleReparametrization.lean` closes the initial source-sheet identification that
+  was previously described as part of the open homotopy. On `|u|=1` the exact coordinate change
+  is the angular map `θ ↦ θ - (200/30003) sin(3θ)`. Lean proves its derivative is positive,
+  packages the induced unit-interval map as an order isomorphism, proves that the mapped root
+  circle is exactly the historical source circle with the same orientation, and transports the
+  certified principal square-root sheet through the inverse reparametrization without a sign
+  assumption.
+- `ChapterVIDRadialTailReduction.lean` gives a bounded monotonicity target for the last
+  `27/2744`. A nonnegative endpoint-circle real part plus strict negativity of its radial
+  derivative implies strict positivity at every pre-collision point and joins automatically to
+  the existing 44-shard prefix. The exploratory
+  `research/chapter_vi_radial_tail_scan.py` reports substantial margins on all six remaining
+  cubic rows; these sampled values select the next interval table but are not themselves used as
+  proof.
+- `ChapterVIDRadialTailDerivative.lean` and
+  `ChapterVIDRadialTailPathDerivative.lean` now close the analytic differentiation step. Lean
+  proves the total chain rule while both `ζ(s)` and `u(s)` move, differentiates the actual affine
+  parameter and sixth-root radius, and derives strict radial antitonicity from a negative
+  derivative enclosure by the mean-value theorem. The product derivative is also rewritten in a
+  cancellation-preserving form before interval evaluation.
+- `ChapterVILeanCompCertRadialTailDerivativeTrace.lean` and
+  `ChapterVIDRadialTailDerivativeCompiledGrid.lean` define the signed-dyadic trace, the six-row
+  continuum cover, and the semantic reconstruction theorem. They intentionally do not export a
+  reference run verdict yet. The first 20-bit direct evaluation failed: even after cancelling the
+  two exact `4L` terms, independent enclosures leave terms of size hundreds around a true
+  derivative margin of about five. `ChapterVILeanCompCertHighOrderAnomalyTrace.lean` now proves
+  and checks a degree-five exponential enclosure with remainder `|a|^6/512`; substituting it into
+  the derivative trace shows that the exponential estimate was not the controlling loss. The
+  first upper-row output remains about `3.94e8 / 2^20`, and even a point-sized angular box leaves
+  roughly `[-3.02e8,2.94e8]/2^20` because the radial cell is evaluated as unrelated large Laurent
+  terms. The next certificate therefore needs a cell-centered Taylor model (or an equivalent
+  dependency-preserving factorization in the radial variable), not merely a higher-order
+  exponential. Merely asserting the sampled table would be unsound.
 - The exploratory scan was used only to choose the clustered mesh. The formal result uses
   interval enclosures on entire cells, so it needs neither floating-point trust nor a separate
   global Lipschitz estimate.

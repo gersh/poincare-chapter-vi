@@ -232,6 +232,23 @@ theorem outputs_contain_cell (i : Fin 28) {parameter : I}
   · exact qD_contains
   · exact correction_contains
 
+theorem velocity_inputs_contain_cell (i : Fin 28) {parameter : I}
+    (hlower : (chapterVICubicClusterNode 28 i : ℝ) ≤ parameter)
+    (hupper : (parameter : ℝ) ≤ chapterVICubicClusterNode 28 (i + 1)) :
+    (trace i).q.Contains (chapterVIDCertificateParameter parameter) ∧
+      (trace i).qSixthRoot.Contains
+        (chapterVIDCertificateParameter parameter ^ ((6 : ℝ)⁻¹)) ∧
+      (trace i).correctionFactor.Contains
+        (chapterVIDCertificateContourCorrectionFactor parameter) := by
+  apply (trace i).velocity_inputs_contain_of_allSound (trace_valid i)
+  · intro operation hoperation
+    exact allSound_of_returns_zero "chapter-vi-d-radial-clustered-grid-20"
+      operations operations_admissible operations_returns_zero operation
+      (trace_operations_mem i operation hoperation)
+  · exact input_contains_of_mem_cell i hlower hupper
+  · exact qD_contains
+  · exact correction_contains
+
 theorem exists_outputs_contain (parameter : I) :
     ∃ i : Fin 28,
       (trace i).qCubeRoot.Contains

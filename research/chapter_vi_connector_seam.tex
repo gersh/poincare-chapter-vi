@@ -52,8 +52,11 @@ on each half-open rectangle $[0,1)\times[0,1]$.  The later file
 into one closed, basepoint-normalized lifted five-piece family near $D$.  A subsequent 44-shard
 certificate proves nonvanishing on the complete moving angular circle in the transformed root
 coordinate through the exact cutoff $2717/2744$, and constructs its principal lift.  This still
-does not lift the fixed-parameter coordinate homotopy back to the original source-circle sheet,
-construct the final $27/2744$ of the deformation into the terminal five-piece cycle, or derive every
+left an initial source-circle identification, the final $27/2744$ deformation into the terminal
+five-piece cycle, and the source-specific \S102 inputs.  The first item is now closed: on the unit
+circle the exact coordinate map is the orientation-preserving angular reparametrization
+$\theta\mapsto\theta-(200/30003)\sin(3\theta)$, and Lean transports the principal sheet through
+its continuous inverse.  It remains to construct the final $27/2744$ and derive every
 source-specific multiplier, interchange, and coefficient-identification statement in \S102 from
 the full Chapter~V uniform-integral problem.
 
@@ -240,6 +243,67 @@ size.  Closing the tail therefore needs either a quantitative inverse/Morse esti
 all-precollision analytic nonvanishing theorem, or a certified deformation whose endpoint is
 proved to lie inside the selected local neighborhood.  Merely increasing the finite table to a
 closer fixed rational number would not logically remove this issue.
+
+There is, however, a scale-free monotonicity reduction.  Write $R(s,h)$ for the radicand on
+either left quarter, where $h$ is angular distance from the negative-real pinch.  It is enough to
+certify
+\[
+  \Re R(1,h)\geq0,
+  \qquad -\partial_s\Re R(s,h)>0
+  \quad(2717/2744\leq s<1).
+\]
+The mean-value theorem then gives $\Re R(s,h)>0$ for every pre-collision point.  The first
+quantity has a quadratic zero at $h=0$, so the bounded endpoint table evaluates
+$\Re R(1,h)/h^2$ with its removable value.  The following exploratory values select the mesh;
+they are not proof certificates.
+
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+row & lower $s$ & upper $s$ & sampled minimum of $-\partial_s\Re R$\\
+\midrule
+22 & 0.9901603499 & 0.9943057580 & 4.5709\\
+23 & 0.9943057580 & 0.9970845481 & 12.1834\\
+24 & 0.9970845481 & 0.9987700437 & 36.6050\\
+25 & 0.9987700437 & 0.9996355685 & 118.5914\\
+26 & 0.9996355685 & 0.9999544461 & 279.1160\\
+27 & 0.9999544461 & 1.0000000000 & 398.2389\\
+\midrule
+endpoint & $h=0$ & $h=\pi/2$ &
+  $\min \Re R(1,h)/h^2\approx3.40738$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\path{ChapterVIDRadialTailReduction.lean} proves the exact calculus implication and its
+combination with the prefix theorem.  The new files
+\path{ChapterVIDRadialTailDerivative.lean} and
+\path{ChapterVIDRadialTailPathDerivative.lean} prove the exact total chain rule, including the
+motion of both $\zeta(s)$ and $u(s)$, and specialize it to the affine parameter and sixth-root
+radius.  They also prove that a negative derivative table supplies the semantic strict-antitone
+hypothesis by the mean-value theorem.  The product rule is expanded first so that its two exact
+$4L$ contributions cancel symbolically.
+
+The signed-dyadic evaluator and the six-row continuum cover are now encoded in
+\path{ChapterVILeanCompCertRadialTailDerivativeTrace.lean} and
+\path{ChapterVIDRadialTailDerivativeCompiledGrid.lean}.  No reference verdict is asserted.  A
+trial of the direct 20-bit layout failed for a mathematically meaningful reason: independent
+boxes leave intermediate terms of size hundreds while the true first-row margin is about
+$4.57$.  A new degree-five anomaly trace proves
+
+\[
+ \left|e^a-\sum_{k=0}^{5}\frac{a^k}{k!}\right|
+ \leq \frac{|a|^6}{512}
+\]
+
+from Mathlib's complex exponential bound and checks every polynomial operation and error radius
+with signed dyadics.  Substituting that trace leaves the first upper-row bound near
+$3.94\cdot10^8/2^{20}$; even making the angular box a point leaves approximately
+$[-3.02\cdot10^8,2.94\cdot10^8]/2^{20}$ on the first radial cell.  Therefore the controlling
+loss is radial dependency among large Laurent terms, not the exponential remainder.  The next
+computation must use a cell-centered radial Taylor model or an equivalent dependency-preserving
+factorization, followed by the endpoint quotient table; the sampled numbers above are not
+silently promoted to proof certificates.
 
 \section{The centered collision factor}
 
