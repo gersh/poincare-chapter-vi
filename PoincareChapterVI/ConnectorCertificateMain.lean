@@ -383,6 +383,41 @@ def runFactorBulkReference (cells collarCells : Nat) : IO UInt32 := do
   pure (if stats.argumentRejected = 0 && stats.unseparated = 0 &&
       stats.failedClaims = 0 then 0 else 1)
 
+def runNormalizedSlice (displacement : Nat) : IO UInt32 := do
+  let mut failures := 0
+  for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+    let signedDisplacement : Int := match side with
+      | .initial => Int.ofNat displacement
+      | .final => -Int.ofNat displacement
+    let localDelta : Rectangle :=
+      ⟨⟨-1, 1⟩, ⟨signedDisplacement, signedDisplacement⟩⟩
+    let mut operationCount := 0
+    let mut sideFailures := 0
+    let mut failingCells := 0
+    let mut firstFail : Option Nat := none
+    let mut lastFail : Option Nat := none
+    for index in List.finRange
+        ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceCellCount do
+      let operations :=
+        ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceOperationsWithLocalDelta
+          side
+          (ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceParameterInterval
+            side index)
+          localDelta
+      operationCount := operationCount + operations.length
+      let cellFailures := failureCount (batchClaims operations)
+      sideFailures := sideFailures + cellFailures
+      if cellFailures != 0 then
+        failingCells := failingCells + 1
+        if firstFail.isNone then firstFail := some index.val
+        lastFail := some index.val
+    failures := failures + sideFailures
+    IO.println s!"normalized slice {sideName side} operations: {operationCount}"
+    IO.println s!"normalized slice {sideName side} failed integer claims: {sideFailures}"
+    IO.println s!"normalized slice {sideName side} failing cells: {failingCells}"
+    IO.println s!"normalized slice {sideName side} first/last failing cell: {firstFail}/{lastFail}"
+  pure (if failures = 0 then 0 else 1)
+
 def cliMain (args : List String) : IO UInt32 := do
   match args with
   | "check-factor-native" :: rest =>
@@ -536,6 +571,13 @@ def cliMain (args : List String) : IO UInt32 := do
         IO.println s!"normalized {sideName side} failing cells: {failingCells}"
         IO.println s!"normalized {sideName side} first/last failing cell: {firstFail}/{lastFail}"
       pure (if failures = 0 then 0 else 1)
+  | ["reference-factor-normalized-nonzero"] => runNormalizedSlice 1
+  | ["reference-factor-normalized-slice", displacementText] =>
+      match displacementText.toNat? with
+      | some displacement => runNormalizedSlice displacement
+      | none =>
+          IO.eprintln "error: DISPLACEMENT must be a natural number"
+          pure 1
   | ["reference-coarse", cellsText] =>
       match cellsText.toNat? with
       | some cells =>
@@ -564,7 +606,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | reference-factor-normalized | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

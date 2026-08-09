@@ -96,10 +96,17 @@ rational coefficients. The resulting executable 261-cell campaign contains 42,28
 side. All arithmetic claims pass; exactly 171 endpoint-adjacent cells per side fail only the final
 oriented-sign claim (initial indices 90--260 and final 0--170). Lean now proves that
 `(local-D)/v` tends to the exact purely imaginary, downward inverse-Morse derivative and is
-eventually inside an explicit cone with half its imaginary margin. The remaining bridge is to turn
-that cone into the scale-aware directional dyadic rectangle consumed by the reference cells. A
-symmetric norm box necessarily includes impossible wrong-sign displacements. The exponential
-bridge, quotient-to-sign reduction, and seam assembly are not additional gaps.
+eventually inside an explicit cone with half its imaginary margin. The selector now retains this
+cone at the actual positive critical parameter, so Lean obtains both strict endpoint half-plane
+signs and a lower imaginary margin proportional to `L`. Retaining only that sign in a one-sided
+absolute raw-unit box does not improve the 171 failing cells because zero remains in the closed
+box. An injectable LeanCompCert diagnostic isolates the numerical issue: raw imaginary
+displacement `1024` fails 94 cells per side, whereas every tested value from `2048` through
+`262144` passes all 84,564 operations. The fixed trace therefore works at a resolved absolute
+scale but cannot be uniform as the noncomputable `L` shrinks. The remaining bridge is a genuinely
+homogeneous certificate in `(local-D)/L` and endpoint distance relative to `L`, fed by the proved
+slope margin. The exponential bridge, quotient-to-sign reduction, and seam assembly are not
+additional gaps.
 
 This note separates three questions that are easy to conflate:
 

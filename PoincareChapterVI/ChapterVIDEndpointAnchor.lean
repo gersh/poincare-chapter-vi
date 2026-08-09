@@ -148,6 +148,38 @@ theorem eventually_chapterVIDCriticalMorseRootFiber_normalizedDelta_components :
     rw [Complex.sub_im] at himUpper
     linarith
 
+/-- Scale-normalized displacement of either local connector endpoint.  The sign in the
+denominator follows the actual Morse coordinate, so both sides converge to the same derivative. -/
+def chapterVIDNormalizedLocalEndpointDelta
+    (side : ChapterVIDOuterArcSide) (k L : ℝ) : ℂ :=
+  match side with
+  | .initial =>
+      (chapterVIDCriticalMorseRootPoint ((k : ℂ), ((-L : ℝ) : ℂ)) -
+        chapterVIDCollisionLift) / ((-L : ℝ) : ℂ)
+  | .final =>
+      (chapterVIDCriticalMorseRootPoint ((k : ℂ), (L : ℂ)) -
+        chapterVIDCollisionLift) / (L : ℂ)
+
+theorem ChapterVIDPrincipalGlobalRootModel.continuousAt_normalizedLocalEndpointDelta_zero
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalGlobalRootModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    ContinuousAt
+      (fun k : ℝ ↦ chapterVIDNormalizedLocalEndpointDelta side k model.L) 0 := by
+  have hk0 : (0 : ℝ) ∈ Set.Icc 0 model.δ := ⟨le_rfl, model.δ_pos.le⟩
+  cases side with
+  | initial =>
+      have hroot := (model.root_analyticAt 0 hk0 (-model.L) Set.left_mem_uIcc).continuousAt
+      have hcomp := hroot.comp_of_eq
+        (Complex.continuous_ofReal.continuousAt.prodMk continuousAt_const) rfl
+      exact (hcomp.sub_const chapterVIDCollisionLift).div_const
+        (((-model.L : ℝ) : ℂ))
+  | final =>
+      have hroot := (model.root_analyticAt 0 hk0 model.L Set.right_mem_uIcc).continuousAt
+      have hcomp := hroot.comp_of_eq
+        (Complex.continuous_ofReal.continuousAt.prodMk continuousAt_const) rfl
+      exact (hcomp.sub_const chapterVIDCollisionLift).div_const (model.L : ℂ)
+
 @[simp] theorem chapterVIDOuterArcPoint_initial_D :
     chapterVIDOuterArcPoint .initial (1, 1) =
       (‖chapterVIDCollisionLift‖ : ℂ) * Complex.I := by
@@ -797,6 +829,169 @@ structure ChapterVIDAnchoredConnectorModel
     ‖toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.connectorParameterRoot 0 /
         chapterVIDZRootBase - 1‖ ≤
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L ^ 2
+  /-- The actual initial moving endpoint retains the inverse-Morse derivative direction after
+  the critical parameter is moved from zero to `κ`. -/
+  initialNormalizedLocalDelta_mem_directionCone :
+    ‖chapterVIDNormalizedLocalEndpointDelta .initial
+        toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ
+        toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L -
+      deriv chapterVIDGlobalContourFromMorse 0‖ <
+        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2
+  /-- The corresponding directional cone condition on the final moving endpoint. -/
+  finalNormalizedLocalDelta_mem_directionCone :
+    ‖chapterVIDNormalizedLocalEndpointDelta .final
+        toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ
+        toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L -
+      deriv chapterVIDGlobalContourFromMorse 0‖ <
+        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2
+
+theorem ChapterVIDAnchoredConnectorModel.normalizedLocalEndpointDelta_im_lt_half_slope
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    (chapterVIDNormalizedLocalEndpointDelta side model.κ model.rootModel.L).im <
+      (deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+  let q := chapterVIDNormalizedLocalEndpointDelta side model.κ model.rootModel.L
+  let slope := deriv chapterVIDGlobalContourFromMorse 0
+  have hcone : ‖q - slope‖ < -slope.im / 2 := by
+    cases side with
+    | initial => exact model.initialNormalizedLocalDelta_mem_directionCone
+    | final => exact model.finalNormalizedLocalDelta_mem_directionCone
+  have him := (Complex.abs_im_le_norm (q - slope)).trans_lt hcone
+  have himUpper := (abs_lt.mp him).2
+  rw [Complex.sub_im] at himUpper
+  linarith
+
+theorem ChapterVIDAnchoredConnectorModel.normalizedLocalEndpointDelta_im_neg
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    (chapterVIDNormalizedLocalEndpointDelta side model.κ model.rootModel.L).im < 0 := by
+  have hhalf := model.normalizedLocalEndpointDelta_im_lt_half_slope side
+  have hslope := deriv_chapterVIDGlobalContourFromMorse_im_neg
+  linarith
+
+theorem ChapterVIDAnchoredConnectorModel.initialLocalEndpointDelta_im_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d) :
+    0 < (model.rootModel.localConnectorEndpoint .initial (model.criticalValue 0) -
+      chapterVIDCollisionLift).im := by
+  have hq := model.normalizedLocalEndpointDelta_im_neg .initial
+  rw [ChapterVIDPrincipalConnectorModel.criticalValue_zero]
+  unfold chapterVIDNormalizedLocalEndpointDelta at hq
+  have hLne : ((-model.rootModel.L : ℝ) : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (neg_ne_zero.mpr model.rootModel.L_pos.ne')
+  have heq :
+      chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift =
+        ((chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift) / ((-model.rootModel.L : ℝ) : ℂ)) *
+            ((-model.rootModel.L : ℝ) : ℂ) := by
+    field_simp
+  have heim := congrArg Complex.im heq
+  simp only [Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, mul_zero] at heim
+  rw [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint]
+  rw [heim]
+  simpa only [zero_add, chapterVIDNormalizedLocalEndpointDelta] using
+    mul_pos_of_neg_of_neg hq (neg_neg_of_pos model.rootModel.L_pos)
+
+theorem ChapterVIDAnchoredConnectorModel.finalLocalEndpointDelta_im_neg
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d) :
+    (model.rootModel.localConnectorEndpoint .final (model.criticalValue 0) -
+      chapterVIDCollisionLift).im < 0 := by
+  have hq := model.normalizedLocalEndpointDelta_im_neg .final
+  rw [ChapterVIDPrincipalConnectorModel.criticalValue_zero]
+  unfold chapterVIDNormalizedLocalEndpointDelta at hq
+  have hLne : (model.rootModel.L : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr model.rootModel.L_pos.ne'
+  have heq :
+      chapterVIDCriticalMorseRootPoint ((model.κ : ℂ), (model.rootModel.L : ℂ)) -
+          chapterVIDCollisionLift =
+        ((chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), (model.rootModel.L : ℂ)) -
+          chapterVIDCollisionLift) / (model.rootModel.L : ℂ)) *
+            (model.rootModel.L : ℂ) := by
+    field_simp
+  have heim := congrArg Complex.im heq
+  simp only [Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, mul_zero] at heim
+  rw [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint]
+  rw [heim]
+  simpa only [zero_add, chapterVIDNormalizedLocalEndpointDelta] using
+    mul_neg_of_neg_of_pos hq model.rootModel.L_pos
+
+/-- The initial endpoint displacement has a uniform first-order margin in the selected Morse
+length.  This is the scale-aware lower bound consumed by a homogeneous finite certificate. -/
+theorem ChapterVIDAnchoredConnectorModel.length_mul_half_slope_lt_initialLocalEndpointDelta_im
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d) :
+    model.rootModel.L * (-(deriv chapterVIDGlobalContourFromMorse 0).im / 2) <
+      (model.rootModel.localConnectorEndpoint .initial (model.criticalValue 0) -
+        chapterVIDCollisionLift).im := by
+  have hq := model.normalizedLocalEndpointDelta_im_lt_half_slope .initial
+  rw [ChapterVIDPrincipalConnectorModel.criticalValue_zero]
+  unfold chapterVIDNormalizedLocalEndpointDelta at hq
+  have hLne : ((-model.rootModel.L : ℝ) : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (neg_ne_zero.mpr model.rootModel.L_pos.ne')
+  have heq :
+      chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift =
+        ((chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift) / ((-model.rootModel.L : ℝ) : ℂ)) *
+            ((-model.rootModel.L : ℝ) : ℂ) := by
+    field_simp
+  have heim := congrArg Complex.im heq
+  simp only [Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, mul_zero] at heim
+  rw [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint, heim]
+  have hL := model.rootModel.L_pos
+  change
+    ((chapterVIDCriticalMorseRootPoint
+      ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+      chapterVIDCollisionLift) / ((-model.rootModel.L : ℝ) : ℂ)).im <
+        (deriv chapterVIDGlobalContourFromMorse 0).im / 2 at hq
+  have hmul := mul_lt_mul_of_neg_left hq (neg_neg_of_pos hL)
+  calc
+    model.rootModel.L * (-(deriv chapterVIDGlobalContourFromMorse 0).im / 2) =
+        (-model.rootModel.L) * ((deriv chapterVIDGlobalContourFromMorse 0).im / 2) := by
+          ring
+    _ < (-model.rootModel.L) *
+        ((chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift) / ((-model.rootModel.L : ℝ) : ℂ)).im := hmul
+    _ = 0 + ((chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), ((-model.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift) / ((-model.rootModel.L : ℝ) : ℂ)).im *
+          -model.rootModel.L := by ring
+
+/-- The final displacement has the opposite signed margin, with the same Morse-length scale. -/
+theorem ChapterVIDAnchoredConnectorModel.finalLocalEndpointDelta_im_lt_length_mul_half_slope
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d) :
+    (model.rootModel.localConnectorEndpoint .final (model.criticalValue 0) -
+        chapterVIDCollisionLift).im <
+      model.rootModel.L * ((deriv chapterVIDGlobalContourFromMorse 0).im / 2) := by
+  have hq := model.normalizedLocalEndpointDelta_im_lt_half_slope .final
+  rw [ChapterVIDPrincipalConnectorModel.criticalValue_zero]
+  unfold chapterVIDNormalizedLocalEndpointDelta at hq
+  have hLne : (model.rootModel.L : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr model.rootModel.L_pos.ne'
+  have heq :
+      chapterVIDCriticalMorseRootPoint ((model.κ : ℂ), (model.rootModel.L : ℂ)) -
+          chapterVIDCollisionLift =
+        ((chapterVIDCriticalMorseRootPoint
+          ((model.κ : ℂ), (model.rootModel.L : ℂ)) -
+          chapterVIDCollisionLift) / (model.rootModel.L : ℂ)) *
+            (model.rootModel.L : ℂ) := by
+    field_simp
+  have heim := congrArg Complex.im heq
+  simp only [Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, mul_zero] at heim
+  rw [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint, heim]
+  simpa only [zero_add, chapterVIDNormalizedLocalEndpointDelta, mul_comm] using
+    (mul_lt_mul_of_pos_right hq model.rootModel.L_pos)
 
 theorem exists_chapterVIDAnchoredConnectorModel_bounded
     (massProduct : ℂ) (b d : ℤ)
@@ -811,22 +1006,28 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     (eventually_chapterVIDInitialBaseEndpointRealDerivative_neg.and
       eventually_chapterVIDFinalBaseEndpointRealDerivative_pos)
   obtain ⟨εL, hεL, hlengthBall⟩ := Metric.mem_nhdsWithin_iff.mp hlengthEventually
-  let L' := min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)
+  obtain ⟨εCone, hεCone, hconeBall⟩ := Metric.mem_nhdsWithin_iff.mp
+    eventually_chapterVIDCriticalMorseRootFiber_normalizedDelta_mem_directionCone
+  let L' := min (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εCone / 2)
   have hL' : 0 < L' := by
     dsimp [L']
     exact lt_min
-      (lt_min (div_pos oriented.L_pos (by norm_num))
-        (div_pos hεL (by norm_num)))
-      (div_pos hLmaxPos (by norm_num))
+      (lt_min
+        (lt_min (div_pos oriented.L_pos (by norm_num))
+          (div_pos hεL (by norm_num)))
+        (div_pos hLmaxPos (by norm_num)))
+      (div_pos hεCone (by norm_num))
   have hLle : L' ≤ oriented.L := by
-    exact (min_le_left _ _).trans
-      ((min_le_left _ _).trans (by linarith [oriented.L_pos]))
+    exact (min_le_left _ _).trans ((min_le_left _ _).trans
+      ((min_le_left _ _).trans (by linarith [oriented.L_pos])))
   have hLmax : L' ≤ Lmax := by
-    exact (min_le_right _ _).trans (by linarith [hLmaxPos])
+    exact (min_le_left _ _).trans
+      ((min_le_right _ _).trans (by linarith [hLmaxPos]))
   have hLball : L' ∈ Metric.ball (0 : ℝ) εL := by
     rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hL']
-    have := (min_le_left (min (oriented.L / 2) (εL / 2)) (Lmax / 2)).trans
-      (min_le_right (oriented.L / 2) (εL / 2))
+    have := (min_le_left (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2))
+      (εCone / 2)).trans ((min_le_left _ _).trans
+        (min_le_right (oriented.L / 2) (εL / 2)))
     linarith
   have hbaseSigns :
       (0 < chapterVIDInitialBaseEndpointDerivative L' ∧
@@ -834,6 +1035,34 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       (chapterVIDInitialBaseEndpointRealDerivative L' < 0 ∧
         0 < chapterVIDFinalBaseEndpointRealDerivative L') :=
     hlengthBall ⟨hLball, hL'⟩
+  have hLComplexBall : (L' : ℂ) ∈ Metric.ball (0 : ℂ) εCone := by
+    rw [Metric.mem_ball, dist_zero_right, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos hL']
+    have := min_le_right
+      (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εCone / 2)
+    linarith
+  have hnegLComplexBall : ((-L' : ℝ) : ℂ) ∈ Metric.ball (0 : ℂ) εCone := by
+    rw [Metric.mem_ball, dist_zero_right, Complex.norm_real, Real.norm_eq_abs,
+      abs_neg, abs_of_pos hL']
+    have := min_le_right
+      (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εCone / 2)
+    linarith
+  have hinitialDirectionAtZero :
+      ‖chapterVIDNormalizedLocalEndpointDelta .initial 0 L' -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+    apply hconeBall
+    refine ⟨hnegLComplexBall, ?_⟩
+    simpa only [Set.mem_compl_iff, Set.mem_singleton_iff] using
+      (Complex.ofReal_ne_zero.mpr (neg_ne_zero.mpr hL'.ne'))
+  have hfinalDirectionAtZero :
+      ‖chapterVIDNormalizedLocalEndpointDelta .final 0 L' -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+    apply hconeBall
+    refine ⟨hLComplexBall, ?_⟩
+    simpa only [Set.mem_compl_iff, Set.mem_singleton_iff] using
+      (Complex.ofReal_ne_zero.mpr hL'.ne')
   let root := oriented.restrictLength L' hL' hLle
   obtain ⟨connector, hroot⟩ :=
     exists_chapterVIDPrincipalConnectorModel_of_rootModel
@@ -902,7 +1131,29 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       ‖chapterVIDCriticalParameterRootAtD (k : ℂ) /
         chapterVIDZRootBase - 1‖ < L' ^ 2 :=
     hrelativeContinuous.eventually (Iio_mem_nhds hrelativeAt)
-  obtain ⟨εk, hεk, hkBall⟩ := Metric.mem_nhds_iff.mp (hpositive.and hrelativeSmall)
+  have hinitDirectionContinuous : ContinuousAt
+      (fun k : ℝ ↦ ‖chapterVIDNormalizedLocalEndpointDelta .initial k L' -
+        deriv chapterVIDGlobalContourFromMorse 0‖) 0 := by
+    have h := connector.rootModel.continuousAt_normalizedLocalEndpointDelta_zero .initial
+    rw [hrootL] at h
+    exact (h.sub_const _).norm
+  have hfinalDirectionContinuous : ContinuousAt
+      (fun k : ℝ ↦ ‖chapterVIDNormalizedLocalEndpointDelta .final k L' -
+        deriv chapterVIDGlobalContourFromMorse 0‖) 0 := by
+    have h := connector.rootModel.continuousAt_normalizedLocalEndpointDelta_zero .final
+    rw [hrootL] at h
+    exact (h.sub_const _).norm
+  have hdirectional : ∀ᶠ k : ℝ in nhds 0,
+      ‖chapterVIDNormalizedLocalEndpointDelta .initial k L' -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 ∧
+      ‖chapterVIDNormalizedLocalEndpointDelta .final k L' -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 :=
+    (hinitDirectionContinuous.eventually (Iio_mem_nhds hinitialDirectionAtZero)).and
+      (hfinalDirectionContinuous.eventually (Iio_mem_nhds hfinalDirectionAtZero))
+  obtain ⟨εk, hεk, hkBall⟩ := Metric.mem_nhds_iff.mp
+    ((hpositive.and hrelativeSmall).and hdirectional)
   let κ' := min (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)
   have hκ' : 0 < κ' := by
     dsimp [κ']
@@ -927,7 +1178,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
         ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
           (min_le_right connector.κ (εk / 2)))
-      linarith)).1
+      linarith)).1.1
   have hκRelative :
       ‖chapterVIDCriticalParameterRootAtD (κ' : ℂ) /
         chapterVIDZRootBase - 1‖ ≤ L' ^ 2 := by
@@ -936,7 +1187,20 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
         ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
           (min_le_right connector.κ (εk / 2)))
-      linarith)).2.le
+      linarith)).1.2.le
+  have hκDirectional :
+      ‖chapterVIDNormalizedLocalEndpointDelta .initial κ' L' -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 ∧
+      ‖chapterVIDNormalizedLocalEndpointDelta .final κ' L' -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+    exact (hkBall (by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
+      have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
+        ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
+          (min_le_right connector.κ (εk / 2)))
+      linarith)).2
   let restrictedConnector := connector.restrictParameter κ' hκ' hκle
   let restrictedOriented : ChapterVIDOrientedConnectorModel massProduct b d := {
     toChapterVIDPrincipalConnectorModel := restrictedConnector
@@ -949,7 +1213,9 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     initialRealAnchor := ?_
     finalRealAnchor := ?_
     parameter_le_length_sq := ?_
-    parameterRootRelativeDelta_norm_le_length_sq := ?_ }, ?_, ?_⟩
+    parameterRootRelativeDelta_norm_le_length_sq := ?_
+    initialNormalizedLocalDelta_mem_directionCone := ?_
+    finalNormalizedLocalDelta_mem_directionCone := ?_ }, ?_, ?_⟩
   · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
     dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
@@ -978,6 +1244,14 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       ChapterVIDPrincipalConnectorModel.criticalValue]
     rw [hrootL]
     simpa using hκRelative
+  · dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    exact hκDirectional.1
+  · dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    exact hκDirectional.2
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]

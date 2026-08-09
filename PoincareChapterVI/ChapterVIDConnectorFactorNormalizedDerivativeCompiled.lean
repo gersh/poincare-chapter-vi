@@ -46,6 +46,29 @@ with the fixed-point precision, but its compiled representation is always four t
 def rawUnitDeltaRectangle (precision : ℕ) : Rectangle precision :=
   ⟨⟨-1, 1⟩, ⟨-1, 1⟩⟩
 
+/-- The same raw-unit norm box with the inverse-Morse half-plane orientation retained. -/
+def directionalRawUnitDeltaRectangle
+    (side : ChapterVIDOuterArcSide) (precision : ℕ) : Rectangle precision :=
+  match side with
+  | .initial => ⟨⟨-1, 1⟩, ⟨0, 1⟩⟩
+  | .final => ⟨⟨-1, 1⟩, ⟨-1, 0⟩⟩
+
+theorem directionalRawUnitDeltaRectangle_contains
+    {precision : ℕ} {z : ℂ}
+    (side : ChapterVIDOuterArcSide)
+    (hraw : (rawUnitDeltaRectangle precision).Contains z)
+    (hsign : match side with | .initial => 0 ≤ z.im | .final => z.im ≤ 0) :
+    (directionalRawUnitDeltaRectangle side precision).Contains z := by
+  cases side with
+  | initial =>
+      refine ⟨hraw.1, ?_, hraw.2.2⟩
+      change ((0 : ℤ) : ℝ) / ChapterVISignedDyadicInterval.scale precision ≤ z.im
+      simpa using hsign
+  | final =>
+      refine ⟨hraw.1, hraw.2.1, ?_⟩
+      change z.im ≤ ((0 : ℤ) : ℝ) / ChapterVISignedDyadicInterval.scale precision
+      simpa using hsign
+
 theorem rawUnitDeltaRectangle_contains_of_norm_le
     {precision : ℕ} {z : ℂ}
     (hz : ‖z‖ ≤ 1 / ChapterVISignedDyadicInterval.scale precision) :
@@ -112,6 +135,30 @@ theorem exists_model_with_rawUnitDeltaRectangle
     fun side => rawUnitDeltaRectangle_contains_of_norm_le (hlocal side),
     rawUnitDeltaRectangle_contains_of_norm_le
       (model.parameterRootRelativeDelta_norm_le_length_sq.trans hLSquare)⟩
+
+theorem exists_model_with_directionalRawUnitDeltaRectangle
+    (massProduct : ℂ) (b d : ℤ) (precision : ℕ)
+    (Lmax κmax : ℝ) (hLmaxPos : 0 < Lmax) (hκmaxPos : 0 < κmax) :
+    ∃ model : ChapterVIDAnchoredConnectorModel massProduct b d,
+      model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax ∧
+      model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax ∧
+      (∀ side : ChapterVIDOuterArcSide,
+        (directionalRawUnitDeltaRectangle side precision).Contains
+          (model.toChapterVIDPrincipalConnectorModel.rootModel.localConnectorEndpoint side
+              (model.toChapterVIDPrincipalConnectorModel.criticalValue 0) -
+            chapterVIDCollisionLift)) ∧
+      (rawUnitDeltaRectangle precision).Contains
+        (model.toChapterVIDPrincipalConnectorModel.connectorParameterRoot 0 /
+          chapterVIDZRootBase - 1) := by
+  obtain ⟨model, hL, hκ, hlocal, hzeta⟩ :=
+    exists_model_with_rawUnitDeltaRectangle massProduct b d precision Lmax κmax
+      hLmaxPos hκmaxPos
+  refine ⟨model, hL, hκ, ?_, hzeta⟩
+  intro side
+  apply directionalRawUnitDeltaRectangle_contains side (hlocal side)
+  cases side with
+  | initial => exact model.initialLocalEndpointDelta_im_pos.le
+  | final => exact model.finalLocalEndpointDelta_im_neg.le
 
 /-- Precision-20 enclosure of the vector from the local inverse-Morse endpoint to the certified
 outer endpoint.  Both source rectangles were already proved against the terminal radial grid. -/
@@ -515,7 +562,7 @@ def referenceCellProposal
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDAnchoredConnectorModel massProduct b d)
     (localDelta_contains : ∀ side : ChapterVIDOuterArcSide,
-      (rawUnitDeltaRectangle 20).Contains
+      (directionalRawUnitDeltaRectangle side 20).Contains
         (model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
           chapterVIDCollisionLift))
     (zetaDelta_contains : (rawUnitDeltaRectangle 20).Contains
@@ -523,7 +570,7 @@ def referenceCellProposal
     (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
     Cell model side 20 :=
   Cell.propose model side 20 parameter
-    (rawUnitDeltaRectangle 20) (referenceLocalToOuterRectangle side)
+    (directionalRawUnitDeltaRectangle side 20) (referenceLocalToOuterRectangle side)
     (rawUnitDeltaRectangle 20) ChapterVIDConnectorInputBounds.localEndpointRectangle
     referenceYBaseRectangle
     ChapterVIDOuterArcPolarCompiledGrid.inverse10001
@@ -540,7 +587,7 @@ executable reference-cell generator. -/
 structure ReferenceCampaignModel (massProduct : ℂ) (b d : ℤ) where
   model : ChapterVIDAnchoredConnectorModel massProduct b d
   localDelta_contains : ∀ side : ChapterVIDOuterArcSide,
-    (rawUnitDeltaRectangle 20).Contains
+    (directionalRawUnitDeltaRectangle side 20).Contains
       (model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
         chapterVIDCollisionLift)
   zetaDelta_contains : (rawUnitDeltaRectangle 20).Contains
@@ -549,7 +596,7 @@ structure ReferenceCampaignModel (massProduct : ℂ) (b d : ℤ) where
 theorem exists_referenceCampaignModel (massProduct : ℂ) (b d : ℤ) :
     Nonempty (ReferenceCampaignModel massProduct b d) := by
   obtain ⟨model, _, _, hlocal, hzeta⟩ :=
-    exists_model_with_rawUnitDeltaRectangle massProduct b d 20 1 1
+    exists_model_with_directionalRawUnitDeltaRectangle massProduct b d 20 1 1
       (by norm_num) (by norm_num)
   exact ⟨⟨model, hlocal, hzeta⟩⟩
 
@@ -570,11 +617,12 @@ def Cell.operations
     cell.relativeExpTrace.operations ++ cell.trace.operations ++
     [.positiveLower (orientedOutput side cell.trace.output).real]
 
-/-- Pure executable form of the reference proposal, independent of the noncomputable analytic
-model and its erased proof fields. -/
-def referenceOperations (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
+/-- Pure executable form with an injectable local-displacement rectangle, used both by the proved
+reference proposal and by enclosure diagnostics. -/
+def referenceOperationsWithLocalDelta
+    (side : ChapterVIDOuterArcSide) (parameter : Interval 20)
+    (localDelta : Rectangle 20) :
     List (DyadicOperation 20) :=
-  let localDelta := rawUnitDeltaRectangle 20
   let localToOuter := referenceLocalToOuterRectangle side
   let zetaDelta := rawUnitDeltaRectangle 20
   let collision := ChapterVIDConnectorInputBounds.localEndpointRectangle
@@ -599,6 +647,13 @@ def referenceOperations (side : ChapterVIDOuterArcSide) (parameter : Interval 20
   coordinateDeltaTrace.operations ++ collisionConstantsTrace.operations ++
     relativeExpTrace.operations ++ trace.operations ++
     [.positiveLower (orientedOutput side trace.output).real]
+
+/-- Pure executable form of the proved reference proposal, independent of the noncomputable
+analytic model and its erased proof fields. -/
+def referenceOperations (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
+    List (DyadicOperation 20) :=
+  referenceOperationsWithLocalDelta side parameter
+    (directionalRawUnitDeltaRectangle side 20)
 
 theorem ReferenceCampaignModel.cellProposal_operations
     {massProduct : ℂ} {b d : ℤ}

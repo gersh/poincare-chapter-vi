@@ -613,11 +613,20 @@ The strongest newly completed component is the finite algebra in §103:
   per side fail only their final oriented-sign claim (initial indices 90--260, final 0--170).
   This identifies the remaining D connector input precisely. Lean now proves that
   `(local-D)/v` converges to the exact purely imaginary, downward-pointing inverse-Morse derivative
-  and is eventually contained in an explicit open cone of half its imaginary margin. What remains
-  is to convert that cone into the scale-aware directional dyadic rectangle used by the reference
-  cells. Mere norm-smallness gives a symmetric box containing impossible wrong-sign displacements.
-  The arithmetic checker, exponential bridge, quotient-to-sign reduction, and final
-  seam-continuation assembly are complete.
+  and is eventually contained in an explicit open cone of half its imaginary margin. The model
+  selector now preserves that cone after moving the critical parameter to its actual positive
+  value. Consequently Lean proves strict upper/lower half-plane signs for the true initial/final
+  endpoint displacements and a quantitative lower margin equal to `L` times half the inverse-Morse
+  slope. A one-sided raw-unit rerun still fails exactly the same 171 cells because its closed box
+  contains zero. The injectable compiled diagnostic shows that an imaginary raw displacement of
+  `1024` still fails 94 cells per side, while `2048`, `4096`, `8192`, `12288`, `16384`, and
+  `262144` pass all 84,564 operations; overly large values eventually leave the valid sign region.
+  Thus the existing absolute trace is arithmetically viable but cannot be uniform in the
+  noncomputable length `L`. The remaining compiled route must evaluate a genuinely homogeneous
+  expression in `(local-D)/L` and endpoint distance relative to `L`, using the newly proved slope
+  margin, rather than forcing `local-D` into an absolute raw-unit box. The arithmetic checker,
+  exponential bridge, quotient-to-sign reduction, and final seam-continuation assembly are
+  complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
