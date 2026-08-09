@@ -85,10 +85,16 @@ now reconstructed by a 24-subtrace LeanCompCert evaluator. A second compiled tra
 factored relative exponent `A(u)-A(D)` and obtains `exp(A(u)-A(D))-1` from mathlib's rigorous
 complex Taylor remainder, so no transcendental floating-point answer is trusted. The finite-cell
 table layer proves that checked arithmetic plus one terminal oriented sign per cell yields the
-normalized derivative certificate accepted by the seam theorem. What remains is to derive
-concrete scale-aware moving-root and connector-coordinate input enclosures, generate the initial
-and final tables, and run their artifacts; neither the arithmetic checker, exponential bridge,
-quotient-to-sign reduction, nor seam-continuation assembly is an additional gap.
+normalized derivative certificate accepted by the seam theorem. The inverse-Morse big-O estimate
+is now turned into a selector below every requested endpoint radius. At any fixed-point precision,
+both `local-D` and the relative parameter-root perturbation therefore inhabit the static raw-unit
+box `[-1,1]×[-1,1]`. Each cell derives its coordinate and direction from the checked identity
+`u-D=(local-D)+distance*(outer-local)`, so those are no longer independent semantic premises.
+The already certified terminal radial box supplies the required `outer-local` enclosure. What
+remains is to package the reusable algebraic-constant boxes, generate the initial and final tables,
+and run their artifacts; neither the moving-root scale, connector geometry, arithmetic checker,
+exponential bridge, quotient-to-sign reduction, nor seam-continuation assembly is an additional
+gap.
 
 This note separates three questions that are easy to conflate:
 

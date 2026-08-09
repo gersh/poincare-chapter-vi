@@ -21,6 +21,31 @@ open Complex Filter Set
 open scoped unitInterval
 namespace PoincareChapterVI
 
+/-- Analyticity of the inverse-Morse root supplies a quantitative linear bound near the
+collision.  The constant remains internal: the selector below converts it into any requested
+dyadic endpoint radius before data reaches the finite certificate. -/
+theorem eventually_norm_chapterVIDCriticalMorseRootPoint_sub_collision_le :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ point : ℂ × ℂ in nhds (0, 0),
+      ‖chapterVIDCriticalMorseRootPoint point - chapterVIDCollisionLift‖ ≤
+        C * ‖point‖ := by
+  have hbig :=
+    analyticAt_chapterVIDCriticalMorseRootPoint.differentiableAt.isBigO_sub
+  obtain ⟨C, hC⟩ := hbig.bound
+  refine ⟨max C 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), ?_⟩
+  filter_upwards [hC] with point hpoint
+  have hzero : ((0, 0) : ℂ × ℂ) = 0 := rfl
+  rw [hzero, sub_zero] at hpoint
+  have hpoint' :
+      ‖chapterVIDCriticalMorseRootPoint point - chapterVIDCollisionLift‖ ≤
+        C * ‖point‖ := by
+    have hrootZero : chapterVIDCriticalMorseRootPoint (0 : ℂ × ℂ) =
+        chapterVIDCollisionLift := by
+      simpa only [show (0 : ℂ × ℂ) = (0, 0) from rfl] using
+        chapterVIDCriticalMorseRootPoint_base
+    rw [hrootZero] at hpoint
+    exact hpoint
+  exact hpoint'.trans (mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg point))
+
 def chapterVIDInitialBaseEndpointDerivative (L : ℝ) : ℝ :=
   (chapterVIDRootCoordinateCollisionFactorPlusDerivative chapterVIDZRootBase
       (chapterVIDCriticalMorseRootPoint (0, ((-L : ℝ) : ℂ))) *
@@ -903,6 +928,128 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     exact hκmax
+
+/-- The inverse-Morse endpoint input required by a compiled certificate can be made smaller than
+any prescribed positive real radius.  This is the quantitative bridge from analyticity to a
+fixed rational box: a campaign first chooses its dyadic radius, then invokes this selector. -/
+theorem exists_chapterVIDAnchoredConnectorModel_with_local_endpoint_bound
+    (massProduct : ℂ) (b d : ℤ)
+    (Lmax κmax endpointRadius : ℝ)
+    (hLmaxPos : 0 < Lmax) (hκmaxPos : 0 < κmax)
+    (hEndpointRadiusPos : 0 < endpointRadius) :
+    ∃ model : ChapterVIDAnchoredConnectorModel massProduct b d,
+      model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax ∧
+      model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax ∧
+      (∀ side : ChapterVIDOuterArcSide,
+        ‖model.toChapterVIDPrincipalConnectorModel.rootModel.localConnectorEndpoint side
+            (model.toChapterVIDPrincipalConnectorModel.criticalValue 0) -
+          chapterVIDCollisionLift‖ ≤ endpointRadius) := by
+  obtain ⟨C, hC, hrootEventually⟩ :=
+    eventually_norm_chapterVIDCriticalMorseRootPoint_sub_collision_le
+  obtain ⟨ε, hε, hrootBall⟩ := Metric.mem_nhds_iff.mp hrootEventually
+  let selectedLmax :=
+    min Lmax (min (ε / 2) (min (1 / 2) (endpointRadius / (2 * C))))
+  have hselectedLmax : 0 < selectedLmax := by
+    dsimp only [selectedLmax]
+    exact lt_min hLmaxPos
+      (lt_min (div_pos hε (by norm_num))
+        (lt_min (by norm_num) (div_pos hEndpointRadiusPos (mul_pos (by norm_num) hC))))
+  obtain ⟨model, hmodelL, hmodelK⟩ :=
+    exists_chapterVIDAnchoredConnectorModel_bounded massProduct b d selectedLmax κmax
+      hselectedLmax hκmaxPos
+  have hLmax : model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax :=
+    hmodelL.trans (min_le_left _ _)
+  have hLepsilon : model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ ε / 2 :=
+    hmodelL.trans ((min_le_right _ _).trans (min_le_left _ _))
+  have hLhalf : model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ 1 / 2 :=
+    hmodelL.trans ((min_le_right _ _).trans
+      ((min_le_right _ _).trans (min_le_left _ _)))
+  have hLradius : model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤
+      endpointRadius / (2 * C) :=
+    hmodelL.trans ((min_le_right _ _).trans
+      ((min_le_right _ _).trans (min_le_right _ _)))
+  have hkLeL : model.toChapterVIDPrincipalConnectorModel.κ ≤
+      model.toChapterVIDPrincipalConnectorModel.rootModel.L := by
+    calc
+      model.toChapterVIDPrincipalConnectorModel.κ ≤
+          model.toChapterVIDPrincipalConnectorModel.rootModel.L ^ 2 :=
+        model.parameter_le_length_sq
+      _ ≤ model.toChapterVIDPrincipalConnectorModel.rootModel.L := by
+        nlinarith [model.toChapterVIDPrincipalConnectorModel.rootModel.L_pos]
+  have hCL : C * model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ endpointRadius := by
+    calc
+      C * model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤
+          C * (endpointRadius / (2 * C)) :=
+        mul_le_mul_of_nonneg_left hLradius hC.le
+      _ = endpointRadius / 2 := by field_simp [hC.ne']
+      _ ≤ endpointRadius := by linarith
+  refine ⟨model, hLmax, hmodelK, ?_⟩
+  intro side
+  have hpointNorm (v : ℂ) (hv : ‖v‖ =
+      model.toChapterVIDPrincipalConnectorModel.rootModel.L) :
+      ‖((model.toChapterVIDPrincipalConnectorModel.κ : ℂ), v)‖ =
+        model.toChapterVIDPrincipalConnectorModel.rootModel.L := by
+    rw [Prod.norm_def, hv]
+    simp only [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos model.toChapterVIDPrincipalConnectorModel.κ_pos]
+    exact max_eq_right hkLeL
+  have hinitialNorm :
+      ‖((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+          ((-model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℝ) : ℂ))‖ =
+        model.toChapterVIDPrincipalConnectorModel.rootModel.L := by
+    apply hpointNorm
+    simp only [Complex.norm_real, Real.norm_eq_abs, abs_neg,
+      abs_of_pos model.toChapterVIDPrincipalConnectorModel.rootModel.L_pos]
+  have hfinalNorm :
+      ‖((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+          (model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℂ))‖ =
+        model.toChapterVIDPrincipalConnectorModel.rootModel.L := by
+    apply hpointNorm
+    simp only [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos model.toChapterVIDPrincipalConnectorModel.rootModel.L_pos]
+  have hinitialMem :
+      ((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+          ((-model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℝ) : ℂ)) ∈
+        Metric.ball ((0, 0) : ℂ × ℂ) ε := by
+    rw [Metric.mem_ball]
+    have hzero : ((0, 0) : ℂ × ℂ) = 0 := rfl
+    rw [hzero, dist_zero_right]
+    rw [hinitialNorm]
+    linarith
+  have hfinalMem :
+      ((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+          (model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℂ)) ∈
+        Metric.ball ((0, 0) : ℂ × ℂ) ε := by
+    rw [Metric.mem_ball]
+    have hzero : ((0, 0) : ℂ × ℂ) = 0 := rfl
+    rw [hzero, dist_zero_right]
+    rw [hfinalNorm]
+    linarith
+  cases side with
+  | initial =>
+      have hbound := hrootBall hinitialMem
+      change ‖chapterVIDCriticalMorseRootPoint
+          ((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+            ((-model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℝ) : ℂ)) -
+          chapterVIDCollisionLift‖ ≤ C *
+            ‖((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+              ((-model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℝ) : ℂ))‖ at hbound
+      rw [hinitialNorm] at hbound
+      simpa only [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+        ChapterVIDPrincipalConnectorModel.criticalValue_zero] using
+        hbound.trans hCL
+  | final =>
+      have hbound := hrootBall hfinalMem
+      change ‖chapterVIDCriticalMorseRootPoint
+          ((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+            (model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℂ)) -
+          chapterVIDCollisionLift‖ ≤ C *
+            ‖((model.toChapterVIDPrincipalConnectorModel.κ : ℂ),
+              (model.toChapterVIDPrincipalConnectorModel.rootModel.L : ℂ))‖ at hbound
+      rw [hfinalNorm] at hbound
+      simpa only [ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+        ChapterVIDPrincipalConnectorModel.criticalValue_zero] using
+        hbound.trans hCL
 
 /-- An anchored connector exists without prescribing numerical bounds.  The bounded form above is
 the one used by a concrete finite campaign; this compatibility wrapper preserves the simpler

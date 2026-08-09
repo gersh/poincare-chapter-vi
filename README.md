@@ -600,11 +600,17 @@ The strongest newly completed component is the finite algebra in §103:
   `A(u)-A(D)` and uses the rigorous complex Taylor remainder to enclose `exp(A(u)-A(D))-1` without
   trusting transcendental floating-point evaluation.
   `ChapterVIDConnectorFactorNormalizedDerivativeCompiled.lean` supplies the finite-cell cover,
-  terminal orientation claim, deterministic proposal, and table-to-compiled-data theorem. Thus
-  the remaining D connector task has narrowed to concrete scale-aware enclosures for the moving
-  root coordinate and connector inputs, followed by generation and execution of the two tables;
-  the arithmetic checker, exponential bridge, quotient-to-sign reduction, and final
-  seam-continuation assembly are complete.
+  terminal orientation claim, deterministic proposal, and table-to-compiled-data theorem. Its
+  cells now retain the exact affine dependency
+  `u-D=(local-D)+distance*(outer-local)` instead of accepting unrelated boxes for `u`, `u-D`, and
+  the path direction. Analyticity of the inverse-Morse map is converted into an arbitrarily small
+  endpoint-displacement bound; at any fixed-point precision the selector puts both `local-D` and
+  the relative parameter-root perturbation in the literal raw-integer box `[-1,1]×[-1,1]`.
+  The previously certified terminal radial box also supplies `outer-local` directly. Thus the
+  remaining D connector task is generation and execution of the two concrete tables together
+  with the reusable algebraic-constant input boxes; the moving-root scale, connector geometry,
+  arithmetic checker, exponential bridge, quotient-to-sign reduction, and final seam-continuation
+  assembly are complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
