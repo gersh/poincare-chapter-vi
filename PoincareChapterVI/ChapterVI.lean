@@ -53,6 +53,7 @@ import PoincareChapterVI.ChapterVIDOuterArcUnitCompiledGrid
 import PoincareChapterVI.ChapterVILeanCompCertRealBridge
 import PoincareChapterVI.ChapterVIDHomogeneousAdmissibility
 import PoincareChapterVI.ChapterVIDConnectorFullBulk
+import PoincareChapterVI.ChapterVIDJointLiftedContour
 import PoincareChapterVI.ChapterVIContourTransport
 import PoincareChapterVI.ChapterVIComplexBranch
 import PoincareChapterVI.ChapterVICurveAlgebra
@@ -74,6 +75,7 @@ import PoincareChapterVI.ChapterVIDFiberDerivative
 import PoincareChapterVI.ChapterVIAnalyticCriticalCenter
 import PoincareChapterVI.ChapterVIAnalyticCentering
 import PoincareChapterVI.ChapterVISection102DarbouxTransfer
+import PoincareChapterVI.ChapterVNo85FourierExtraction
 import PoincareChapterVI.Section103.Ruppert
 import PoincareChapterVI.Section103.RuppertCertificate
 import PoincareChapterVI.Section103.RuppertKernel
@@ -156,8 +158,14 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   configuration asserted by Poincaré. The winding obstruction formalizes why opposite sides force
   a genuine pinch. `ChapterVIDRadialContour.lean` constructs the corresponding contour family:
   a circle whose radius begins at one, remains strictly between the two pole radii, and reaches
-  their common negative-real collision at its final half-turn. Poincaré's general square-root
-  sheet continuation in §98 remains a sketch in the source and is not claimed here.
+  their common negative-real collision at its final half-turn. Re-evaluating the literal unit
+  circle near D is proved impossible because its winding data have changed.
+  `ChapterVIDJointLiftedContour.lean` instead constructs the terminal jointly moving five-piece
+  source cycle, proves its literal radicand nonzero on the positive half-open parameter family,
+  lifts one principal-base-normalized square-root sheet, and identifies that sheet with both
+  compiled outer branches, both connector branches, and the positive Morse branch. Poincaré's
+  preceding long-range sheet continuation from the original §94 circle into this near-D family
+  remains a sketch in the source and is not claimed here.
 * §99--101 (pp. 314--325): local singular expansions and Darboux asymptotics show that high-order
   resonant coefficients do not vanish. `exists_chapterVI_weierstrassNormalForm` applies
   Weierstrass preparation to a bivariate formal series whose parameter specialization has order
@@ -275,15 +283,22 @@ the decisive complex-singularity calculation in Chapter VI of Poincaré's first 
   real half-plane, it also selects the canonical principal square root and proves the two outer
   sheets agree at their common positive-real endpoint. The local `z^(1/3)` germ is likewise now
   normalized to the global positive-real parameter lift, and Lean proves they agree on an entire
-  neighborhood of D. Thus only the collision square-root sheet must be matched to the middle
-  Morse sheet before identifying the resulting three-piece cycle with the continued source
-  contour.
+  neighborhood of D. `ChapterVIDJointLiftedContour.lean` now performs the terminal matching: one
+  jointly lifted sheet restricts exactly to the two outer, two connector, and middle Morse
+  branches. The remaining contour obligation is the earlier transport from the original §94
+  circle into that certified near-D family and the uniform regular-remainder estimate along it.
 * §102--103 (pp. 325--334): Poincaré uses the dependence of complex singular points on orbital
   parameters and an algebraic-curve intersection count to contradict an additional uniform
   integral. `chapterVI_scaledSingularities_jacobian_det` verifies the exact Jacobian rescaling
   factor `-z₁⁶ / ζ⁷` in §102. It does not establish the analytic dependence or rank hypotheses.
   `chapterVI_scaledSingularities_jacobian_det_eq_zero_iff` proves the ensuing equivalence between
   dependence of the six scaled singularities and dependence of their five ratios.
+  `ChapterVNo85FourierExtraction.lean` applies Mathlib's Haar Fourier coefficient on the actual
+  two-dimensional unit additive torus to one pointwise first-order Poisson identity and derives
+  the selected head and five tail equations. Its source-facing structure retains the standard
+  Fourier multiplier and orbital differentiation-under-the-integral fields, resonance, and
+  independence that must still be derived from the full historical Hamiltonian and uniform
+  integral.
   `ChapterVISection102.lean` verifies the block-determinant step on p. 329 and reduces the
   §102--103 contradiction to Darboux coefficient data factoring through two essential orientation
   coordinates. Both an isolated leading singularity and a locally uniform finite spectrum of

@@ -176,25 +176,31 @@ two literal source obligations are misstated, rather than merely absent from Lea
 
 After those corrections, the central source-level analytic and geometric steps still open are:
 
-- placing and transporting the actual source-sheet integration cycle around the now-certified
-  synchronized collision branches and proving that its local middle arc realizes the double
-  pinch;
+- transporting the original §94 source-sheet integration cycle through the long parameter range
+  into the now-certified near-D five-piece family while avoiding every moving zero;
 - proving which candidate singularities pinch the integration cycle and are genuine rather than
   apparent;
-- carrying the actual parameter-dependent source contour into the now-constructed local prepared
-  branch and proving that the resulting logarithmic term has the required nonzero coefficient;
+- controlling the complementary regular arcs during the long-range transport;
 - deriving the logarithmic decomposition from the contour pinch and proving that its amplitudes
   extend analytically beyond the common boundary circle;
-- extracting the pre-resonance first-order Fourier identities and independence condition from a
-  full Chapter V uniform-integral model and identifying those coefficient observables with the
-  singularity ratios recovered from the actual contour. Lean now performs the resonance
-  elimination, corrected (13 bis) construction, and rank chain `6 → 5 → 4 → 2`.
+- deriving the standard Fourier multiplier, orbital differentiation/interchange, resonance, and
+  independence fields from a full Chapter V uniform-integral model and identifying those
+  coefficient observables with the singularity ratios recovered from the actual contour. Lean
+  now extracts the six coefficient equations from one torus-level identity, then performs the
+  resonance elimination, corrected (13 bis) construction, and rank chain `6 → 5 → 4 → 2`.
 
 The formerly separate connector nonvanishing item is closed on the domain actually used by the
 continuation.  `ChapterVIDConnectorFullBulk.lean` proves the literal radicand nonzero on both
 `[0,1) × [0,1]` connector rectangles by combining the existing full two-dimensional bulk rows
 with the homogeneous endpoint argument fiber by fiber, and constructs continuous square-root
 sheets there by covering-space lifting.
+
+The terminal branch-identification item is also closed. `ChapterVIDJointLiftedContour.lean`
+constructs one closed near-D source contour from the five certified pieces, proves the literal
+radicand nonzero on its positive half-open parameter family, constructs a principal-base-
+normalized square-root sheet, and proves its restriction is exactly every compiled outer,
+connector, and positive Morse branch. This is the terminal part of the continuation, not the
+still-unprinted global homotopy beginning at the §94 circle.
 
 This is not merely a matter of filling routine Lean library gaps. At the end of §98 Poincaré says
 that he has only sketched the discussion and calls for a complete analytic study of the different
@@ -209,13 +215,13 @@ transcription of the 1892 text.
 | §§91–92 | Osculating variables, the first homological equation, and invariance under a coordinate change | The product-rule/homological algebra has restricted analogues | Formalize the source coordinate maps, domains, symplecticity, and the precise notion of a uniform first integral used in Chapter V–VI |
 | §93 | Darboux's one-variable coefficient estimates | `ChapterVIDarbouxTransfer.lean` proves coefficient extraction, larger-disk remainder decay, finite-jet decay, conditional Tannery transfer, and a weighted-convolution transfer whose summability follows from larger-disk analyticity; `ChapterVIDarbouxSpectrum.lean` separates competing equal-modulus bases | Derive the regular-factor analytic decomposition from the actual contour singularities, uniformly in the parameters |
 | §94 | Convert coefficients on `(m₁,m₂)=(an+b,cn+d)` to coefficients of one Laurent series `Φ(z)` | `ChapterVILatticeReduction.lean` proves the affine-lattice reindexing; `ChapterVIContour.lean` proves finite and absolutely summable Laurent coefficient extraction; `ChapterVIPhi.lean` defines the literal normalized `Φ`, proves its finite contour value is exactly Poincaré's affine-ray Laurent polynomial, and keeps the selected `c`-th root explicit | Define the complete physical perturbing Fourier series and prove its holomorphic convergence on an annulus, allowing all substitutions, infinite sum/integral interchanges, and branch choices |
-| §95 | Candidate singularities arise when moving singularities of the integrand obstruct contour deformation | `ChapterVIContourTransport.lean` proves equality for relative and free closed `C²` homotopies and derives closedness automatically. `ChapterVIWindingObstruction.lean` evaluates the unit-circle winding integral inside and outside and proves that a smoothly transported closed contour cannot avoid two translated poles with winding numbers one and zero as they coalesce. `ChapterVIDRadialContour.lean` applies this to the concrete branches: the outside pole eventually lies strictly inside the fixed circle, so the old fixed-unit-circle continuation premise is impossible. `ChapterVIPhi.lean` supplies the initial literal unit circle, while `ChapterVICycleDecomposition.lean` splits a deformed `C₀=C₀' * C₀'' * C₀'''` exactly | Construct a **jointly moving lifted cycle** beginning at the §94 circle in the complement of all source-radicand zeros, identify its terminal local middle arc with the certified pinch contour, and control the complementary regular arcs |
+| §95 | Candidate singularities arise when moving singularities of the integrand obstruct contour deformation | `ChapterVIContourTransport.lean` proves equality for relative and free closed `C²` homotopies and derives closedness automatically. `ChapterVIWindingObstruction.lean` evaluates the unit-circle winding integral inside and outside and proves that a smoothly transported closed contour cannot avoid two translated poles with winding numbers one and zero as they coalesce. `ChapterVIDRadialContour.lean` applies this to the concrete branches: the outside pole eventually lies strictly inside the fixed circle, so the old fixed-unit-circle continuation premise is impossible. `ChapterVIPhi.lean` supplies the initial literal unit circle, while `ChapterVICycleDecomposition.lean` splits a deformed `C₀=C₀' * C₀'' * C₀'''` exactly. `ChapterVIDJointLiftedContour.lean` constructs and lifts the terminal near-D five-piece source cycle and identifies all five branches | Construct the preceding **jointly moving lifted cycle** from the §94 circle into that terminal family in the complement of all source-radicand zeros, and control the complementary regular arcs |
 | §96 | Algebraic equations for candidate singularities | `ChapterVISingularityAlgebra.lean` identifies the concrete Laurent radicand with `(ξ-βη)(ξ₀-β₀η₀)`, proves that clearing `2xy` gives the product of the general collision cubics, and verifies both-eccentricity half-angle reductions. `ChapterVISourceCoordinates.lean` constructs the literal analytic germ `ψ(z,t)`. `ChapterVIDCandidate.lean` and `ChapterVIDFiberDerivative.lean` certify a concrete point `D`, prove both inverse-coordinate ODEs on a neighborhood, and prove the complete literal radicand has fiber order exactly two | Extend the concrete instance to Poincaré's parameter region and connect it to the global admissibility deformation |
-| §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | The concrete descendants, common parameter, transformed literal-radicand zeros, winding obstruction, and a pole-weighted radial contour are proved. `ChapterVIDRadialContour.lean` proves that the exact `u ↦ t` map carries the `u`-unit circle to the literal §94 `t`-unit circle and constructs an explicit homotopy of parametrizations at a fixed parameter. It also proves why re-evaluating this same circle near D is not the analytic continuation: the initially outside pole has crossed inside. A second certificate-friendly contour uses the explicit sixth-root radius `q(s)^(1/6)(r_D/q_D^(1/6))^s`; its endpoint geometry and compiled positive-real-part certificates on both outer quarters are proved. `ChapterVIDGlobalMorseBridge.lean` handles the local germ. `ChapterVIDRealCriticalParameter.lean` proves exact local/global real-ray synchronization. `ChapterVIDRootConnectors.lean` defines both concrete connector rectangles. The full bulk and homogeneous tables prove literal-radicand nonvanishing on every positive critical-value fiber, and Lean constructs square-root sheets on both half-open rectangles. `ChapterVIDConnectorIntegral.lean` proves that each transformed connector integral is literally the source curve integral. | Lift the original §94 germ along a parameter-dependent source cycle, then identify its near-D representative with the resulting five-piece contour in the complement of all moving zeros; prove uniform regular-remainder control |
-| §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | The exact source germ, double-zero checks, analytic center, joint division, Morse coordinate, critical-value coordinate, transversality, and literal nonzero §94 amplitude are formalized. `ChapterVILocalVanishingCycle.lean` extracts one rectangle where the literal radicand is exactly `k+v²` and proves that the actual symmetric middle integral has the nonzero `-log k` coefficient. `ChapterVICycleDecomposition.lean` proves exact three-arc localization, and `ChapterVIThreeArcAsymptotic.lean` transfers the local coefficient to the full contour. The compiled outer quarters and connectors now assemble with compatible sheets into the five-piece logarithmic limit. | Identify the analytic continuation of the original source germ along a jointly moving lifted cycle with the certified five-piece contour and control the complementary regular arcs |
+| §§97–98 | Decide which candidates are admissible and which singularity lies on the boundary of the Laurent annulus | The concrete descendants, common parameter, transformed literal-radicand zeros, winding obstruction, and a pole-weighted radial contour are proved. `ChapterVIDRadialContour.lean` proves that the exact `u ↦ t` map carries the `u`-unit circle to the literal §94 `t`-unit circle and constructs an explicit homotopy of parametrizations at a fixed parameter. It also proves why re-evaluating this same circle near D is not the analytic continuation: the initially outside pole has crossed inside. A second certificate-friendly contour uses the explicit sixth-root radius `q(s)^(1/6)(r_D/q_D^(1/6))^s`; its endpoint geometry and compiled positive-real-part certificates on both outer quarters are proved. `ChapterVIDGlobalMorseBridge.lean` handles the local germ. `ChapterVIDRealCriticalParameter.lean` proves exact local/global real-ray synchronization. `ChapterVIDRootConnectors.lean` defines both concrete connector rectangles. The full bulk and homogeneous tables prove literal-radicand nonvanishing on every positive critical-value fiber, and Lean constructs square-root sheets on both half-open rectangles. `ChapterVIDConnectorIntegral.lean` proves that each transformed connector integral is literally the source curve integral. `ChapterVIDJointLiftedContour.lean` assembles the terminal closed source cycle, lifts one joint square-root sheet, and identifies every certified piece. | Lift the original §94 germ through the earlier parameter range into the near-D family in the complement of all moving zeros; prove uniform regular-remainder control |
+| §99 | Localize at a pinch and prepare the double zero as `ψ=((t-h)²+k)ψ₁` | The exact source germ, double-zero checks, analytic center, joint division, Morse coordinate, critical-value coordinate, transversality, and literal nonzero §94 amplitude are formalized. `ChapterVILocalVanishingCycle.lean` extracts one rectangle where the literal radicand is exactly `k+v²` and proves that the actual symmetric middle integral has the nonzero `-log k` coefficient. `ChapterVICycleDecomposition.lean` proves exact three-arc localization, and `ChapterVIThreeArcAsymptotic.lean` transfers the local coefficient to the full contour. The compiled outer quarters and connectors now assemble with compatible sheets into the five-piece logarithmic limit; `ChapterVIDJointLiftedContour.lean` proves that these are restrictions of one terminal joint sheet. | Join the analytic continuation of the original §94 source germ to this terminal family and control the complementary regular arcs |
 | §100 | Integrate the prepared local model to obtain `Φ₂+Φ₃ log(z-z₀)` and apply Darboux | `ChapterVIJointPreparation.lean` proves the exact logarithmic primitive on the singular fiber. `ChapterVILocalVanishingCycle.lean` proves the parameter-dependent logarithmic asymptotic for the literal principal source term, and `ChapterVIThreeArcAsymptotic.lean` isolates the exact global continuation/regular-remainder premise. `ChapterVIDarbouxTransfer.lean` and `ChapterVIDarbouxSpectrum.lean` prove the downstream coefficient machinery. | Discharge the source-sheet and regular-remainder premise, then prove the larger-disk analyticity needed by Darboux uniformly in orbital parameters |
 | §101 | Astronomical example (the Pallas inequality) | Not formalized | Optional for nonintegrability; relevant only if the project also verifies the numerical application |
-| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVISection102.lean` now formalizes the pre-resonance first-order Fourier coefficient equation, imposes resonance (12 bis), derives equation (13), corrects the printed normalization in (13 bis), proves the characteristic direction is nonzero from independence, and obtains the exact rank chain `6 → 5 → 4 → 2`, ending in the certified §103 contradiction. It also proves by an exact rational counterexample that the printed `-ζH=S` cannot yield (13 bis); the required relation is `H=-ζS`. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, and prevents root-label permutation. | Instantiate the formal first-order data from the full source Hamiltonian and a putative uniform integral, then identify the six rescaled Fourier coefficients with the singularity observables of the actual continued contour, including common-radius and regular-factor estimates |
+| §102 | A uniform integral would constrain the singular points to depend on too few parameters | `ChapterVIJacobian.lean` verifies the displayed rescaling. `ChapterVNo85FourierExtraction.lean` applies actual Haar Fourier coefficients on the two-torus to one pointwise first-order Poisson identity and derives the head plus five tail equations. `ChapterVISection102.lean` imposes resonance (12 bis), derives equation (13), corrects the printed normalization in (13 bis), proves the characteristic direction is nonzero from independence, and obtains the exact rank chain `6 → 5 → 4 → 2`, ending in the certified §103 contradiction. It also proves by an exact rational counterexample that the printed `-ζH=S` cannot yield (13 bis); the required relation is `H=-ζS`. `ChapterVISection102DarbouxTransfer.lean` keeps the common radius explicit (`R z₀⁻¹`), supports constant, finite-jet, Tannery-controlled, and regular-factor analytic amplitudes, and prevents root-label permutation. | Derive the torus model's multiplier/interchange, resonance, and independence fields from the full source Hamiltonian and putative uniform integral, then identify the six rescaled Fourier coefficients with the singularity observables of the actual continued contour, including common-radius and regular-factor estimates |
 | §103 | Count 24 finite singular points and contradict the rank constraint using the sextic and reduced septic | The exact curve, irreducibility, local multiplicities, 24-point affine locus, transversality, rotation source, and finite restriction calculation are formalized under `Section103/`. `MovingAlgebraicBranches.lean` constructs the moving sextic and septic from the Cayley rotation, proves joint analyticity, applies the complex IFT at every certified point, computes the canonical root differential, derives equation (2) from first-order stationarity, and completes the contradiction through the LeanCompCert certificate | No additional finite calculation or source-identification interface remains in the §103 endgame |
 
 ## What the current Lean files actually establish
@@ -359,8 +365,8 @@ The source-facing files added after the standalone-project commit are deliberate
   actual nonzero logarithmic term, not only its formal pole. The canonical joint unit is defined
   as `ψ(z,u)/u²` off the centered axis and `∂²ᵤψ(z,0)/2` on it; Lean proves the exact
   factorization everywhere, nonvanishing at D, and analyticity off the axis. Identifying that
-  particular axis normalization with the constructed joint analytic unit remains open; placement
-  of the source cycle also remains open.
+  particular axis normalization with the constructed joint analytic unit remains open; the
+  terminal source cycle is placed, while its long-range transport from §94 remains open.
 - `ChapterVIJointPreparation.lean`: packages the twice-divided centered source germ as a
   `ChapterVIConvergentPreparedGerm` whose center and kappa are identically zero and whose
   quadratic factor is exactly `u²`. The generic local square-root machinery therefore gives a
@@ -589,14 +595,17 @@ Riemann surface and the contour behave. A modern reconstruction should state:
 5. a criterion, normally an intersection number, for whether monodromy changes the integration
    cycle and hence produces an actual logarithmic singularity.
 
-This remains the conceptual bottleneck globally, but the local coefficient is no longer open.
+This remains the conceptual bottleneck globally, but the local coefficient and terminal lifted
+cycle are no longer open.
 `ChapterVILocalVanishingCycle.lean` applies the parametric pinch theorem to Poincaré's literal
 principal numerator/Jacobian on a rectangle where the actual source radicand is exactly `k+v²`;
 the coefficient is proved nonzero. `ChapterVIThreeArcAsymptotic.lean` proves that this is also the
 full contour coefficient once the source-sheet three-arc realization and an `o(-log k)` estimate
 for the two outer arcs are supplied; it also proves that any finite regular-arc limit implies this
-estimate automatically. The missing theorem must construct that relative `C²` source-sheet
-deformation and prove continuity of the exposed regular remainder.
+estimate automatically. `ChapterVIDJointLiftedContour.lean` constructs the near-D five-piece
+source-sheet family and proves all its branch restrictions. The missing theorem must join the §94
+circle to this family by a relative source-sheet deformation and prove continuity of the exposed
+regular remainder along the full route.
 
 ### 2. From a local logarithm to a coefficient theorem (§100)
 
@@ -791,11 +800,14 @@ additionally performs the finite Chapter V algebra that was formerly hidden insi
 to no. 85: from the pre-resonance first-order Fourier equation, resonance (12 bis), and
 independence it derives the corrected common-kernel equation and rank five. The printed
 normalization `-ζH=S` is false for `Dλ=Bλζ^λ`; Lean checks an exact rational counterexample,
-while `H=-ζS` gives the asserted cancellation. Thus the remaining source-level task in
-§§102–103 is to instantiate those first-order hypotheses from a full analytic uniform-integral
-model and identify the resulting six coefficients with the common-radius singularity observables
-of the continued contour. The finite algebra from those hypotheses to the rank-at-most-two bound
-is now kernel checked, not another computation or coordinate-identification layer.
+while `H=-ζS` gives the asserted cancellation. `ChapterVNo85FourierExtraction.lean` now applies
+the actual two-torus Haar Fourier functional to one function-level first-order Poisson equation,
+so the head and five tail equations are derived together rather than assumed separately. Thus
+the remaining source-level task in §§102–103 is to derive its standard multiplier/interchange,
+resonance, and independence fields from a full analytic uniform-integral model and identify the
+resulting six coefficients with the common-radius singularity observables of the continued
+contour. The analytic coefficient extraction and finite algebra from those hypotheses to the
+rank-at-most-two bound are now kernel checked.
 
 ## LeanCompCert trust boundary
 

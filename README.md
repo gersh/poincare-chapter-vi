@@ -416,8 +416,18 @@ The strongest newly completed component is the finite algebra in §103:
   this half-open rectangle is contractible, Lean constructs the corresponding continuous
   square-root sheets.  The excluded face is the collision limit and is supplied by the already
   proved local Morse chart; demanding a nonvanishing global branch on the pinched face was the
-  wrong historical obligation.  What remains is to identify the resulting five-piece closed
-  contour with the continued source cycle.
+  wrong historical obligation.
+- `ChapterVIDJointLiftedContour.lean` closes the terminal-cycle bookkeeping that formerly sat
+  between those five pieces. It concatenates the two compiled outer quarters, both affine
+  connectors, and the inverse-Morse middle segment into one literal closed path in the global
+  root coordinate, maps it through Poincare's exact nonlinear source-coordinate map, and proves
+  that the literal source radicand is continuous and nonzero on the positive half-open family
+  `[0,1) × [0,1]`. Covering-space lifting therefore constructs one basepoint-normalized square-
+  root sheet on the whole family. Exact dyadic reparametrization lemmas and connectedness then
+  identify its restrictions with the compiled principal outer sheets, both certified connector
+  sheets, and the positive Morse root. What remains on this side is the earlier, long-range
+  deformation that transports the original §94 circle into this near-D family while avoiding
+  every moving zero, together with uniform control of the complementary regular contribution.
 - `ChapterVIDMovingRootBridge.lean`, `ChapterVIDGlobalRootModel.lean`,
   `ChapterVIDRootConnectors.lean`, `ChapterVIDConnectorIntegral.lean`, and
   `ChapterVIDConnectorPlacement.lean` now make that boundary
@@ -446,9 +456,11 @@ The strongest newly completed component is the finite algebra in §103:
   winding invariance forbids a pole-avoiding continuation which keeps that contour fixed.
   Analytic continuation must use a jointly moving cycle. The misleading
   `principalPhiAlongCriticalValue` conditional theorem has therefore been removed rather than
-  treated as a source deformation. What remains is to lift the original §94 germ along the
-  moving radial cycle and identify its near-D lift with the seam-compatible five-piece cycle;
-  the positive-parameter connector nonvanishing and square-root-sheet obligations are theorems.
+  treated as a source deformation. The near-D lift and its exact identification with all five
+  seam-compatible pieces are now theorems in `ChapterVIDJointLiftedContour.lean`. What remains is
+  to lift the original §94 germ through the preceding parameter range and join it to that near-D
+  family; the positive-parameter connector nonvanishing, square-root sheet, and terminal branch
+  identification are no longer premises.
   The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
@@ -794,12 +806,19 @@ common-scale quotient and the complete §103 contradiction.
 equation, including the `Cλ` term; Lean imposes (12 bis), eliminates that term, constructs the
 corrected characteristic direction, and proves the rank-five bound without a separate (13 bis)
 premise. `chapterVNo85_printed_normalization_counterexample` evaluates the printed convention at
-`λ=1, ζ=2, B=S=1` and obtains a nonzero residual. What remains in §§102–103 is to derive
+`λ=1, ζ=2, B=S=1` and obtains a nonzero residual.
+`ChapterVNo85FourierExtraction.lean` now performs the analytic coefficient-extraction step on
+Mathlib's actual two-dimensional unit additive torus. Fourier linearity turns one pointwise
+first-order Poisson identity into the head and five tail coefficient equations; those six
+equations are no longer separately postulated. Its source-facing model records the standard
+Fourier multiplier rules for the angle derivatives and interchange of orbital differentiation
+with Haar integration, then constructs `ChapterVNo85ResonantFirstOrderData` and the rank-five
+theorem. What remains in §§102–103 is to derive those multiplier/interchange and independence
+hypotheses from Poincare's full source Hamiltonian and putative uniform integral, to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
 including the function-level logarithmic decomposition and larger-disk analyticity for its
-varying analytic amplitudes, and to extract the recorded first-order coefficient identities and
-independence condition from a full analytic Chapter V uniform integral. The resulting
-coefficients, common radius, and collision-root ratios must then be identified with the contour
+varying analytic amplitudes, and to identify the resulting
+coefficients, common radius, and collision-root ratios with the contour
 data. Poincaré states this implication in §102 by referring back to Chapter V, no. 85; it is not
 a consequence of the finite §103 computation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly

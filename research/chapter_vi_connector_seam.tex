@@ -47,9 +47,12 @@ for the first factor.
 The subsequent Lean development reuses the same bulk rows uniformly in the critical-value
 coordinate and joins them to this scale-sensitive collar argument on every positive fiber.  It
 therefore proves connector-radicand nonvanishing and constructs a continuous square-root sheet
-on each half-open rectangle $[0,1)\times[0,1]$.  This still does not prove the global
-source-contour deformation in \S\S95--100 or derive the source-specific coefficient
-factorization in \S102 from the full Chapter~V uniform-integral problem.
+on each half-open rectangle $[0,1)\times[0,1]$.  The later file
+\path{ChapterVIDJointLiftedContour.lean} assembles those sheets with the outer and middle sheets
+into one closed, basepoint-normalized lifted five-piece family near $D$.  This still does not
+construct the preceding long-range deformation from the original \S94 circle, or derive every
+source-specific multiplier, interchange, and coefficient-identification statement in \S102 from
+the full Chapter~V uniform-integral problem.
 
 \section{Map to Poincar\'e's printed proof}\label{sec:source-map}
 
@@ -125,8 +128,11 @@ the outer arcs, affine connectors, and the complete seam tables.  The old bulk r
 now used uniformly in the critical-value coordinate, the homogeneous theorem covers every
 positive-fiber collar, and covering-space lifting constructs both connector sheets on
 $[0,1)\times[0,1]$.  Lean also proves that each transformed connector integral is literally the
-corresponding source curve integral.  Construction of a jointly moving lifted source cycle and
-its identification with the terminal five-piece contour remain.\\
+corresponding source curve integral.  The terminal construction now concatenates the two outer
+quarters, both connectors, and the inverse-Morse middle path into one closed moving source cycle.
+The literal radicand is nonzero on the positive half-open family, one basepoint-normalized lift is
+constructed, and its five restrictions are proved equal to the certified branches.  What remains
+is the preceding long-range transport from the original \S94 circle into this near-$D$ family.\\
 
 \S99 & Move the double zero to a critical center and reduce the radicand to a quadratic pinch. &
 Formal Weierstrass manipulation by itself would not establish convergence, a jointly analytic
@@ -161,14 +167,19 @@ $dB_\lambda(X_\Phi)=\lambda B_\lambda S$.  The printed relation
 $-\zeta H=S$, or $H=-S/\zeta$, does not make $dD_\lambda(H,X_\Phi)$ vanish;
 the required relation is $H=-\zeta S$.  The printed argument also does not supply the full
 analytic identification of these coefficients with the contour singularities. & Lean formalizes
-the pre-resonance first-order Fourier equation, resonance~(12 bis), equation~(13), independence,
-the corrected cancellation, and the complete rank chain.  An exact rational instance
+Fourier integration on the actual two-dimensional unit additive torus.  From one pointwise
+first-order Poisson identity, linearity gives the head and five tail coefficient equations;
+the six equations are not separately assumed.  The torus model then uses the standard
+angle-derivative multiplier and orbital differentiation-under-the-integral rules, resonance
+(12 bis), and independence to derive equation~(13), the corrected cancellation, and the complete
+rank chain.  An exact rational instance
 $ (\lambda,\zeta,B,S)=(1,2,1,1) $ gives residual $3/2$ for the printed normalization.  With the
 correction, a common nonzero characteristic direction gives rank at most five; quotienting the
 common scale gives rank at most four; independent recovery of the eccentricities gives rank at
-most two; and \S103 contradicts this.  It remains to instantiate the first-order data from the
-full uniform-integral model and identify its six observables with the continued-contour
-singularity data, including the common radius and regular-factor estimates.\\
+most two; and \S103 contradicts this.  It remains to derive the multiplier, interchange, and
+independence fields from the full source Hamiltonian and uniform integral, and identify the six
+observables with the continued-contour singularity data, including the common radius and
+regular-factor estimates.\\
 
 \S103, p.~331 & Differentiate \(P=\sum U^2\) after defining
 \(V=x\,\partial U/\partial x-U\). & \textbf{Printed formula error:} the text gives
@@ -556,9 +567,9 @@ LeanCompCert's verified semantics.  The reference run verdicts therefore have no
 execution premise.  The newer theorem
 \path{radicand_ne_zero_on_puncturedRectangle} combines those verdicts with the homogeneous
 collar argument and discharges nonvanishing at every positive critical value.  Its square-root
-sheet lives on the natural half-open parameter rectangle.  Gluing that sheet to the collision
-limit and to the actual source-cycle deformation is analytic topology, not a missing execution
-receipt.
+sheet lives on the natural half-open parameter rectangle.  The near-$D$ gluing to the collision
+sheet and both outer sheets is now formalized; joining that terminal family to the original
+source cycle is analytic topology, not a missing execution receipt.
 
 One further bookkeeping gap has been removed in Lean:
 \path{connectorIntegral_eq_principal_curveIntegral} constructs the actual source-coordinate
@@ -569,7 +580,8 @@ literal unit circle at the current parameter and therefore named the wrong analy
 object.  Theorems in \path{ChapterVIDRadialContour.lean} prove that the outside collision pole
 eventually lies inside that circle, and \path{ChapterVIWindingObstruction.lean} proves that no
 pole-avoiding continuation can preserve the incompatible winding numbers.  The missing object is
-a lift of the original germ along a jointly moving cycle.
+a lift of the original germ through the long parameter range before the certified near-$D$
+jointly moving cycle begins.
 
 For \S102, the primary text on pp.~326--329 gives a staged parameter count rather than assuming a
 two-coordinate factorization at the outset.  The new theorem
@@ -582,6 +594,67 @@ coefficient identity and resonance, proves the corrected $H=-\zeta S$ cancellati
 characteristic direction nonzero from independence, and obtains rank five by rank--nullity.  The
 exact theorem \path{chapterVNo85_printed_normalization_counterexample} records why the printed
 $-\zeta H=S$ cannot be used literally.
+
+\section{The terminal lifted contour and Chapter~V extraction}
+
+The finite tables now feed an actual two-dimensional continuation object rather than five
+unrelated paths.  Let
+\[
+  P=[0,1)\times[0,1],
+\]
+where the first coordinate is the positive critical-value parameter and the second traverses the
+closed contour.  The function \path{positiveContourPoint} concatenates, in order, the initial
+outer quarter, upper connector, inverse-Morse middle segment, lower connector, and final outer
+quarter.  Nested path concatenation is reparametrized exactly by
+\[
+ [0,\tfrac14],\quad [\tfrac14,\tfrac12],\quad
+ [\tfrac12,\tfrac58],\quad [\tfrac58,\tfrac34],\quad
+ [\tfrac34,1].
+\]
+The endpoint equalities are proved in the path types, so this is a closed path for every parameter
+and not an algebraic formal sum of integrals.
+
+Write $R(s,t)$ for Poincar\'e's literal transformed source radicand evaluated on this path.
+Lean proves
+\[
+  R(s,t)\ne0\qquad ((s,t)\in P)
+\]
+by dispatching each of the five subintervals to the compiled outer tables, the full connector
+tables, or the exact identity $R=k+v^2$ on the positive Morse segment.  Continuity and the
+covering-space lift for $w\mapsto w^2$ produce a continuous $W:P\to\mathbb C$ with
+\[
+  W(s,t)^2=R(s,t).
+\]
+It is normalized to the principal root at one basepoint.  Connectedness and square-root
+uniqueness then propagate that normalization across every seam.  The theorem
+\path{exists_jointSheet_eq_allCertifiedPieces} states simultaneously that $W$ restricts to the
+two compiled principal outer roots, both seam-compatible connector roots, and the positive Morse
+root.  Thus the entire terminal five-piece branch choice is kernel checked.  This theorem starts
+inside the certified near-$D$ neighborhood; it does not invent the unprinted long-range homotopy
+from the original \S94 circle.
+
+The Chapter~V layer is likewise now an analytic extraction rather than six unrelated scalar
+assumptions.  On Mathlib's two-dimensional unit additive torus, suppose one has the pointwise
+first-order identity
+\[
+ -S\,\partial_r B+T\,\partial_r C+d_XB=0.
+\]
+Linearity of Haar integration proves that its Fourier coefficient at a selected mode \(\lambda\)
+satisfies
+\[
+ -S\,\lambda B_\lambda+T\,\lambda C_\lambda+dB_\lambda(X)=0,
+\]
+once the standard Fourier multiplier and differentiation-under-the-integral identities are
+supplied.  Applying this one theorem to a head mode and five tail modes constructs all six fields
+of the formal resonant first-order data structure.  Resonance $T=0$, independence, and the corrected
+normalization $H=-\zeta S$ then give the common characteristic direction and the rank chain
+\[
+  6\longrightarrow5\longrightarrow4\longrightarrow2,
+\]
+which the certified \S103 calculation contradicts.  What is still source-specific is deriving
+the multiplier, interchange, resonance, and independence hypotheses from the full Hamiltonian
+and putative uniform integral, and proving that these six Fourier observables are exactly the
+common-radius contour-singularity observables.
 
 \section{Independent checks and reproducibility}
 
@@ -632,15 +705,15 @@ Two corrected source-reconstruction obligations remain outside the scope of the 
 certificate:
 \begin{enumerate}
 \item In \S\S95--100, one must lift the original \S94 germ along a \emph{jointly moving} closed
-source cycle that avoids every moving radicand zero, then identify its near-$D$ representative
-with the certified five-piece contour and control the complementary regular arcs.  It is not
+source cycle that avoids every moving radicand zero until it enters the certified near-$D$
+family, and control the complementary regular arcs along that transport.  It is not
 enough to deform the unit circle re-evaluated at the terminal parameter: Lean proves that the
-relevant pole has changed sides of that fixed circle.  The connector part is closed on the
-positive-parameter domain, including its square-root sheet; what is missing is the global joint
-cycle and sheet transport.
+relevant pole has changed sides of that fixed circle.  The terminal five-piece contour, its
+positive-parameter square-root sheet, and the identification of all five branches are closed;
+what is missing is the earlier global joint cycle and sheet transport.
 
-\item In \S102, one must instantiate the now-formalized pre-resonance Fourier identities,
-resonance, and independence from a full analytic model of the Chapter~V uniform integral, and
+\item In \S102, one must derive the recorded Fourier multiplier, orbital-interchange, resonance,
+and independence fields from the full source Hamiltonian and Chapter~V uniform integral, and
 identify the six rescaled coefficients with the common-radius singularity data of the continued
 contour.  Once supplied, the corrected (13 bis) construction, five-to-four-to-two rank chain,
 Darboux transfer, and \S103 contradiction apply without another finite-algebra premise.
@@ -666,12 +739,17 @@ exported model-existence theorem\\
 \path{ChapterVIDConnectorFullBulk.lean} & uniform two-dimensional reuse of the bulk table,
 positive-fiber collar closure, and continuous square-root sheets on the two half-open connector
 rectangles\\
+\path{ChapterVIDJointLiftedContour.lean} & one closed terminal five-piece source contour,
+literal-radicand nonvanishing on its positive half-open parameter family, a basepoint-normalized
+joint square-root sheet, and exact identification with all five certified branches\\
 \path{ChapterVIWindingObstruction.lean}, \path{ChapterVIDRadialContour.lean} & winding invariance,
 the concrete outside-to-inside crossing, and impossibility of the former fixed-unit-circle
 continuation premise\\
 \path{ChapterVISection102.lean} & pre-resonance no.~85 Fourier equation, exact counterexample to
 the printed normalization, corrected equation-(13 bis) kernel construction, and complete rank
 chain from six scaled values to the \S103 contradiction\\
+\path{ChapterVNo85FourierExtraction.lean} & actual two-torus Haar Fourier extraction of the head
+and five tail equations from one pointwise first-order Poisson identity\\
 \path{HomogeneousAdmissibility/*.lean} & independently buildable kernel proofs for all 32
 shards\\
 \path{ConnectorCertificateMain.lean} & reference, statistics, emission, and native-check
