@@ -90,11 +90,16 @@ is now turned into a selector below every requested endpoint radius. At any fixe
 both `local-D` and the relative parameter-root perturbation therefore inhabit the static raw-unit
 box `[-1,1]×[-1,1]`. Each cell derives its coordinate and direction from the checked identity
 `u-D=(local-D)+distance*(outer-local)`, so those are no longer independent semantic premises.
-The already certified terminal radial box supplies the required `outer-local` enclosure. What
-remains is to package the reusable algebraic-constant boxes, generate the initial and final tables,
-and run their artifacts; neither the moving-root scale, connector geometry, arithmetic checker,
-exponential bridge, quotient-to-sign reduction, nor seam-continuation assembly is an additional
-gap.
+The already certified terminal radial box supplies the required `outer-local` enclosure. Checked
+subtraces derive the collision reciprocal and powers, and proved fixed boxes supply `Y(D)` and the
+rational coefficients. The resulting executable 261-cell campaign contains 42,282 operations per
+side. All arithmetic claims pass; exactly 171 endpoint-adjacent cells per side fail only the final
+oriented-sign claim (initial indices 90--260 and final 0--170). Lean now proves that
+`(local-D)/v` tends to the exact purely imaginary, downward inverse-Morse derivative and is
+eventually inside an explicit cone with half its imaginary margin. The remaining bridge is to turn
+that cone into the scale-aware directional dyadic rectangle consumed by the reference cells. A
+symmetric norm box necessarily includes impossible wrong-sign displacements. The exponential
+bridge, quotient-to-sign reduction, and seam assembly are not additional gaps.
 
 This note separates three questions that are easy to conflate:
 

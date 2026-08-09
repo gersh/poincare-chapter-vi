@@ -1,5 +1,6 @@
 import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference
+import PoincareChapterVI.ChapterVIDConnectorFactorNormalizedDerivativeCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorSecondDerivativeReference
 import LeanCompCert.NativeCheck
 
@@ -510,6 +511,31 @@ def cliMain (args : List String) : IO UInt32 := do
       IO.println s!"checked second-derivative shards: {checked}"
       IO.println s!"failed integer claims: {failures}"
       pure (if failures = 0 then 0 else 1)
+  | ["reference-factor-normalized"] =>
+      let mut failures := 0
+      for side in ([.initial, .final] : List ChapterVIDOuterArcSide) do
+        let operations :=
+          ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceSideOperations side
+        let sideFailures := failureCount (batchClaims operations)
+        failures := failures + sideFailures
+        IO.println s!"normalized {sideName side} operations: {operations.length}"
+        IO.println s!"normalized {sideName side} failed integer claims: {sideFailures}"
+        let mut failingCells := 0
+        let mut firstFail : Option Nat := none
+        let mut lastFail : Option Nat := none
+        for index in List.finRange
+            ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceCellCount do
+          let cellFailures := failureCount (batchClaims
+            (ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceOperations side
+              (ChapterVIDConnectorFactorNormalizedDerivativeCompiled.referenceParameterInterval
+                side index)))
+          if cellFailures != 0 then
+            failingCells := failingCells + 1
+            if firstFail.isNone then firstFail := some index.val
+            lastFail := some index.val
+        IO.println s!"normalized {sideName side} failing cells: {failingCells}"
+        IO.println s!"normalized {sideName side} first/last failing cell: {firstFail}/{lastFail}"
+      pure (if failures = 0 then 0 else 1)
   | ["reference-coarse", cellsText] =>
       match cellsText.toNat? with
       | some cells =>
@@ -538,7 +564,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | reference-factor-normalized | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

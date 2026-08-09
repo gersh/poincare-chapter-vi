@@ -91,6 +91,63 @@ theorem hasDerivAt_chapterVIDCriticalMorseRootFiber_zero :
   rw [heq] at h
   exact h
 
+/-- The scale-normalized inverse-Morse displacement converges to its exact complex derivative.
+This is the directional information which a terminal interval certificate needs; a norm-only
+big-O estimate cannot determine the endpoint sign. -/
+theorem tendsto_chapterVIDCriticalMorseRootFiber_normalizedDelta :
+    Tendsto
+      (fun v : ℂ ↦
+        (chapterVIDCriticalMorseRootPoint (0, v) - chapterVIDCollisionLift) / v)
+      (nhdsWithin 0 {0}ᶜ)
+      (nhds (deriv chapterVIDGlobalContourFromMorse 0)) := by
+  have h := hasDerivAt_chapterVIDCriticalMorseRootFiber_zero.tendsto_slope_zero
+  simpa only [zero_add, chapterVIDCriticalMorseRootPoint_base, smul_eq_mul,
+    div_eq_inv_mul] using h
+
+/-- A concrete open cone around the limiting derivative.  The derivative is purely imaginary
+and points downward, so the radius `-Im(d)/2` stays strictly inside the correct half-plane. -/
+theorem eventually_chapterVIDCriticalMorseRootFiber_normalizedDelta_mem_directionCone :
+    ∀ᶠ v : ℂ in nhdsWithin 0 {0}ᶜ,
+      ‖(chapterVIDCriticalMorseRootPoint (0, v) - chapterVIDCollisionLift) / v -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+  have hradius : 0 < -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+    linarith [deriv_chapterVIDGlobalContourFromMorse_im_neg]
+  let U : Set ℂ := {z |
+    ‖z - deriv chapterVIDGlobalContourFromMorse 0‖ <
+      -(deriv chapterVIDGlobalContourFromMorse 0).im / 2}
+  have hU : U ∈ nhds (deriv chapterVIDGlobalContourFromMorse 0) := by
+    have hUeq : U = Metric.ball (deriv chapterVIDGlobalContourFromMorse 0)
+        (-(deriv chapterVIDGlobalContourFromMorse 0).im / 2) := by
+      ext z
+      simp only [U, Set.mem_ofPred_eq, Metric.mem_ball, dist_eq_norm]
+    rw [hUeq]
+    exact Metric.ball_mem_nhds _ hradius
+  exact tendsto_chapterVIDCriticalMorseRootFiber_normalizedDelta.eventually hU
+
+theorem eventually_chapterVIDCriticalMorseRootFiber_normalizedDelta_components :
+    ∀ᶠ v : ℂ in nhdsWithin 0 {0}ᶜ,
+      |((chapterVIDCriticalMorseRootPoint (0, v) - chapterVIDCollisionLift) / v).re| <
+          -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 ∧
+        ((chapterVIDCriticalMorseRootPoint (0, v) - chapterVIDCollisionLift) / v).im <
+          (deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+  filter_upwards
+    [eventually_chapterVIDCriticalMorseRootFiber_normalizedDelta_mem_directionCone]
+      with v hv
+  let q := (chapterVIDCriticalMorseRootPoint (0, v) - chapterVIDCollisionLift) / v
+  let d := deriv chapterVIDGlobalContourFromMorse 0
+  have hreNorm : |(q - d).re| < -d.im / 2 :=
+    (Complex.abs_re_le_norm (q - d)).trans_lt hv
+  have himNorm : |(q - d).im| < -d.im / 2 :=
+    (Complex.abs_im_le_norm (q - d)).trans_lt hv
+  have hdRe : d.re = 0 := deriv_chapterVIDGlobalContourFromMorse_re_zero
+  constructor
+  · simpa only [Complex.sub_re, hdRe, sub_zero, q, d] using hreNorm
+  · have himUpper := (abs_lt.mp himNorm).2
+    dsimp only [q, d] at himUpper
+    rw [Complex.sub_im] at himUpper
+    linarith
+
 @[simp] theorem chapterVIDOuterArcPoint_initial_D :
     chapterVIDOuterArcPoint .initial (1, 1) =
       (‖chapterVIDCollisionLift‖ : ℂ) * Complex.I := by

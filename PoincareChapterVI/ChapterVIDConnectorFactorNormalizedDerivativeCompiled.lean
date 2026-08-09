@@ -134,6 +134,62 @@ theorem referenceLocalToOuterRectangle_contains
       (model.toChapterVIDPrincipalConnectorModel.criticalValue 0)
       (model.toChapterVIDPrincipalConnectorModel.criticalValue_mem_rootModel 0)
 
+/-- A deliberately modest fixed box for the real algebraic constant `Y(D)`.  The sharp root
+isolation is unnecessary here; Poincare's original `[-.027,-.026]` isolating interval suffices. -/
+def referenceYBaseRectangle : Rectangle 20 :=
+  ⟨⟨-28312, -25000⟩, ⟨0, 0⟩⟩
+
+theorem referenceYBaseRectangle_contains :
+    referenceYBaseRectangle.Contains chapterVIDY := by
+  let x := chapterVIDRoot
+  have hxLower : (-27 / 1000 : ℝ) ≤ x := chapterVIDRoot_mem.1
+  have hxUpper : x ≤ (-26 / 1000 : ℝ) := chapterVIDRoot_mem.2
+  have hden : 2 * (1 + (1 / 100 : ℝ) ^ 2) * x < 0 := by
+    norm_num
+    linarith
+  have hYLower : (-27 / 1000 : ℝ) ≤
+      (x - 1 / 100) ^ 2 / (2 * (1 + (1 / 100 : ℝ) ^ 2) * x) := by
+    rw [le_div_iff_of_neg hden]
+    nlinarith [sq_nonneg (x - 1 / 100)]
+  have hYUpper :
+      (x - 1 / 100) ^ 2 / (2 * (1 + (1 / 100 : ℝ) ^ 2) * x) ≤
+        (-24 / 1000 : ℝ) := by
+    rw [div_le_iff_of_neg hden]
+    nlinarith [sq_nonneg (x - 1 / 100)]
+  have hYOfReal : chapterVIDY =
+      ((x - 1 / 100) ^ 2 / (2 * (1 + (1 / 100 : ℝ) ^ 2) * x) : ℝ) := by
+    dsimp only [chapterVIDY, chapterVIDX, x]
+    push_cast
+    norm_num
+  have hYReal : chapterVIDY.re =
+      (x - 1 / 100) ^ 2 / (2 * (1 + (1 / 100 : ℝ) ^ 2) * x) := by
+    have h := congrArg Complex.re hYOfReal
+    simpa only [Complex.ofReal_re] using h
+  have hYImag : chapterVIDY.im = 0 := by
+    have h := congrArg Complex.im hYOfReal
+    simpa only [Complex.ofReal_im] using h
+  simp only [referenceYBaseRectangle,
+    ChapterVISignedDyadicComplexRectangle.Contains,
+    ChapterVISignedDyadicInterval.Contains,
+    ChapterVISignedDyadicInterval.toRealInterval, ChapterVIRealInterval.Contains,
+    ChapterVISignedDyadicInterval.scale]
+  rw [hYReal, hYImag]
+  constructor
+  · constructor
+    · norm_num at ⊢ hYLower
+      linarith
+    · norm_num at ⊢ hYUpper
+      linarith
+  · norm_num
+
+def referenceCoefficient200 : Interval 20 := ⟨20969, 20970⟩
+
+theorem referenceCoefficient200_contains :
+    referenceCoefficient200.Contains (200 / 10001 : ℝ) := by
+  norm_num [referenceCoefficient200, ChapterVISignedDyadicInterval.Contains,
+    ChapterVISignedDyadicInterval.toRealInterval, ChapterVIRealInterval.Contains,
+    ChapterVISignedDyadicInterval.scale]
+
 /-- Negate the trace output on the initial connector and leave it unchanged on the final
 connector, so that one positive-real claim represents both required orientations. -/
 def orientedOutput (side : ChapterVIDOuterArcSide) {precision : ℕ}
@@ -290,6 +346,61 @@ theorem connectorTargetFromLocalOuter_eq
       model.rootModel.connectorTarget side (model.criticalValue 0) := by
   cases side <;> rfl
 
+/-- Checked reusable powers of the collision lift.  A campaign supplies only one rectangle for
+`D`; reciprocal and power rectangles are generated and independently checked. -/
+structure CollisionConstantsTrace {precision : ℕ} (collision : Rectangle precision) where
+  collisionInv : ChapterVISignedDyadicComplexRectangle.InvTrace collision
+  collisionSquare : ChapterVISignedDyadicComplexRectangle.MulTrace collision collision
+  collisionInvCube : ChapterVISignedDyadicComplexRectangle.CubeTrace collisionInv.output
+  collisionInvFourth : ChapterVISignedDyadicComplexRectangle.MulTrace
+    collisionInvCube.output collisionInv.output
+
+def CollisionConstantsTrace.operations
+    {precision : ℕ} {collision : Rectangle precision}
+    (trace : CollisionConstantsTrace collision) : List (DyadicOperation precision) :=
+  trace.collisionInv.operations ++ trace.collisionSquare.operations ++
+    trace.collisionInvCube.operations ++ trace.collisionInvFourth.operations
+
+def collisionConstantsTrace {precision : ℕ} (collision : Rectangle precision) :
+    CollisionConstantsTrace collision :=
+  let collisionInv := ChapterVILeanCompCertProposals.invTrace collision
+  let collisionSquare := ChapterVILeanCompCertProposals.mulTrace collision collision
+  let collisionInvCube := ChapterVILeanCompCertProposals.cubeTrace collisionInv.output
+  let collisionInvFourth := ChapterVILeanCompCertProposals.mulTrace
+    collisionInvCube.output collisionInv.output
+  ⟨collisionInv, collisionSquare, collisionInvCube, collisionInvFourth⟩
+
+theorem CollisionConstantsTrace.outputs_contain_of_allSound
+    {precision : ℕ} {collision : Rectangle precision}
+    (trace : CollisionConstantsTrace collision)
+    (hall : ∀ operation ∈ trace.operations, operation.Sound)
+    (hcollision : collision.Contains chapterVIDCollisionLift) :
+    trace.collisionInv.output.Contains chapterVIDCollisionLift⁻¹ ∧
+      trace.collisionSquare.output.Contains (chapterVIDCollisionLift ^ 2) ∧
+      trace.collisionInvCube.output.Contains (chapterVIDCollisionLift⁻¹ ^ 3) ∧
+      trace.collisionInvFourth.output.Contains (chapterVIDCollisionLift⁻¹ ^ 4) := by
+  have hinvSound : ∀ operation ∈ trace.collisionInv.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [CollisionConstantsTrace.operations, hoperation])
+  have hsquareSound : ∀ operation ∈ trace.collisionSquare.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [CollisionConstantsTrace.operations, hoperation])
+  have hinvCubeSound : ∀ operation ∈ trace.collisionInvCube.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [CollisionConstantsTrace.operations, hoperation])
+  have hinvFourthSound : ∀ operation ∈ trace.collisionInvFourth.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [CollisionConstantsTrace.operations, hoperation])
+  have hinv := trace.collisionInv.output_contains_inv_of_allSound hinvSound hcollision
+  have hsquare := trace.collisionSquare.output_contains_mul_of_allSound
+    hsquareSound hcollision hcollision
+  have hsquare' : trace.collisionSquare.output.Contains (chapterVIDCollisionLift ^ 2) := by
+    simpa [pow_two] using hsquare
+  have hinvCube := trace.collisionInvCube.output_contains_cube_of_allSound hinvCubeSound hinv
+  have hinvFourth := trace.collisionInvFourth.output_contains_mul_of_allSound
+    hinvFourthSound hinvCube hinv
+  exact ⟨hinv, hsquare', hinvCube, by simpa [pow_succ] using hinvFourth⟩
+
 /-- One compiler cell.  Its trace is executable data.  Only the primitive transcendental and
 algebraic enclosures are mathematical proof fields; all arithmetic after those inputs is checked
 by the compiled batch. -/
@@ -305,21 +416,21 @@ structure Cell
   coordinateDeltaTrace : CoordinateDeltaTrace side parameter localDelta localToOuter
   zetaDelta : Rectangle precision
   collision : Rectangle precision
-  collisionInv : Rectangle precision
-  collisionSquare : Rectangle precision
-  collisionInvCube : Rectangle precision
-  collisionInvFourth : Rectangle precision
+  collisionConstantsTrace : CollisionConstantsTrace collision
   yBase : Rectangle precision
   inverse10001 : Interval precision
   coefficient100 : Interval precision
   coefficient200 : Interval precision
   relativeExpTrace : ChapterVILeanCompCertRelativeExponentialTrace.Trace
     (collision.add coordinateDeltaTrace.output) coordinateDeltaTrace.output collision
-      collisionInvCube coefficient100
+      collisionConstantsTrace.collisionInvCube.output coefficient100
   trace : ChapterVILeanCompCertDependencyPreservingFactorDerivativeTrace.Trace
     (collision.add coordinateDeltaTrace.output) coordinateDeltaTrace.output zetaDelta
-      relativeExpTrace.output (pathDirectionRectangle side localToOuter) collision collisionInv
-      collisionSquare collisionInvCube collisionInvFourth yBase inverse10001 coefficient200
+      relativeExpTrace.output (pathDirectionRectangle side localToOuter) collision
+      collisionConstantsTrace.collisionInv.output
+      collisionConstantsTrace.collisionSquare.output
+      collisionConstantsTrace.collisionInvCube.output
+      collisionConstantsTrace.collisionInvFourth.output yBase inverse10001 coefficient200
   localDelta_contains : localDelta.Contains
     (model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
       chapterVIDCollisionLift)
@@ -329,10 +440,6 @@ structure Cell
   zetaDelta_contains : zetaDelta.Contains
     (model.connectorParameterRoot 0 / chapterVIDZRootBase - 1)
   collision_contains : collision.Contains chapterVIDCollisionLift
-  collisionInv_contains : collisionInv.Contains chapterVIDCollisionLift⁻¹
-  collisionSquare_contains : collisionSquare.Contains (chapterVIDCollisionLift ^ 2)
-  collisionInvCube_contains : collisionInvCube.Contains (chapterVIDCollisionLift⁻¹ ^ 3)
-  collisionInvFourth_contains : collisionInvFourth.Contains (chapterVIDCollisionLift⁻¹ ^ 4)
   yBase_contains : yBase.Contains chapterVIDY
   inverse10001_contains : inverse10001.Contains (1 / 10001 : ℝ)
   coefficient100_contains : coefficient100.Contains (100 / 30003 : ℝ)
@@ -346,8 +453,7 @@ def Cell.propose
     (model : ChapterVIDAnchoredConnectorModel massProduct b d)
     (side : ChapterVIDOuterArcSide) (precision : ℕ)
     (parameter : Interval precision)
-    (localDelta localToOuter zetaDelta collision collisionInv collisionSquare
-      collisionInvCube collisionInvFourth yBase : Rectangle precision)
+    (localDelta localToOuter zetaDelta collision yBase : Rectangle precision)
     (inverse10001 coefficient100 coefficient200 : Interval precision)
     (localDelta_contains : localDelta.Contains
       (model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
@@ -358,10 +464,6 @@ def Cell.propose
     (zetaDelta_contains : zetaDelta.Contains
       (model.connectorParameterRoot 0 / chapterVIDZRootBase - 1))
     (collision_contains : collision.Contains chapterVIDCollisionLift)
-    (collisionInv_contains : collisionInv.Contains chapterVIDCollisionLift⁻¹)
-    (collisionSquare_contains : collisionSquare.Contains (chapterVIDCollisionLift ^ 2))
-    (collisionInvCube_contains : collisionInvCube.Contains (chapterVIDCollisionLift⁻¹ ^ 3))
-    (collisionInvFourth_contains : collisionInvFourth.Contains (chapterVIDCollisionLift⁻¹ ^ 4))
     (yBase_contains : yBase.Contains chapterVIDY)
     (inverse10001_contains : inverse10001.Contains (1 / 10001 : ℝ))
     (coefficient100_contains : coefficient100.Contains (100 / 30003 : ℝ))
@@ -372,24 +474,26 @@ def Cell.propose
       side parameter localDelta localToOuter
   let coordinate := collision.add coordinateDeltaTrace.output
   let direction := pathDirectionRectangle side localToOuter
+  let collisionConstantsTrace :=
+    ChapterVIDConnectorFactorNormalizedDerivativeCompiled.collisionConstantsTrace collision
   let relativeExpTrace :=
     ChapterVILeanCompCertRelativeExponentialTrace.relativeExpTrace
-      coordinate coordinateDeltaTrace.output collision collisionInvCube coefficient100
+      coordinate coordinateDeltaTrace.output collision
+        collisionConstantsTrace.collisionInvCube.output coefficient100
   let trace :=
     ChapterVILeanCompCertDependencyPreservingFactorDerivativeTrace.dependencyPreservingTrace
       coordinate coordinateDeltaTrace.output zetaDelta relativeExpTrace.output direction
-      collision collisionInv collisionSquare collisionInvCube collisionInvFourth yBase
-      inverse10001 coefficient200
+      collision collisionConstantsTrace.collisionInv.output
+      collisionConstantsTrace.collisionSquare.output
+      collisionConstantsTrace.collisionInvCube.output
+      collisionConstantsTrace.collisionInvFourth.output yBase inverse10001 coefficient200
   { parameter := parameter
     localDelta := localDelta
     localToOuter := localToOuter
     coordinateDeltaTrace := coordinateDeltaTrace
     zetaDelta := zetaDelta
     collision := collision
-    collisionInv := collisionInv
-    collisionSquare := collisionSquare
-    collisionInvCube := collisionInvCube
-    collisionInvFourth := collisionInvFourth
+    collisionConstantsTrace := collisionConstantsTrace
     yBase := yBase
     inverse10001 := inverse10001
     coefficient100 := coefficient100
@@ -400,23 +504,122 @@ def Cell.propose
     localToOuter_contains := localToOuter_contains
     zetaDelta_contains := zetaDelta_contains
     collision_contains := collision_contains
-    collisionInv_contains := collisionInv_contains
-    collisionSquare_contains := collisionSquare_contains
-    collisionInvCube_contains := collisionInvCube_contains
-    collisionInvFourth_contains := collisionInvFourth_contains
     yBase_contains := yBase_contains
     inverse10001_contains := inverse10001_contains
     coefficient100_contains := coefficient100_contains
     coefficient200_contains := coefficient200_contains }
+
+/-- Fully populated precision-20 cell proposal.  After the model selector supplies the two
+raw-unit facts, the only varying untrusted datum is the real parameter interval. -/
+def referenceCellProposal
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (localDelta_contains : ∀ side : ChapterVIDOuterArcSide,
+      (rawUnitDeltaRectangle 20).Contains
+        (model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
+          chapterVIDCollisionLift))
+    (zetaDelta_contains : (rawUnitDeltaRectangle 20).Contains
+      (model.connectorParameterRoot 0 / chapterVIDZRootBase - 1))
+    (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
+    Cell model side 20 :=
+  Cell.propose model side 20 parameter
+    (rawUnitDeltaRectangle 20) (referenceLocalToOuterRectangle side)
+    (rawUnitDeltaRectangle 20) ChapterVIDConnectorInputBounds.localEndpointRectangle
+    referenceYBaseRectangle
+    ChapterVIDOuterArcPolarCompiledGrid.inverse10001
+    ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient referenceCoefficient200
+    (localDelta_contains side) (referenceLocalToOuterRectangle_contains model side)
+    zetaDelta_contains ChapterVIDConnectorInputBounds.localEndpointRectangle_contains_collisionLift
+    referenceYBaseRectangle_contains
+    ChapterVIDOuterArcPolarCompiledGrid.inverse10001_contains
+    ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient_contains
+    referenceCoefficient200_contains
+
+/-- Analytic model bundled with exactly the two noncomputable facts needed by the otherwise
+executable reference-cell generator. -/
+structure ReferenceCampaignModel (massProduct : ℂ) (b d : ℤ) where
+  model : ChapterVIDAnchoredConnectorModel massProduct b d
+  localDelta_contains : ∀ side : ChapterVIDOuterArcSide,
+    (rawUnitDeltaRectangle 20).Contains
+      (model.rootModel.localConnectorEndpoint side (model.criticalValue 0) -
+        chapterVIDCollisionLift)
+  zetaDelta_contains : (rawUnitDeltaRectangle 20).Contains
+    (model.connectorParameterRoot 0 / chapterVIDZRootBase - 1)
+
+theorem exists_referenceCampaignModel (massProduct : ℂ) (b d : ℤ) :
+    Nonempty (ReferenceCampaignModel massProduct b d) := by
+  obtain ⟨model, _, _, hlocal, hzeta⟩ :=
+    exists_model_with_rawUnitDeltaRectangle massProduct b d 20 1 1
+      (by norm_num) (by norm_num)
+  exact ⟨⟨model, hlocal, hzeta⟩⟩
+
+def ReferenceCampaignModel.cellProposal
+    {massProduct : ℂ} {b d : ℤ}
+    (campaign : ReferenceCampaignModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
+    Cell campaign.model side 20 :=
+  referenceCellProposal campaign.model campaign.localDelta_contains
+    campaign.zetaDelta_contains side parameter
 
 def Cell.operations
     {massProduct : ℂ} {b d : ℤ}
     {model : ChapterVIDAnchoredConnectorModel massProduct b d}
     {side : ChapterVIDOuterArcSide} {precision : ℕ}
     (cell : Cell model side precision) : List (DyadicOperation precision) :=
-  cell.coordinateDeltaTrace.operations ++ cell.relativeExpTrace.operations ++
-    cell.trace.operations ++
+  cell.coordinateDeltaTrace.operations ++ cell.collisionConstantsTrace.operations ++
+    cell.relativeExpTrace.operations ++ cell.trace.operations ++
     [.positiveLower (orientedOutput side cell.trace.output).real]
+
+/-- Pure executable form of the reference proposal, independent of the noncomputable analytic
+model and its erased proof fields. -/
+def referenceOperations (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
+    List (DyadicOperation 20) :=
+  let localDelta := rawUnitDeltaRectangle 20
+  let localToOuter := referenceLocalToOuterRectangle side
+  let zetaDelta := rawUnitDeltaRectangle 20
+  let collision := ChapterVIDConnectorInputBounds.localEndpointRectangle
+  let coordinateDeltaTrace :=
+    ChapterVIDConnectorFactorNormalizedDerivativeCompiled.coordinateDeltaTrace
+      side parameter localDelta localToOuter
+  let collisionConstantsTrace :=
+    ChapterVIDConnectorFactorNormalizedDerivativeCompiled.collisionConstantsTrace collision
+  let coordinate := collision.add coordinateDeltaTrace.output
+  let relativeExpTrace :=
+    ChapterVILeanCompCertRelativeExponentialTrace.relativeExpTrace coordinate
+      coordinateDeltaTrace.output collision collisionConstantsTrace.collisionInvCube.output
+      ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient
+  let trace :=
+    ChapterVILeanCompCertDependencyPreservingFactorDerivativeTrace.dependencyPreservingTrace
+      coordinate coordinateDeltaTrace.output zetaDelta relativeExpTrace.output
+      (pathDirectionRectangle side localToOuter) collision
+      collisionConstantsTrace.collisionInv.output collisionConstantsTrace.collisionSquare.output
+      collisionConstantsTrace.collisionInvCube.output
+      collisionConstantsTrace.collisionInvFourth.output referenceYBaseRectangle
+      ChapterVIDOuterArcPolarCompiledGrid.inverse10001 referenceCoefficient200
+  coordinateDeltaTrace.operations ++ collisionConstantsTrace.operations ++
+    relativeExpTrace.operations ++ trace.operations ++
+    [.positiveLower (orientedOutput side trace.output).real]
+
+theorem ReferenceCampaignModel.cellProposal_operations
+    {massProduct : ℂ} {b d : ℤ}
+    (campaign : ReferenceCampaignModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (parameter : Interval 20) :
+    (campaign.cellProposal side parameter).operations = referenceOperations side parameter := by
+  rfl
+
+def referenceCellCount : ℕ := 261
+
+/-- The old omitted collar consists of exactly 261 precision-20 cells of width `2^-10`. -/
+def referenceParameterInterval (side : ChapterVIDOuterArcSide)
+    (index : Fin referenceCellCount) : Interval 20 :=
+  let offset := Int.ofNat (index.val * 1024)
+  match side with
+  | .initial => ⟨781312 + offset, 781312 + offset + 1024⟩
+  | .final => ⟨offset, offset + 1024⟩
+
+def referenceSideOperations (side : ChapterVIDOuterArcSide) : List (DyadicOperation 20) :=
+  (List.finRange referenceCellCount).flatMap fun index =>
+    referenceOperations side (referenceParameterInterval side index)
 
 /-- A successful cell batch proves the sign of the exact dependency-preserving path derivative
 at every real parameter enclosed by the cell. -/
@@ -433,6 +636,10 @@ theorem Cell.normalized_nonnegative_of_allSound
     (model.rootModel.connectorTarget side (model.criticalValue 0)) (t : ℂ)
   have hcoordinateDeltaTraceSound :
       ∀ operation ∈ cell.coordinateDeltaTrace.operations, operation.Sound := by
+    intro operation hoperation
+    exact hall operation (by simp [Cell.operations, hoperation])
+  have hcollisionConstantsSound :
+      ∀ operation ∈ cell.collisionConstantsTrace.operations, operation.Sound := by
     intro operation hoperation
     exact hall operation (by simp [Cell.operations, hoperation])
   have hExpTraceSound : ∀ operation ∈ cell.relativeExpTrace.operations, operation.Sound := by
@@ -461,6 +668,10 @@ theorem Cell.normalized_nonnegative_of_allSound
     rw [connectorSourceFromLocalOuter_eq model side,
       connectorTargetFromLocalOuter_eq model side] at h
     exact h
+  obtain ⟨hcollisionInv, hcollisionSquare, hcollisionInvCube,
+      hcollisionInvFourth⟩ :=
+    cell.collisionConstantsTrace.outputs_contain_of_allSound
+      hcollisionConstantsSound cell.collision_contains
   let tUnit : I := ⟨t, htUnit⟩
   have hcoordinateNe : coordinateValue ≠ 0 := by
     simpa [coordinateValue, ChapterVIDPrincipalConnectorModel.rectanglePoint,
@@ -474,7 +685,7 @@ theorem Cell.normalized_nonnegative_of_allSound
           chapterVIDRootExponentialArgument chapterVIDCollisionLift) - 1) :=
     cell.relativeExpTrace.output_contains_of_allSound hExpTraceSound hcoordinateNe
       hcoordinate hcoordinateDelta
-      cell.collision_contains cell.collisionInvCube_contains cell.coefficient100_contains
+      cell.collision_contains hcollisionInvCube cell.coefficient100_contains
   have htrace : cell.trace.output.Contains
       (chapterVIDRootFactorDerivativeDependencyPreserving
         (model.connectorParameterRoot 0) coordinateValue *
@@ -483,9 +694,8 @@ theorem Cell.normalized_nonnegative_of_allSound
     apply cell.trace.output_contains_of_allSound htraceSound
       hcoordinate hcoordinateDelta
       cell.zetaDelta_contains hExpDelta rfl
-      hdirection cell.collision_contains cell.collisionInv_contains
-      cell.collisionSquare_contains cell.collisionInvCube_contains
-      cell.collisionInvFourth_contains cell.yBase_contains
+      hdirection cell.collision_contains hcollisionInv
+      hcollisionSquare hcollisionInvCube hcollisionInvFourth cell.yBase_contains
       cell.inverse10001_contains cell.coefficient200_contains
   have horiented := orientedOutput_contains side htrace
   have hlower : 0 < (orientedOutput side cell.trace.output).real.lower := by
