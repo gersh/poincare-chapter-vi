@@ -43,10 +43,187 @@ private abbrev Essential := Fin 2 → ℂ
 private abbrev Eccentricity := Fin 2 → ℂ
 private abbrev FiveOrbitalParameters := Eccentricity × Orientation
 private abbrev FourRatioParameters := Fin 4 → ℂ
+private abbrev FiveRatioValues := Fin 5 → ℂ
+private abbrev SixScaledSingularityValues := ℂ × FiveRatioValues
 private abbrev FiniteSingularPoint :=
   { point : Fin 2 → ℂ // point ∈ finiteIntersectionPoints }
 
 /-! ## Poincare's five-to-four-to-two rank reduction -/
+
+/-- Infinitesimal passage from six singularity values to the five ratios with the first value
+as denominator.  In logarithmic coordinates this is simply subtraction of the common first
+coordinate.  It is the differential of Poincare's passage from
+`(λα₀, λα₁, ..., λα₅)` to `(α₁/α₀, ..., α₅/α₀)` on p. 327. -/
+def singularityRatioDifferential :
+    SixScaledSingularityValues →ₗ[ℂ] FiveRatioValues where
+  toFun value := fun i ↦ value.2 i - value.1
+  map_add' left right := by
+    ext i
+    simp
+    ring
+  map_smul' scalar value := by
+    ext i
+    simp
+    ring
+
+/-- The common logarithmic scale direction of all six singularities. -/
+def commonSingularityScaleDirection : SixScaledSingularityValues :=
+  (1, fun _ ↦ 1)
+
+@[simp] theorem singularityRatioDifferential_commonScale :
+    singularityRatioDifferential commonSingularityScaleDirection = 0 := by
+  ext i
+  simp [singularityRatioDifferential, commonSingularityScaleDirection]
+
+theorem commonSingularityScaleDirection_ne_zero :
+    commonSingularityScaleDirection ≠ 0 := by
+  intro h
+  have := congrArg Prod.fst h
+  norm_num [commonSingularityScaleDirection] at this
+
+/-- Differential form of the relation among six arbitrary Chapter-V coefficient observables
+(`D_λ` in no. 80).  The relation is recorded by its nonzero gradient; this is exactly the
+regular-point consequence used by Poincare, and is weaker than choosing five global coordinate
+functions through which every coefficient factors. -/
+structure ChapterVNo80DifferentialRelation
+    (coefficientDifferential :
+      (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues) where
+  gradient : SixScaledSingularityValues →ₗ[ℂ] ℂ
+  gradient_ne_zero : gradient ≠ 0
+  annihilates : gradient.comp coefficientDifferential = 0
+
+/-- Poincaré's no. 80 statement in its literal parameter-count form: after the two angular
+momenta have been fixed, the six selected coefficient observables factor infinitesimally through
+five independent variables.  This formulation does not assume a chosen equation among the six
+outputs. -/
+structure ChapterVNo80FiveVariableFactorization
+    (coefficientDifferential :
+      (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues) where
+  fiveVariableDifferential :
+    (ℂ × FiveOrbitalParameters) →ₗ[ℂ] (Fin 5 → ℂ)
+  coefficientFromFiveVariables :
+    (Fin 5 → ℂ) →ₗ[ℂ] SixScaledSingularityValues
+  factors : coefficientDifferential =
+    coefficientFromFiveVariables.comp fiveVariableDifferential
+
+/-- Factoring the six Chapter-V observables through five variables gives the rank-five
+conclusion directly, without first choosing a defining relation or a regular point of it. -/
+theorem scaled_rank_le_five_of_chapterVNo80_fiveVariableFactorization
+    (coefficientDifferential :
+      (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues)
+    (factorization :
+      ChapterVNo80FiveVariableFactorization coefficientDifferential) :
+    Module.finrank ℂ coefficientDifferential.range ≤ 5 := by
+  have hrange : coefficientDifferential.range ≤
+      factorization.coefficientFromFiveVariables.range := by
+    rintro value ⟨parameter, rfl⟩
+    have hfactor := LinearMap.congr_fun factorization.factors parameter
+    rw [hfactor]
+    exact ⟨factorization.fiveVariableDifferential parameter, rfl⟩
+  calc
+    Module.finrank ℂ coefficientDifferential.range ≤
+        Module.finrank ℂ factorization.coefficientFromFiveVariables.range :=
+      Submodule.finrank_mono hrange
+    _ ≤ Module.finrank ℂ (Fin 5 → ℂ) :=
+      LinearMap.finrank_range_le _
+    _ = 5 := by simp
+
+/-- One nontrivial Chapter-V relation among six observables makes their joint differential have
+rank at most five.  This is the previously implicit `no. 80 -> rank <= 5` linear-algebra step. -/
+theorem scaled_rank_le_five_of_chapterVNo80_relation
+    (coefficientDifferential :
+      (ℂ × FiveOrbitalParameters) →ₗ[ℂ] SixScaledSingularityValues)
+    (relation : ChapterVNo80DifferentialRelation coefficientDifferential) :
+    Module.finrank ℂ coefficientDifferential.range ≤ 5 := by
+  have hrange_le : coefficientDifferential.range ≤ LinearMap.ker relation.gradient := by
+    rintro value ⟨parameter, rfl⟩
+    have h := LinearMap.congr_fun relation.annihilates parameter
+    simpa using h
+  have hgradientRange : Module.finrank ℂ relation.gradient.range = 1 := by
+    have hrangeTop : relation.gradient.range = ⊤ := by
+      rw [LinearMap.range_eq_top]
+      exact LinearMap.surjective_iff_ne_zero.mpr relation.gradient_ne_zero
+    rw [hrangeTop]
+    simp
+  have hrankNullity :=
+    LinearMap.finrank_range_add_finrank_ker relation.gradient
+  have hdomain : Module.finrank ℂ SixScaledSingularityValues = 6 := by simp
+  have hkernel : Module.finrank ℂ (LinearMap.ker relation.gradient) = 5 := by
+    rw [hgradientRange, hdomain] at hrankNullity
+    omega
+  calc
+    Module.finrank ℂ coefficientDifferential.range ≤
+        Module.finrank ℂ (LinearMap.ker relation.gradient) :=
+      Submodule.finrank_mono hrange_le
+    _ = 5 := hkernel
+
+/-- Coordinate-free form of the scale-quotient argument.  It is useful when `ScaledValues`
+contains the complete finite family of collision branches rather than only five selected
+values. -/
+theorem projectivized_rank_le_four_of_scaled_rank_le_five
+    {ScaledValues RatioValues : Type*}
+    [AddCommGroup ScaledValues] [Module ℂ ScaledValues]
+    [AddCommGroup RatioValues] [Module ℂ RatioValues]
+    (differential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ] ScaledValues)
+    (projectivization : ScaledValues →ₗ[ℂ] RatioValues)
+    (scaleDirection : ScaledValues)
+    (hscale : differential (1, 0) = scaleDirection)
+    (hprojectivization : projectivization scaleDirection = 0)
+    (hscaleNonzero : scaleDirection ≠ 0)
+    (hrank : Module.finrank ℂ differential.range ≤ 5) :
+    Module.finrank ℂ
+      (projectivization.comp
+        (differential.comp (LinearMap.inr ℂ ℂ FiveOrbitalParameters))).range ≤ 4 := by
+  let restrictedProjectivization : differential.range →ₗ[ℂ] RatioValues :=
+    projectivization.domRestrict differential.range
+  let scaleInRange : differential.range :=
+    ⟨scaleDirection, ⟨(1, 0), hscale⟩⟩
+  have hscaleKernel :
+      scaleInRange ∈ LinearMap.ker restrictedProjectivization := by
+    exact hprojectivization
+  have hscaleRangeNe : scaleInRange ≠ 0 := by
+    intro h
+    apply hscaleNonzero
+    exact congrArg Subtype.val h
+  have hkernelPositive :
+      1 ≤ Module.finrank ℂ (LinearMap.ker restrictedProjectivization) := by
+    have hspan : Submodule.span ℂ {scaleInRange} ≤
+        LinearMap.ker restrictedProjectivization := by
+      rw [Submodule.span_le]
+      simpa using hscaleKernel
+    have hspanRank : Module.finrank ℂ (Submodule.span ℂ {scaleInRange}) = 1 := by
+      rw [finrank_span_singleton hscaleRangeNe]
+    rw [← hspanRank]
+    exact Submodule.finrank_mono hspan
+  have hrankRestricted :=
+    LinearMap.finrank_range_add_finrank_ker restrictedProjectivization
+  have hrangeRestricted :
+      Module.finrank ℂ restrictedProjectivization.range ≤ 4 := by
+    omega
+  refine (Submodule.finrank_mono ?_).trans hrangeRestricted
+  rintro value ⟨parameter, rfl⟩
+  refine ⟨⟨differential (0, parameter), ⟨(0, parameter), rfl⟩⟩, ?_⟩
+  rfl
+
+/-- Exact linear-algebra content of the first parameter reduction on pp. 326--327.  Chapter V
+gives rank at most five for the six scaled singularities.  If the independent scale parameter
+moves all six singularities by the same nonzero logarithmic amount, quotienting by that common
+scale leaves rank at most four for the five singularity ratios.
+
+No choice of singularity labels or analyticity claim is hidden here: `differential` is the full
+six-value differential, `hscale` is Poincare's displayed `λαᵢ` scaling law, and `hrank` is the
+precise differential form of the Chapter V relation among any six `Dₙ`. -/
+theorem ratio_rank_le_four_of_scaled_rank_le_five
+    (differential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ]
+      SixScaledSingularityValues)
+    (hscale : differential (1, 0) = commonSingularityScaleDirection)
+    (hrank : Module.finrank ℂ differential.range ≤ 5) :
+    Module.finrank ℂ
+      (singularityRatioDifferential.comp
+        (differential.comp (LinearMap.inr ℂ ℂ FiveOrbitalParameters))).range ≤ 4 := by
+  exact projectivized_rank_le_four_of_scaled_rank_le_five differential
+    singularityRatioDifferential commonSingularityScaleDirection hscale
+    singularityRatioDifferential_commonScale commonSingularityScaleDirection_ne_zero hrank
 
 /-- Differential of the five ratios on p. 327, split into the two elementary first-kind
 coordinates and an arbitrary family of second-kind collision roots.  The latter may also vary
@@ -550,6 +727,106 @@ theorem not_ratioRankAtMostFour_of_firstKindRecovery
     (collisionOrientation_rank_le_two_of_ratio_rank_le_four
       firstKind collisionEccentricity
       concreteSecondKindRootDifferential.toLinearMap hfirstKind hratio)
+
+/-- Complete differential chain from Poincare's Chapter V conclusion to the certified §103
+contradiction.  The hypotheses spell out exactly the three assertions made on pp. 326--327:
+
+* the six scaled singularities have differential rank at most five;
+* changing `λ` alone moves all six values in one common nonzero scale direction;
+* quotienting by that direction gives the two first-kind ratios and all concrete second-kind
+  collision-root ratios.
+
+The theorem proves both subsequent losses of dimension (five to four, then four to two); neither
+is retained as a separate assumption. -/
+theorem not_scaledSingularityRankAtMostFive_of_firstKindRecovery
+    {ScaledValues : Type*} [AddCommGroup ScaledValues] [Module ℂ ScaledValues]
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ]
+      (FiniteSingularPoint → ℂ))
+    (scaledDifferential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ] ScaledValues)
+    (projectivization : ScaledValues →ₗ[ℂ]
+      (Eccentricity × (FiniteSingularPoint → ℂ)))
+    (scaleDirection : ScaledValues)
+    (hfirstKind : Function.Injective firstKind)
+    (hscale : scaledDifferential (1, 0) = scaleDirection)
+    (hprojectivization : projectivization scaleDirection = 0)
+    (hscaleNonzero : scaleDirection ≠ 0)
+    (hrank : Module.finrank ℂ scaledDifferential.range ≤ 5)
+    (hratios :
+      projectivization.comp
+          (scaledDifferential.comp
+            (LinearMap.inr ℂ ℂ FiveOrbitalParameters)) =
+        combinedRatioDifferential firstKind collisionEccentricity
+          concreteSecondKindRootDifferential.toLinearMap) :
+    False := by
+  apply not_ratioRankAtMostFour_of_firstKindRecovery
+    firstKind collisionEccentricity hfirstKind
+  rw [← hratios]
+  exact projectivized_rank_le_four_of_scaled_rank_le_five
+    scaledDifferential projectivization scaleDirection hscale
+    hprojectivization hscaleNonzero hrank
+
+/-- Source-faithful no. 80 form: a nontrivial differential relation among the six Chapter-V
+coefficient observables supplies the rank-five premise, after which Poincare's common-scale
+quotient and the certified section 103 calculation give the contradiction. -/
+theorem not_chapterVNo80Relation_of_firstKindRecovery
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ]
+      (FiniteSingularPoint → ℂ))
+    (scaledDifferential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ]
+      SixScaledSingularityValues)
+    (relation : ChapterVNo80DifferentialRelation scaledDifferential)
+    (projectivization : SixScaledSingularityValues →ₗ[ℂ]
+      (Eccentricity × (FiniteSingularPoint → ℂ)))
+    (hfirstKind : Function.Injective firstKind)
+    (hscale : scaledDifferential (1, 0) = commonSingularityScaleDirection)
+    (hprojectivization :
+      projectivization commonSingularityScaleDirection = 0)
+    (hratios :
+      projectivization.comp
+          (scaledDifferential.comp
+            (LinearMap.inr ℂ ℂ FiveOrbitalParameters)) =
+        combinedRatioDifferential firstKind collisionEccentricity
+          concreteSecondKindRootDifferential.toLinearMap) :
+    False := by
+  exact not_scaledSingularityRankAtMostFive_of_firstKindRecovery
+    firstKind collisionEccentricity scaledDifferential projectivization
+    commonSingularityScaleDirection hfirstKind hscale hprojectivization
+    commonSingularityScaleDirection_ne_zero
+    (scaled_rank_le_five_of_chapterVNo80_relation scaledDifferential relation)
+    hratios
+
+/-- Literal five-variable no. 80 form of the complete differential contradiction.  The sole
+source-facing premise is now exactly Poincaré's claim that the six coefficient observables depend
+on five variables; the five-to-four-to-two losses and the section 103 contradiction are theorems. -/
+theorem not_chapterVNo80FiveVariableFactorization_of_firstKindRecovery
+    (firstKind : Eccentricity →ₗ[ℂ] Eccentricity)
+    (collisionEccentricity : Eccentricity →ₗ[ℂ]
+      (FiniteSingularPoint → ℂ))
+    (scaledDifferential : (ℂ × FiveOrbitalParameters) →ₗ[ℂ]
+      SixScaledSingularityValues)
+    (factorization :
+      ChapterVNo80FiveVariableFactorization scaledDifferential)
+    (projectivization : SixScaledSingularityValues →ₗ[ℂ]
+      (Eccentricity × (FiniteSingularPoint → ℂ)))
+    (hfirstKind : Function.Injective firstKind)
+    (hscale : scaledDifferential (1, 0) = commonSingularityScaleDirection)
+    (hprojectivization :
+      projectivization commonSingularityScaleDirection = 0)
+    (hratios :
+      projectivization.comp
+          (scaledDifferential.comp
+            (LinearMap.inr ℂ ℂ FiveOrbitalParameters)) =
+        combinedRatioDifferential firstKind collisionEccentricity
+          concreteSecondKindRootDifferential.toLinearMap) :
+    False := by
+  exact not_scaledSingularityRankAtMostFive_of_firstKindRecovery
+    firstKind collisionEccentricity scaledDifferential projectivization
+    commonSingularityScaleDirection hfirstKind hscale hprojectivization
+    commonSingularityScaleDirection_ne_zero
+    (scaled_rank_le_five_of_chapterVNo80_fiveVariableFactorization
+      scaledDifferential factorization)
+    hratios
 
 /-- Literal “depend on four variables” form of the preceding theorem.  A factorization of the
 five ratio differentials through a four-dimensional coordinate space automatically has rank at

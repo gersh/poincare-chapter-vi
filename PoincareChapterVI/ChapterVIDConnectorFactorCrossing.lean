@@ -702,6 +702,72 @@ theorem local_plus_re_pos
       derivativeRun curvatureRun side (localParameter side) hlocal
   exact first_re_pos_of_mul_re_pos_im_zero_of_second_re_pos hprodRe hprodIm hyRe
 
+/-- The homogeneous derivative orientation propagates the strict positive endpoint value across
+the whole scale-sensitive collar.  This strict version is the nonvanishing statement needed on
+each fiber of the parameter rectangle. -/
+theorem plus_re_pos_on_collar_of_oriented
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (derivativeRun :
+      ChapterVIDConnectorFactorDerivativeReference.ReferenceCompiledRunVerdict)
+    (curvatureRun :
+      ChapterVIDConnectorFactorSecondDerivativeReference.ReferenceCompiledRunVerdict)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : OrientedRealDerivativeCertificate
+      model.toChapterVIDPrincipalConnectorModel side)
+    (t : I) (ht : (t : ℝ) ∈ collarInterval side) :
+    0 < (model.rectangleFactorPlus side
+      (connectorPathPoint model.toChapterVIDPrincipalConnectorModel t)).re := by
+  have hlocal := local_plus_re_pos model derivativeRun curvatureRun side
+  change 0 < lineReal model.toChapterVIDPrincipalConnectorModel side (t : ℝ)
+  cases side with
+  | initial =>
+      have hanti : AntitoneOn
+          (lineReal model.toChapterVIDPrincipalConnectorModel .initial)
+          (collarInterval .initial) := by
+        apply antitoneOn_of_deriv_nonpos (convex_collarInterval .initial)
+          (continuousOn_lineReal model.toChapterVIDPrincipalConnectorModel .initial)
+        · intro x hx
+          have hx' : x ∈ collarInterval .initial := interior_subset hx
+          exact (hasDerivAt_lineReal model.toChapterVIDPrincipalConnectorModel .initial
+            (collarInterval_subset_unit .initial hx')).differentiableAt.differentiableWithinAt
+        · intro x hx
+          have hx' : x ∈ collarInterval .initial := interior_subset hx
+          let tx : I := ⟨x, collarInterval_subset_unit .initial hx'⟩
+          have hderiv := hasDerivAt_lineReal
+            model.toChapterVIDPrincipalConnectorModel .initial
+            (collarInterval_subset_unit .initial hx')
+          rw [hderiv.deriv]
+          exact certificate.oriented tx hx'
+      have hlocalMem : (1 : ℝ) ∈ collarInterval .initial := by
+        norm_num [collarInterval]
+      have hcompare := hanti ht hlocalMem t.property.2
+      change 0 < lineReal model.toChapterVIDPrincipalConnectorModel .initial 1 at hlocal
+      exact hlocal.trans_le hcompare
+  | final =>
+      have hmono : MonotoneOn
+          (lineReal model.toChapterVIDPrincipalConnectorModel .final)
+          (collarInterval .final) := by
+        apply monotoneOn_of_deriv_nonneg (convex_collarInterval .final)
+          (continuousOn_lineReal model.toChapterVIDPrincipalConnectorModel .final)
+        · intro x hx
+          have hx' : x ∈ collarInterval .final := interior_subset hx
+          exact (hasDerivAt_lineReal model.toChapterVIDPrincipalConnectorModel .final
+            (collarInterval_subset_unit .final hx')).differentiableAt.differentiableWithinAt
+        · intro x hx
+          have hx' : x ∈ collarInterval .final := interior_subset hx
+          let tx : I := ⟨x, collarInterval_subset_unit .final hx'⟩
+          have hderiv := hasDerivAt_lineReal
+            model.toChapterVIDPrincipalConnectorModel .final
+            (collarInterval_subset_unit .final hx')
+          rw [hderiv.deriv]
+          exact certificate.oriented tx hx'
+      have hlocalMem : (0 : ℝ) ∈ collarInterval .final := by
+        norm_num [collarInterval]
+      have hcompare := hmono hlocalMem ht t.property.1
+      change 0 < lineReal model.toChapterVIDPrincipalConnectorModel .final 0 at hlocal
+      exact hlocal.trans_le hcompare
+
 /-- An oriented real-derivative certificate is stronger than the crossing predicate: the first
 factor's real part is positive on the entire collar. -/
 theorem OrientedRealDerivativeCertificate.toPositiveCrossingCertificate

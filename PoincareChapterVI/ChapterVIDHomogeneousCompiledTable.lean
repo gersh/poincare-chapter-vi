@@ -1707,7 +1707,7 @@ theorem exists_anchoredModel_with_orientedRealDerivativeCertificates
           model.toChapterVIDPrincipalConnectorModel .initial ∧
         ChapterVIDConnectorFactorCrossing.OrientedRealDerivativeCertificate
           model.toChapterVIDPrincipalConnectorModel .final := by
-  obtain ⟨model, hL, _, hDirection⟩ :=
+  obtain ⟨model, hL, _, hDirection, _uniform⟩ :=
     exists_chapterVIDAnchoredConnectorModel_bounded_direction massProduct b d
       (1 / (2 : ℝ) ^ 20) 1 (1 / (2 : ℝ) ^ 10)
       (by positivity) (by positivity) (by positivity)

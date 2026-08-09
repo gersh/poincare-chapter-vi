@@ -222,6 +222,94 @@ theorem chapterVIUnitCirclePath_norm (t : I) :
   change ‖circleMap 0 1 (AffineMap.lineMap 0 (2 * Real.pi) (t : ℝ))‖ = 1
   simp
 
+/-- Poincaré's `u ↦ t` change of contour coordinate sends the unit `u`-circle into the
+literal unit `t`-circle.  The exponent is purely imaginary because inversion on the unit circle
+is complex conjugation. -/
+theorem norm_chapterVIDRootToOriginalContour_of_norm_eq_one
+    {u : ℂ} (hu : ‖u‖ = 1) :
+    ‖chapterVIDRootToOriginalContour u‖ = 1 := by
+  have hnormSq : Complex.normSq (u ^ 3) = 1 := by
+    rw [Complex.normSq_eq_norm_sq, norm_pow, hu]
+    norm_num
+  have hre : (chapterVIDRootExponentialArgument u).re = 0 := by
+    unfold chapterVIDRootExponentialArgument
+    norm_num [Complex.mul_re, Complex.inv_re, hnormSq]
+  rw [chapterVIDRootToOriginalContour, norm_mul, Complex.norm_exp, hre, Real.exp_zero, hu,
+    mul_one]
+
+theorem norm_chapterVIDRootToOriginalContour_unitCircle (t : I) :
+    ‖chapterVIDRootToOriginalContour (chapterVIUnitCirclePath t)‖ = 1 :=
+  norm_chapterVIDRootToOriginalContour_of_norm_eq_one (chapterVIUnitCirclePath_norm t)
+
+/-- The literal source-coordinate image of the root-coordinate unit circle. -/
+def chapterVIDRootMappedUnitCirclePath : Path (1 : ℂ) 1 :=
+  (chapterVIUnitCirclePath.map'
+    (f := chapterVIDRootToOriginalContour)
+    (by
+      apply continuousOn_chapterVIDRootToOriginalContour.mono
+      intro u hu
+      rcases hu with ⟨t, rfl⟩
+      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+      intro hzero
+      have hnorm := chapterVIUnitCirclePath_norm t
+      rw [hzero, norm_zero] at hnorm
+      norm_num at hnorm)).cast (by simp
+          [chapterVIDRootToOriginalContour, chapterVIDRootExponentialArgument]) (by simp
+          [chapterVIDRootToOriginalContour, chapterVIDRootExponentialArgument])
+
+@[simp] theorem chapterVIDRootMappedUnitCirclePath_apply (t : I) :
+    chapterVIDRootMappedUnitCirclePath t =
+      chapterVIDRootToOriginalContour (chapterVIUnitCirclePath t) := by
+  rfl
+
+/-- Explicit interpolation of the purely imaginary exponent.  It proves that the standard
+unit-circle parametrization used in §94 and the source image of the §97 root-coordinate circle
+represent the same closed source cycle, without asserting that their pointwise parameters agree. -/
+def chapterVIDUnitCircleCoordinateHomotopy : ContinuousMap.Homotopy
+    (chapterVIUnitCirclePath : C(I, ℂ))
+    (chapterVIDRootMappedUnitCirclePath : C(I, ℂ)) where
+  toFun st :=
+    let u := chapterVIUnitCirclePath st.2
+    u * Complex.exp ((st.1 : ℝ) * chapterVIDRootExponentialArgument u)
+  continuous_toFun := by
+    have hu : Continuous (fun st : I × I ↦ chapterVIUnitCirclePath st.2) :=
+      chapterVIUnitCirclePath.continuous.comp continuous_snd
+    have harg : Continuous (fun st : I × I ↦
+        chapterVIDRootExponentialArgument (chapterVIUnitCirclePath st.2)) := by
+      unfold chapterVIDRootExponentialArgument
+      have hu3 := hu.pow 3
+      exact continuous_const.mul ((hu3.inv₀ (by
+        intro st hzero
+        have hnorm := chapterVIUnitCirclePath_norm st.2
+        have hbase : chapterVIUnitCirclePath st.2 ≠ 0 := by
+          intro hbase
+          rw [hbase, norm_zero] at hnorm
+          norm_num at hnorm
+        exact (pow_ne_zero 3 hbase) hzero)).sub hu3)
+    exact hu.mul (Complex.continuous_exp.comp
+      ((Complex.ofRealCLM.continuous.comp
+        (continuous_subtype_val.comp continuous_fst)).mul harg))
+  map_zero_left t := by
+    simp
+  map_one_left t := by
+    simp [chapterVIDRootMappedUnitCirclePath_apply,
+      chapterVIDRootToOriginalContour]
+
+theorem chapterVIDUnitCircleCoordinateHomotopy_norm (s t : I) :
+    ‖chapterVIDUnitCircleCoordinateHomotopy (s, t)‖ = 1 := by
+  have hre : (chapterVIDRootExponentialArgument (chapterVIUnitCirclePath t)).re = 0 := by
+    have hnorm := chapterVIUnitCirclePath_norm t
+    have hnormSq : Complex.normSq (chapterVIUnitCirclePath t ^ 3) = 1 := by
+      rw [Complex.normSq_eq_norm_sq, norm_pow, hnorm]
+      norm_num
+    unfold chapterVIDRootExponentialArgument
+    norm_num [Complex.mul_re, Complex.inv_re, hnormSq]
+  change ‖chapterVIUnitCirclePath t *
+    Complex.exp ((s : ℝ) * chapterVIDRootExponentialArgument
+      (chapterVIUnitCirclePath t))‖ = 1
+  rw [norm_mul, Complex.norm_exp]
+  simp [hre, chapterVIUnitCirclePath_norm]
+
 theorem chapterVIDInsidePoleRadius_pos (s : I) :
     0 < chapterVIDInsidePoleRadius s := by
   have hpow := chapterVIDInsidePoleRadius_pow s

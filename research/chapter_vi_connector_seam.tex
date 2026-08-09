@@ -44,9 +44,12 @@ the inverse-Morse endpoint can be chosen with the normalized bounds in
 factor has the required imaginary monotonicity. The new content is the real derivative sign
 for the first factor.
 
-This does not prove the global source-contour deformation in \S\S95--100 or the
-source-specific boundary-logarithm reduction in \S102. It removes the scale-sensitive seam
-obstruction that occurs before those broader tasks.
+The subsequent Lean development reuses the same bulk rows uniformly in the critical-value
+coordinate and joins them to this scale-sensitive collar argument on every positive fiber.  It
+therefore proves connector-radicand nonvanishing and constructs a continuous square-root sheet
+on each half-open rectangle $[0,1)\times[0,1]$.  This still does not prove the global
+source-contour deformation in \S\S95--100 or derive the source-specific coefficient
+factorization in \S102 from the full Chapter~V uniform-integral problem.
 
 \section{Map to Poincar\'e's printed proof}\label{sec:source-map}
 
@@ -113,11 +116,13 @@ are checked exactly.\\
 Riemann surface. & Poincar\'e says at the end of \S98 that the discussion is only sketched and that
 a complete study of the branches of \(\Phi\) is needed.  The printed text does not construct the
 global sheet-preserving deformation. & Lean proves the concrete root branches, synchronized real
-parameter, outer arcs, affine connectors, the complete one-dimensional seam tables, and the two
-compatible connector seam signs conditional on full-rectangle nonvanishing.  It now also proves
-that each transformed connector integral is literally the corresponding source curve integral.
-The two full parameter-by-connector nonvanishing witnesses and deformation of the actual \S94
-source cycle remain.\\
+parameter, and proves that Poincar\'e's exact $u\mapsto t$ map carries the $u$-unit circle to the
+literal \S94 $t$-unit circle through an explicit homotopy of parametrizations.  Lean also proves
+the outer arcs, affine connectors, and the complete seam tables.  The old bulk rows are
+now used uniformly in the critical-value coordinate, the homogeneous theorem covers every
+positive-fiber collar, and covering-space lifting constructs both connector sheets on
+$[0,1)\times[0,1]$.  Lean also proves that each transformed connector integral is literally the
+corresponding source curve integral.  Deformation of the actual \S94 source cycle remains.\\
 
 \S99 & Move the double zero to a critical center and reduce the radicand to a quadratic pinch. &
 Formal Weierstrass manipulation by itself would not establish convergence, a jointly analytic
@@ -150,10 +155,13 @@ parameters. & The printed argument does not derive the required two-coordinate c
 common singular radius, label stability, and uniform regular-factor analyticity from the Chapter V
 integral relation.  This is the main remaining source-level logical gap. & The Jacobian rescaling,
 root-label control, conditional Darboux transfer, and interface to the \S103 contradiction are
-formalized.  Lean now also proves the printed five-to-four-to-two rank step: rank at most four for
-the five ratios, plus independent recovery of the two eccentricities, forces rank at most two for
-all collision roots.  Derivation of the rank-four premise from the actual uniform integral remains
-open.\\
+formalized.  Lean now proves the complete printed differential chain.  A literal no.~80
+factorization of six coefficient differentials through five variables gives rank at most five;
+quotienting the common scale gives rank at most four; independent recovery of the two
+eccentricities gives rank at most two for all collision roots; and the certified \S103 calculation
+contradicts this.  What is not yet derived is that five-variable factorization from a formal model
+of the full Chapter~V uniform integral and its identification with the actual contour
+coefficients.\\
 
 \S103, p.~331 & Differentiate \(P=\sum U^2\) after defining
 \(V=x\,\partial U/\partial x-U\). & \textbf{Printed formula error:} the text gives
@@ -537,11 +545,13 @@ The same construction has now been applied to every older finite table consumed 
 assembly: the 56 outer-polar shards, 64 connector-factor bulk shards, two endpoint anchors,
 41 first-derivative shards, and 10 second-derivative shards.  For each shard Lean proves both
 word-size admissibility and all signed comparisons, then obtains the zero-return theorem from
-LeanCompCert's verified semantics.  Consequently
-\path{exists_seamCompatibleContribution_tendsto_of_referenceCertificates} has no compiled-run
-premise.  Its two remaining arguments are the genuinely analytic nonvanishing witnesses on the
-complete connector rectangles; they are not finite-execution receipts and must not be confused
-with the now-closed arithmetic layer.
+LeanCompCert's verified semantics.  The reference run verdicts therefore have no external
+execution premise.  The newer theorem
+\path{radicand_ne_zero_on_puncturedRectangle} combines those verdicts with the homogeneous
+collar argument and discharges nonvanishing at every positive critical value.  Its square-root
+sheet lives on the natural half-open parameter rectangle.  Gluing that sheet to the collision
+limit and to the actual source-cycle deformation is analytic topology, not a missing execution
+receipt.
 
 Two further bookkeeping gaps have been removed in Lean.  First,
 \path{connectorIntegral_eq_principal_curveIntegral} constructs the actual source-coordinate
@@ -602,21 +612,23 @@ particular, the finite collar table, the scale-aware derivative orientation, the
 and their connection to the existing five-piece logarithmic-limit theorem are no longer open.
 It does not by itself complete Poincar\'e's entire Chapter VI proof.
 
-Two source-level obligations remain outside the scope of the certificate:
+Two source-level obligations remain outside the scope of the finite certificate:
 \begin{enumerate}
 \item In \S\S95--100, the actual continued source-sheet cycle from the literal \S94 integral must
 be deformed to the certified five-piece contour while avoiding all moving singularities.  The
 local prepared chart and the certified five-piece contour are available, but their identification
 with the historical source cycle and control of the complementary regular arcs remain to be
-proved.  Before the rectangle-based sheet construction can be invoked unconditionally, the two
-literal connector radicands must also be proved nonzero on their full compact rectangles; the
-completed one-dimensional seam table does not imply that two-dimensional statement.
+proved.  The connector part of this item is now closed on the positive-parameter domain: the bulk
+rows are uniform in the critical-value coordinate, the homogeneous theorem covers every collar,
+and covering-space lifting constructs a sheet on $[0,1)\times[0,1]$.  The missing object is the
+deformation region between the literal unit-circle cycle and the five-piece cycle, not another
+connector table.
 
-\item In \S102, the coefficient germ, common radius, uniform regular-factor analyticity, and
-rank-at-most-four factorization of the five singularity ratios must be derived from the Chapter V
-no.~80 uniform-integral relation and the actual contour integral.  Once supplied, the new
-five-to-four-to-two theorem, the Darboux transfer, and the \S103 finite algebraic contradiction
-apply.
+\item In \S102, the five-variable factorization of the six coefficient observables must be
+derived from a formal model of the Chapter V no.~80 uniform-integral relation, and those
+observables must be identified with the common-radius singularity data of the actual contour
+integral.  Once supplied, the five-to-four-to-two theorem, the Darboux transfer, and the \S103
+finite algebraic contradiction apply without another rank premise.
 \end{enumerate}
 
 These are analytic source-reconstruction problems, not further rows missing from the interval
@@ -636,6 +648,11 @@ coefficient certificate\\
 and seam theorem bridge\\
 \path{ChapterVIDHomogeneousAdmissibility.lean} & aggregate unconditional reference verdict and
 exported model-existence theorem\\
+\path{ChapterVIDConnectorFullBulk.lean} & uniform two-dimensional reuse of the bulk table,
+positive-fiber collar closure, and continuous square-root sheets on the two half-open connector
+rectangles\\
+\path{ChapterVISection102.lean} & literal no.~80 five-variable differential factorization and
+the complete rank chain from six scaled values to the \S103 contradiction\\
 \path{HomogeneousAdmissibility/*.lean} & independently buildable kernel proofs for all 32
 shards\\
 \path{ConnectorCertificateMain.lean} & reference, statistics, emission, and native-check

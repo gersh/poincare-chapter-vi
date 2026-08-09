@@ -888,6 +888,72 @@ structure ChapterVIDAnchoredConnectorModel
       deriv chapterVIDGlobalContourFromMorse 0‖ <
         -(deriv chapterVIDGlobalContourFromMorse 0).im / 2
 
+/-- All small-parameter estimates used to select an anchored connector, retained on the whole
+compact critical-value interval instead of only at its outer endpoint.  Retaining this data is
+what permits the homogeneous collar table to be reused fiber by fiber. -/
+structure ChapterVIDUniformAnchorData
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (directionRadius : ℝ) : Prop where
+  facts : ∀ k ∈ Set.Icc 0 model.κ,
+    (((0 < chapterVIDEndpointDerivativeValue .initial k model.rootModel.L ∧
+          0 < chapterVIDEndpointDerivativeValue .final k model.rootModel.L) ∧
+        (chapterVIDEndpointRealDerivativeValue .initial k model.rootModel.L < 0 ∧
+          0 < chapterVIDEndpointRealDerivativeValue .final k model.rootModel.L)) ∧
+      ‖chapterVIDCriticalParameterRootAtD (k : ℂ) / chapterVIDZRootBase - 1‖ <
+        model.rootModel.L ^ 2) ∧
+    (‖chapterVIDNormalizedLocalEndpointDelta .initial k model.rootModel.L -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+        min directionRadius (-(deriv chapterVIDGlobalContourFromMorse 0).im / 2) ∧
+      ‖chapterVIDNormalizedLocalEndpointDelta .final k model.rootModel.L -
+          deriv chapterVIDGlobalContourFromMorse 0‖ <
+        min directionRadius (-(deriv chapterVIDGlobalContourFromMorse 0).im / 2)) ∧
+    (‖model.rootModel.outerConnectorEndpoint .initial k -
+          model.rootModel.outerConnectorEndpoint .initial 0‖ < model.rootModel.L ^ 2 ∧
+      ‖model.rootModel.outerConnectorEndpoint .final k -
+          model.rootModel.outerConnectorEndpoint .final 0‖ < model.rootModel.L ^ 2)
+
+/-- Restrict an anchored connector to any positive critical value in its retained uniform
+interval.  No analytic choice is repeated: the root model and all branch equalities are inherited. -/
+def ChapterVIDAnchoredConnectorModel.restrictParameter
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    {directionRadius k : ℝ}
+    (uniform : ChapterVIDUniformAnchorData model directionRadius)
+    (hkpos : 0 < k) (hkle : k ≤ model.κ) :
+    ChapterVIDAnchoredConnectorModel massProduct b d := by
+  let principal := model.toChapterVIDPrincipalConnectorModel.restrictParameter
+    k hkpos hkle
+  let oriented : ChapterVIDOrientedConnectorModel massProduct b d := {
+    toChapterVIDPrincipalConnectorModel := principal
+    rootFiberDerivative_im_neg := model.rootFiberDerivative_im_neg
+    rootCenter_im_zero := model.rootCenter_im_zero }
+  have hfacts := uniform.facts k ⟨hkpos.le, hkle⟩
+  exact {
+    toChapterVIDOrientedConnectorModel := oriented
+    initialAnchor := ⟨by
+      rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
+      exact hfacts.1.1.1.1.le⟩
+    finalAnchor := ⟨by
+      rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
+      exact hfacts.1.1.1.2.le⟩
+    initialRealAnchor := hfacts.1.1.2.1
+    finalRealAnchor := hfacts.1.1.2.2
+    parameter_le_length_sq := hkle.trans model.parameter_le_length_sq
+    parameterRootRelativeDelta_norm_le_length_sq := by
+      simpa [oriented, principal, ChapterVIDPrincipalConnectorModel.restrictParameter,
+        ChapterVIDPrincipalConnectorModel.connectorParameterRoot,
+        ChapterVIDPrincipalConnectorModel.criticalValue] using hfacts.1.2.le
+    outerEndpointDelta_norm_le_length_sq := by
+      intro side
+      cases side with
+      | initial => exact hfacts.2.2.1.le
+      | final => exact hfacts.2.2.2.le
+    initialNormalizedLocalDelta_mem_directionCone :=
+      hfacts.2.1.1.trans_le (min_le_right _ _)
+    finalNormalizedLocalDelta_mem_directionCone :=
+      hfacts.2.1.2.trans_le (min_le_right _ _) }
+
 theorem ChapterVIDAnchoredConnectorModel.normalizedLocalEndpointDelta_im_lt_half_slope
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDAnchoredConnectorModel massProduct b d)
@@ -1048,7 +1114,8 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded_direction
           ‖chapterVIDNormalizedLocalEndpointDelta side
               model.toChapterVIDPrincipalConnectorModel.κ
               model.toChapterVIDPrincipalConnectorModel.rootModel.L -
-            deriv chapterVIDGlobalContourFromMorse 0‖ < directionRadius) := by
+            deriv chapterVIDGlobalContourFromMorse 0‖ < directionRadius) ∧
+        ChapterVIDUniformAnchorData model directionRadius := by
   obtain ⟨oriented⟩ := exists_chapterVIDOrientedGlobalRootModel massProduct b d
   have hlengthEventually :=
     (eventually_chapterVIDInitialBaseEndpointDerivative_pos.and
@@ -1299,72 +1366,91 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded_direction
     toChapterVIDPrincipalConnectorModel := restrictedConnector
     rootFiberDerivative_im_neg := orientedConnector.rootFiberDerivative_im_neg
     rootCenter_im_zero := orientedConnector.rootCenter_im_zero }
-  refine ⟨{
+  let selected : ChapterVIDAnchoredConnectorModel massProduct b d := {
     toChapterVIDOrientedConnectorModel := restrictedOriented
-    initialAnchor := ⟨?_⟩
-    finalAnchor := ⟨?_⟩
-    initialRealAnchor := ?_
-    finalRealAnchor := ?_
-    parameter_le_length_sq := ?_
-    parameterRootRelativeDelta_norm_le_length_sq := ?_
-    outerEndpointDelta_norm_le_length_sq := ?_
-    initialNormalizedLocalDelta_mem_directionCone := ?_
-    finalNormalizedLocalDelta_mem_directionCone := ?_ }, ?_, ?_, ?_⟩
-  · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
-    dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκSigns.1.1.le
-  · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
-    dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκSigns.1.2.le
+    initialAnchor := ⟨by
+      rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκSigns.1.1.le⟩
+    finalAnchor := ⟨by
+      rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκSigns.1.2.le⟩
+    initialRealAnchor := by
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκSigns.2.1
+    finalRealAnchor := by
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκSigns.2.2
+    parameter_le_length_sq := by
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκscale
+    parameterRootRelativeDelta_norm_le_length_sq := by
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter,
+        ChapterVIDPrincipalConnectorModel.connectorParameterRoot,
+        ChapterVIDPrincipalConnectorModel.criticalValue]
+      rw [hrootL]
+      simpa using hκRelative
+    outerEndpointDelta_norm_le_length_sq := by
+      intro side
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκOuter side
+    initialNormalizedLocalDelta_mem_directionCone := by
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκDirectional.1.trans_le (min_le_right _ _)
+    finalNormalizedLocalDelta_mem_directionCone := by
+      dsimp only [restrictedOriented, restrictedConnector,
+        ChapterVIDPrincipalConnectorModel.restrictParameter]
+      rw [hrootL]
+      exact hκDirectional.2.trans_le (min_le_right _ _) }
+  refine ⟨selected, ?_, ?_, ?_, ?_⟩
   · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκSigns.2.1
-  · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκSigns.2.2
-  · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκscale
-  · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter,
-      ChapterVIDPrincipalConnectorModel.connectorParameterRoot,
-      ChapterVIDPrincipalConnectorModel.criticalValue]
-    rw [hrootL]
-    simpa using hκRelative
-  · intro side
-    dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκOuter side
-  · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκDirectional.1.trans_le (min_le_right _ _)
-  · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
-    rw [hrootL]
-    exact hκDirectional.2.trans_le (min_le_right _ _)
-  · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
+      selected, ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
     exact hLmax
   · dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
+      selected, ChapterVIDPrincipalConnectorModel.restrictParameter]
     exact hκmax
   · intro side
     dsimp only [restrictedOriented, restrictedConnector,
-      ChapterVIDPrincipalConnectorModel.restrictParameter]
+      selected, ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
     cases side with
     | initial => exact hκDirectional.1.trans_le (min_le_left _ _)
     | final => exact hκDirectional.2.trans_le (min_le_left _ _)
+  · refine ⟨?_⟩
+    intro k hk
+    have hkε : k ∈ Metric.ball (0 : ℝ) εk := by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_nonneg hk.1]
+      have hκε : κ' ≤ εk / 2 :=
+        (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2))
+          (L' ^ 2)).trans
+          ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
+            (min_le_right connector.κ (εk / 2)))
+      have hk' : k ≤ κ' := by
+        simpa [selected, restrictedOriented, restrictedConnector,
+          ChapterVIDPrincipalConnectorModel.restrictParameter] using hk.2
+      linarith
+    have h := hkBall hkε
+    dsimp only [selected, restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    exact ⟨⟨h.1.1.1, h.1.1.2⟩, h.1.2, h.2⟩
 
 theorem exists_chapterVIDAnchoredConnectorModel_bounded
     (massProduct : ℂ) (b d : ℤ)
@@ -1372,7 +1458,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     ∃ model : ChapterVIDAnchoredConnectorModel massProduct b d,
       model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax ∧
         model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax := by
-  obtain ⟨model, hL, hκ, _⟩ :=
+  obtain ⟨model, hL, hκ, _, _⟩ :=
     exists_chapterVIDAnchoredConnectorModel_bounded_direction
       massProduct b d Lmax κmax 1 hLmaxPos hκmaxPos (by norm_num)
   exact ⟨model, hL, hκ⟩

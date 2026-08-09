@@ -25,7 +25,10 @@ collision. More strongly, any `C²` closed contour family beginning at the unit 
 the literal transformed radicand nonzero throughout the radial continuation yields a direct
 contradiction. The exact change back to the §94 variable,
 `t=u exp((100/30003)((u^3)⁻¹-u^3))`, is now verified; its endpoint maps to the same anomaly pair
-D as the local germ. The local base point is now defined to be this explicit global endpoint, so
+D as the local germ. On the unit circle its exponent is proved purely imaginary, so the map lands
+on the literal §94 unit circle; an explicit exponent-scaling homotopy proves that the standard
+`t`-circle parametrization and the mapped `u`-circle are the same closed source cycle. The local
+base point is now defined to be this explicit global endpoint, so
 the formerly possible cubic deck transformation is proved to be exactly `1`.
 The explicit global endpoint has analytic order two and reaches the prepared local model. The
 actual §94 numerator is analytic and nonzero at D. On one certified real rectangle the literal
@@ -406,8 +409,15 @@ The strongest newly completed component is the finite algebra in §103:
   connectors, and the local pinched middle arc. The concrete connector specialization now
   constructs each actual source-coordinate path and proves by the chain rule that its normalized
   interval integral is literally the curve integral of Poincare's principal source one-form.
-  What remains is to certify nonvanishing on the two full parameter-by-connector rectangles and
-  identify the resulting closed contour with the continued source cycle.
+  The remaining two-dimensional connector certification is now closed on the mathematically
+  correct domain: `ChapterVIDConnectorFullBulk.lean` reuses the 1024-row table uniformly in the
+  critical-value coordinate, joins it to the homogeneous collar argument on every positive
+  fiber, and proves the literal radicand nonzero on `[0,1) × [0,1]` for both connectors.  Since
+  this half-open rectangle is contractible, Lean constructs the corresponding continuous
+  square-root sheets.  The excluded face is the collision limit and is supplied by the already
+  proved local Morse chart; demanding a nonvanishing global branch on the pinched face was the
+  wrong historical obligation.  What remains is to identify the resulting five-piece closed
+  contour with the continued source cycle.
 - `ChapterVIDMovingRootBridge.lean`, `ChapterVIDGlobalRootModel.lean`,
   `ChapterVIDRootConnectors.lean`, `ChapterVIDConnectorIntegral.lean`, and
   `ChapterVIDConnectorPlacement.lean` now make that boundary
@@ -436,8 +446,8 @@ The strongest newly completed component is the finite algebra in §103:
   the eventual deformation identity to the seam-compatible five-piece sum. Thus an arbitrary
   `fullContribution` can no longer be confused with the source function. It is not yet proved
   that the five pieces are a deformation of the original unit-circle integral; that
-  source-contour identity and the two full-rectangle nonvanishing witnesses remain geometric and
-  analytic obligations.
+  source-contour identity remains a geometric and analytic obligation; the positive-parameter
+  connector nonvanishing and square-root-sheet obligations are now theorems.
   The
   connector/outer sign is no longer a premise: each connector sheet is
   normalized at its outer endpoint, and connectedness proves agreement with the canonical outer
@@ -755,8 +765,10 @@ The strongest newly completed component is the finite algebra in §103:
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested
   under both Lean 4.32.1 and this project's Lean 4.33 release candidate.
 
-This does **not** yet complete Poincaré's proof. The main remaining obligations are the genuine
-complex contour-pinch theorem in §§95–100 and the source-specific analytic input in §102. The
+This does **not** yet complete Poincaré's proof. The remaining obligations are the genuine
+source-cycle deformation in §§95–100 and the source-specific analytic input connecting Chapter V
+to §102. The connector radicand is now certified on both complete positive-critical-value
+rectangles, and covering-space lifting constructs their continuous square-root sheets. The
 concrete moving algebraic branches, physical derivative identification, formal chain rule,
 identification of the reduced curve with the constant-`z` tangent derivative, and the
 three-versus-two rank contradiction are now established. The exact parameter count printed on
@@ -765,13 +777,18 @@ pp. 327--329 is now formalized as
 singularity ratios, together with injective recovery of the two eccentricities from the
 first-kind ratios, forces rank at most two for the complete collision-root differential.
 `not_fourParameterRatioFactorization` connects that statement directly to the certified §103
-contradiction. What remains in §§102–103 is to derive
+contradiction. The no. 80 parameter count is now also represented literally by
+`ChapterVNo80FiveVariableFactorization`: factorization of the six coefficient differentials
+through five variables proves rank at most five, and
+`not_chapterVNo80FiveVariableFactorization_of_firstKindRecovery` carries that premise through
+the common-scale quotient and the complete §103 contradiction. What remains in §§102–103 is to derive
 the finite boundary-logarithm germ decomposition from Poincaré's actual contour integral,
 including the function-level logarithmic decomposition and larger-disk analyticity for its
 varying analytic amplitudes, and
-to derive the coefficient family, common radius, and four-parameter ratio factorization from the
-Chapter V uniform-integral relation. Poincare states this implication in §102 by referring back
-to Chapter V, no. 80; it is not a consequence of the finite §103 computation.
+to derive the actual five-variable coefficient factorization, common radius, and identification
+with the collision-root ratios from the full Chapter V uniform-integral relation. Poincare states
+this implication in §102 by referring back to Chapter V, no. 80; it is not a consequence of the
+finite §103 computation.
 The infinite-tail transfer is now handled both under an explicit summable majorant and directly
 from a regular factor analytic beyond the boundary circle. The remaining reduction must derive
 that larger-disk amplitude statement uniformly from the contour germ and combine it with the contour
