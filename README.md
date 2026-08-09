@@ -559,10 +559,15 @@ The strongest newly completed component is the finite algebra in §103:
   and the inverse-Morse contour derivative points strictly downward at D. That strict phase is
   now propagated uniformly after shrinking the two-parameter Morse rectangle: the zero section
   is real, every selected real fiber is strictly downward-oriented, and the initial/final local
-  endpoints lie in the upper/lower half-planes. The remaining terminal join is to turn this
-  inverse-Morse phase into the nonnegative derivative of the literal collision factor along the
-  affine connector at its local endpoint. The already formalized endpoint-anchor plus
-  punctured-bulk LeanCompCert route remains the concrete fallback for connector separation.
+  endpoints lie in the upper/lower half-planes. `ChapterVIDEndpointAnchor.lean` now completes the
+  terminal join. It differentiates the two affine endpoint expressions at zero Morse length,
+  proves both limiting derivatives strictly positive from the certified negative collision
+  curvature, selects a small positive Morse length, and then shrinks the critical-value interval
+  by continuity. The resulting connector supplies both endpoint anchors rather than assuming
+  them. Combined with the ten LeanCompCert curvature shards, this proves strict first-factor path
+  derivative positivity on every non-endpoint point of all 30 terminal cells. The remaining D
+  connector task is to package this terminal monotonicity with the bulk factor certificates into
+  the final seam-continuation theorem.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

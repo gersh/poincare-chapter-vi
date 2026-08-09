@@ -45,10 +45,15 @@ negative real at D. Consequently the selected Morse square root is positive imag
 inverse-Morse contour derivative points strictly downward at D. That phase is now propagated
 uniformly after shrinking the `(k,v)` model: the zero section maps to the real root axis, every
 selected real fiber is strictly downward-oriented, and the two local endpoints have strict
-upper/lower half-plane signs. The remaining anchor work is its connection to the derivative of
-the literal collision factor along the affine connector. This analytic statement complements
-rather than replaces the compiled 30-cell curvature campaign; a receipt alone cannot encode the
-noncomputable inverse-Morse scale.
+upper/lower half-plane signs. `ChapterVIDEndpointAnchor.lean` now makes the remaining connection
+to the literal affine-connector derivative. It computes both zero-length endpoint derivatives,
+proves them strictly positive from the certified collision curvature and the exact D geometry,
+then selects a small positive Morse length and shrinks the critical-value interval by continuity.
+This constructs both endpoint anchors internally. The ten LeanCompCert curvature shards therefore
+prove strict first-factor path-derivative positivity throughout all 30 punctured terminal cells.
+The analytic selection complements rather than replaces the compiled campaign: a receipt alone
+cannot encode the noncomputable inverse-Morse scale. What remains is packaging the terminal
+monotonicity with the bulk factor certificates into the final seam continuation.
 
 This note separates three questions that are easy to conflate:
 
