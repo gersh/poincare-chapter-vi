@@ -701,6 +701,88 @@ theorem deriv_chapterVIDGlobalContourFromMorse_im_neg :
   deriv_chapterVIDGlobalContourFromMorse_im_neg_of_unit_neg
     chapterVIDPreparedUnit_base_re_neg chapterVIDPreparedUnit_base_im
 
+/-- The square of the forward global Morse derivative is half the literal root-coordinate
+radicand curvature at `D`.  This removes the noncomputable prepared-unit representative from the
+quantity needed by a numerical slope certificate. -/
+theorem deriv_chapterVIDGlobalMorseFiberCoordinate_sq :
+    (deriv chapterVIDGlobalMorseFiberCoordinate chapterVIDCollisionLift) ^ 2 =
+      deriv (deriv (chapterVIDRootCoordinateRadicand chapterVIDZRootBase))
+        chapterVIDCollisionLift / 2 := by
+  have hrootSq :=
+    chapterVIDCenteredConvergentPreparedGerm.unitRootGerm.root_sq
+      (chapterVIDZBase, (0 : ℂ))
+      chapterVIDCenteredConvergentPreparedGerm.unitRootGerm.base_mem
+  change chapterVIDMorseRootBase ^ 2 =
+      chapterVIDCenteredConvergentPreparedGerm.unit (chapterVIDZBase, 0) at hrootSq
+  rw [deriv_chapterVIDGlobalMorseFiberCoordinate, pow_two]
+  calc
+    (deriv chapterVIDDeckedRootToLocalContour chapterVIDCollisionLift *
+          chapterVIDMorseRootBase) *
+        (deriv chapterVIDDeckedRootToLocalContour chapterVIDCollisionLift *
+          chapterVIDMorseRootBase) =
+        chapterVIDMorseRootBase ^ 2 *
+          (deriv chapterVIDRootToOriginalContour chapterVIDCollisionLift) ^ 2 := by
+      rw [deriv_chapterVIDDeckedRootToLocalContour_collision]
+      ring
+    _ = chapterVIDCenteredFiberUnit 0 *
+          (deriv chapterVIDRootToOriginalContour chapterVIDCollisionLift) ^ 2 := by
+      rw [hrootSq, chapterVIDPreparedUnit_base_eq_fiberUnit]
+    _ = deriv (deriv (chapterVIDRootCoordinateRadicand chapterVIDZRootBase))
+          chapterVIDCollisionLift / 2 := by
+      rw [chapterVIDRootCoordinateRadicandSecondDerivative_eq_fiberUnit]
+      ring
+
+/-- Hence the inverse-Morse slope has a completely explicit algebraic square. -/
+theorem deriv_chapterVIDGlobalContourFromMorse_sq :
+    (deriv chapterVIDGlobalContourFromMorse 0) ^ 2 =
+      2 / deriv (deriv (chapterVIDRootCoordinateRadicand chapterVIDZRootBase))
+        chapterVIDCollisionLift := by
+  let forward := deriv chapterVIDGlobalMorseFiberCoordinate chapterVIDCollisionLift
+  let curvature := deriv (deriv
+    (chapterVIDRootCoordinateRadicand chapterVIDZRootBase)) chapterVIDCollisionLift
+  have hforward : forward ≠ 0 :=
+    deriv_chapterVIDGlobalMorseFiberCoordinate_ne_zero
+  have hcurvature : curvature ≠ 0 := by
+    intro hzero
+    have hre := congrArg Complex.re hzero
+    simp only [Complex.zero_re] at hre
+    exact (ne_of_lt chapterVIDRootCoordinateRadicandSecondDerivative_base_re_neg) hre
+  have hsquare : forward ^ 2 = curvature / 2 := by
+    exact deriv_chapterVIDGlobalMorseFiberCoordinate_sq
+  rw [deriv_chapterVIDGlobalContourFromMorse]
+  change forward⁻¹ ^ 2 = 2 / curvature
+  rw [inv_pow, hsquare]
+  field_simp
+
+/-- Real scalar form of the preceding identity.  Both sides are positive: the slope is purely
+imaginary and downward, while the literal radicand curvature is negative real. -/
+theorem deriv_chapterVIDGlobalContourFromMorse_im_sq_mul_neg_curvature_re :
+    (deriv chapterVIDGlobalContourFromMorse 0).im ^ 2 *
+        (-(deriv (deriv (chapterVIDRootCoordinateRadicand chapterVIDZRootBase))
+          chapterVIDCollisionLift).re) = 2 := by
+  have hsquare := deriv_chapterVIDGlobalContourFromMorse_sq
+  have hslopeRe := deriv_chapterVIDGlobalContourFromMorse_re_zero
+  have hcurvatureIm := chapterVIDRootCoordinateRadicandSecondDerivative_base_im_zero
+  have hcurvatureNe :
+      deriv (deriv (chapterVIDRootCoordinateRadicand chapterVIDZRootBase))
+        chapterVIDCollisionLift ≠ 0 := by
+    intro hzero
+    have hre := congrArg Complex.re hzero
+    simp only [Complex.zero_re] at hre
+    exact (ne_of_lt chapterVIDRootCoordinateRadicandSecondDerivative_base_re_neg) hre
+  have hre := congrArg Complex.re hsquare
+  rw [pow_two, Complex.mul_re, hslopeRe, zero_mul, zero_sub, Complex.div_re,
+    hcurvatureIm] at hre
+  norm_num [Complex.normSq_apply] at hre
+  have hcurvatureReNe :
+      (deriv (deriv (chapterVIDRootCoordinateRadicand chapterVIDZRootBase))
+        chapterVIDCollisionLift).re ≠ 0 :=
+    ne_of_lt chapterVIDRootCoordinateRadicandSecondDerivative_base_re_neg
+  field_simp [hcurvatureReNe] at hre
+  rw [hcurvatureIm] at hre
+  norm_num at hre
+  nlinarith [chapterVIDRootCoordinateRadicandSecondDerivative_base_re_neg]
+
 /-! ## Uniform propagation on a shrunken compact Morse rectangle -/
 
 /-- The inverse parametric Morse map fixes the zero section near D. -/

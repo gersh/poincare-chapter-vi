@@ -628,6 +628,20 @@ The strongest newly completed component is the finite algebra in §103:
   exponential bridge, quotient-to-sign reduction, and final seam-continuation assembly are
   complete.
 
+  `ChapterVIDMorseSlopeCompiled.lean` now supplies the first genuinely scale-free primitive for
+  that route. Lean proves the exact identity
+  `(d u/dv at D)^2 = 2 / R″(D)` for the inverse global Morse coordinate and the literal
+  root-coordinate radicand. A 168-operation, 1,464-claim LeanCompCert batch evaluates `R″(D)`
+  through the already checked second-derivative and companion-factor traces, with zero failed
+  claims, and proves `-120 ≤ Re R″(D) ≤ -95`. Together with the exact downward phase this gives
+  `-3/20 < Im(du/dv) < -1/8`. The retained inverse-Morse cone then places the actual normalized
+  displacement `(local-D)/v` in the fixed precision-20 rectangle
+  `[-83887,83887]×[-262144,-65536]`, independent of `L`. The executable exposes
+  `reference-morse-slope`, `emit-morse-slope`, and `check-morse-slope`; the reference computation
+  passes. Native CompCert execution additionally requires `ccomp` on `PATH`, which is not present
+  in the current development environment, while the small batch is closed unconditionally by
+  kernel evaluation of the same verified computation.
+
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
   A hash-bound LeanCompCert receipt plus the explicit `RunAdmission` premise then reconstructs

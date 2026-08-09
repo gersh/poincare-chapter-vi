@@ -2,6 +2,7 @@ import PoincareChapterVI.ChapterVIDConnectorFactorBulkCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorDerivativeReference
 import PoincareChapterVI.ChapterVIDConnectorFactorNormalizedDerivativeCompiled
 import PoincareChapterVI.ChapterVIDConnectorFactorSecondDerivativeReference
+import PoincareChapterVI.ChapterVIDMorseSlopeCompiled
 import LeanCompCert.NativeCheck
 
 /-!
@@ -144,6 +145,24 @@ def factorShardNativeCerts (_ : Unit) : List LeanCompCert.NativeCheck.Cert :=
   ([.initial, .final] : List ChapterVIDOuterArcSide).flatMap fun side ↦
     factorAnchorNativeCert side ::
       (List.finRange shardCount).map fun shard ↦ factorShardNativeCert side shard
+
+namespace MorseSlope
+
+open ChapterVIDMorseSlopeCompiled
+
+def artifact := ChapterVILeanCompCertAttestation.batchArtifact artifactName operations
+
+def emittedC : Except (Array String) String :=
+  match artifact.source? with
+  | some source => .ok source
+  | none => .error #["LeanCompCert could not emit the inverse-Morse slope artifact"]
+
+def nativeCert : LeanCompCert.NativeCheck.Cert :=
+  { name := artifactName
+    emitted := emittedC
+    certifiedValue := some 0 }
+
+end MorseSlope
 
 namespace Derivative
 
@@ -443,6 +462,9 @@ def cliMain (args : List String) : IO UInt32 := do
       SecondDerivative.withShard sideText shardText fun side shard ↦
         LeanCompCert.NativeCheck.run [SecondDerivative.nativeCert side shard]
           (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
+  | "check-morse-slope" :: rest =>
+      LeanCompCert.NativeCheck.run [MorseSlope.nativeCert]
+        (rest ++ ["--start-dir", ".lake/packages/leancompcert/runtime/start"])
   | ["stats-factor-shard", sideText, shardText] =>
       withFactorShard sideText shardText fun side shard ↦ do
         let shardOperations := referenceShardOperations side shard
@@ -510,6 +532,15 @@ def cliMain (args : List String) : IO UInt32 := do
             IO.FS.writeFile file source
             IO.println s!"wrote {file}"
             pure 0
+  | ["emit-morse-slope", file] =>
+      match MorseSlope.emittedC with
+      | .error errors =>
+          for error in errors do IO.eprintln error
+          pure 1
+      | .ok source =>
+          IO.FS.writeFile file source
+          IO.println s!"wrote {file}"
+          pure 0
   | ["reference-factor-shards"] =>
       let mut checked := 0
       let mut failures := 0
@@ -545,6 +576,16 @@ def cliMain (args : List String) : IO UInt32 := do
           checked := checked + 1
       IO.println s!"checked second-derivative shards: {checked}"
       IO.println s!"failed integer claims: {failures}"
+      pure (if failures = 0 then 0 else 1)
+  | ["reference-morse-slope"] =>
+      let operations := ChapterVIDMorseSlopeCompiled.operations
+      let failures := failureCount (batchClaims operations)
+      IO.println s!"morse slope operations: {operations.length}"
+      IO.println s!"morse slope integer claims: {(batchClaims operations).length}"
+      IO.println s!"morse slope failed integer claims: {failures}"
+      IO.println s!"morse curvature real raw interval: [{
+        ChapterVIDMorseSlopeCompiled.curvatureTrace.output.real.lower}, {
+        ChapterVIDMorseSlopeCompiled.curvatureTrace.output.real.upper}]"
       pure (if failures = 0 then 0 else 1)
   | ["reference-factor-normalized"] =>
       let mut failures := 0
@@ -606,7 +647,7 @@ def cliMain (args : List String) : IO UInt32 := do
           IO.eprintln "error: CELLS and COLLAR-CELLS must be natural numbers"
           pure 1
   | _ =>
-      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
+      IO.eprintln "usage: chapter-vi-connector-cert (reference-factor-shards | reference-factor-derivative-shards | reference-factor-second-derivative-shards | reference-morse-slope | reference-factor-normalized | reference-factor-normalized-nonzero | reference-factor-normalized-slice DISPLACEMENT | stats-factor-shard SIDE SHARD | stats-factor-derivative-shard SIDE SHARD | stats-factor-second-derivative-shard SIDE SHARD | emit-factor-shard SIDE SHARD OUTPUT.c | emit-factor-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-second-derivative-shard SIDE SHARD OUTPUT.c | emit-factor-anchor SIDE OUTPUT.c | emit-morse-slope OUTPUT.c | check-factor-shard SIDE SHARD [OPTIONS] | check-factor-derivative-shard SIDE SHARD [OPTIONS] | check-factor-second-derivative-shard SIDE SHARD [OPTIONS] | check-factor-anchor SIDE [OPTIONS] | check-factor-native [OPTIONS] | check-morse-slope [OPTIONS] | reference-coarse CELLS | reference-factor-bulk CELLS COLLAR-CELLS | scan-idealized CELLS MARGIN | scan-directional CELLS DISPLACEMENT MARGIN)"
       pure 1
 
 end PoincareChapterVI.ConnectorCertificateMain

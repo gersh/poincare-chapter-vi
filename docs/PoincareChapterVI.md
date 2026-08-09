@@ -108,6 +108,16 @@ homogeneous certificate in `(local-D)/L` and endpoint distance relative to `L`, 
 slope margin. The exponential bridge, quotient-to-sign reduction, and seam assembly are not
 additional gaps.
 
+The center and radius of the scale-free endpoint box are now finite-certified rather than left
+opaque. `ChapterVIDMorseSlopeCompiled.lean` proves
+`(du/dv|_D)^2 = 2/R″(D)`, evaluates the literal `R″(D)` with a 168-operation LeanCompCert batch,
+and obtains `-120 ≤ Re R″(D) ≤ -95` with zero failed claims. The exact phase selects the negative
+square root, giving `-3/20 < Im(du/dv|_D) < -1/8`. Combining this interval with the retained cone
+proves that the true normalized endpoint displacement lies in the fixed dyadic rectangle
+`[-83887,83887]×[-262144,-65536]` at precision 20, uniformly in the selected `L`. This closes the
+finite input problem for `(local-D)/L`; the next artifact must preserve the corresponding
+homogeneity through the connector coordinate and crossing expression.
+
 This note separates three questions that are easy to conflate:
 
 1. What is proved in Chapter VI of volume I of *Les méthodes nouvelles de la mécanique
