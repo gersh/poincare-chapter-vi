@@ -644,7 +644,10 @@ The strongest newly completed component is the finite algebra in §103:
 
   The homogeneous input handoff is now explicit as well. Lean reconstructs the literal endpoint
   displacement by the exact identity `local-D=(±L)q`, without first rounding `local-D`, and proves
-  that `(ζ/ζ_D-1)/L²` belongs to the fixed complex unit square. Diagnostics using four dyadic
+  that `(ζ/ζ_D-1)/L²` belongs to the fixed complex unit square. The model selector also retains
+  the outer endpoint's motion as `O(L²)`; its normalized quotient lies in the same square, and an
+  exact theorem rebuilds `outer-local` from the collapsed connector direction, the `L²` outer
+  motion, and the `Lq` local motion. Diagnostics using four dyadic
   scale bands show that rescaling the old absolute-box trace is not enough (every terminal cell
   fails), and every existing terminal second-derivative rectangle straddles zero in its real
   component. The next compiled artifact therefore consumes these two scale-free inputs directly;

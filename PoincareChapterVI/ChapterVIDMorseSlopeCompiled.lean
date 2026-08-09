@@ -289,5 +289,76 @@ theorem normalizedParameterDeltaRectangle_contains
   exact (div_le_one (sq_pos_of_pos model.rootModel.L_pos)).mpr
     model.parameterRootRelativeDelta_norm_le_length_sq
 
+/-- The outer endpoint uses the same fixed unit-square input after its `L²` motion is divided
+out.  The selector retained this bound specifically so the connector direction can be rebuilt
+without an independent interval box. -/
+theorem normalizedParameterDeltaRectangle_contains_outerEndpointDelta
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    normalizedParameterDeltaRectangle.Contains
+      ((model.rootModel.outerConnectorEndpoint side model.κ -
+          model.rootModel.outerConnectorEndpoint side 0) /
+        ((model.rootModel.L ^ 2 : ℝ) : ℂ)) := by
+  apply normalizedParameterDeltaRectangle_contains_of_norm_le_one
+  rw [norm_div, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_pos (sq_pos_of_pos model.rootModel.L_pos)]
+  exact (div_le_one (sq_pos_of_pos model.rootModel.L_pos)).mpr
+    (model.outerEndpointDelta_norm_le_length_sq side)
+
+/-- Exact reconstruction of the selected outer endpoint from its collapsed value and normalized
+`L²` perturbation. -/
+theorem outerEndpoint_eq_collapsed_add_length_sq_mul_normalized
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    model.rootModel.outerConnectorEndpoint side model.κ =
+      model.rootModel.outerConnectorEndpoint side 0 +
+        ((model.rootModel.L ^ 2 : ℝ) : ℂ) *
+          ((model.rootModel.outerConnectorEndpoint side model.κ -
+              model.rootModel.outerConnectorEndpoint side 0) /
+            ((model.rootModel.L ^ 2 : ℝ) : ℂ)) := by
+  have hLsq : ((model.rootModel.L ^ 2 : ℝ) : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (pow_ne_zero 2 model.rootModel.L_pos.ne')
+  rw [mul_div_cancel₀ _ hLsq]
+  ring
+
+/-- Dependency-preserving reconstruction of the complete local-to-outer connector vector.  Its
+three summands have fixed collapsed scale, `L²` scale, and `L` scale respectively. -/
+theorem localToOuter_eq_collapsed_add_scaled_deltas
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    model.rootModel.outerConnectorEndpoint side model.κ -
+        model.rootModel.localConnectorEndpoint side (model.criticalValue 0) =
+      (model.rootModel.outerConnectorEndpoint side 0 - chapterVIDCollisionLift) +
+        ((model.rootModel.L ^ 2 : ℝ) : ℂ) *
+          ((model.rootModel.outerConnectorEndpoint side model.κ -
+              model.rootModel.outerConnectorEndpoint side 0) /
+            ((model.rootModel.L ^ 2 : ℝ) : ℂ)) -
+        ((signedMorseLength side model.rootModel.L : ℝ) : ℂ) *
+          chapterVIDNormalizedLocalEndpointDelta side model.κ model.rootModel.L := by
+  have hlocal := localEndpointDelta_eq_signedMorseLength_mul_normalized model side
+  have hlocal' :
+      model.rootModel.localConnectorEndpoint side (model.criticalValue 0) =
+        chapterVIDCollisionLift +
+          ((signedMorseLength side model.rootModel.L : ℝ) : ℂ) *
+            chapterVIDNormalizedLocalEndpointDelta side model.κ model.rootModel.L := by
+    linear_combination hlocal
+  have houter := outerEndpoint_eq_collapsed_add_length_sq_mul_normalized model side
+  calc
+    model.rootModel.outerConnectorEndpoint side model.κ -
+        model.rootModel.localConnectorEndpoint side (model.criticalValue 0) =
+      (model.rootModel.outerConnectorEndpoint side 0 +
+        ((model.rootModel.L ^ 2 : ℝ) : ℂ) *
+          ((model.rootModel.outerConnectorEndpoint side model.κ -
+              model.rootModel.outerConnectorEndpoint side 0) /
+            ((model.rootModel.L ^ 2 : ℝ) : ℂ))) -
+        model.rootModel.localConnectorEndpoint side (model.criticalValue 0) := by
+          exact congrArg
+            (fun z : ℂ ↦ z -
+              model.rootModel.localConnectorEndpoint side (model.criticalValue 0)) houter
+    _ = _ := by rw [hlocal']; ring
+
 end ChapterVIDMorseSlopeCompiled
 end PoincareChapterVI

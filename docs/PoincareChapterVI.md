@@ -125,8 +125,12 @@ proves that the true normalized endpoint displacement lies in the fixed dyadic r
 finite input problem for `(local-D)/L`. The same module now proves the exact reconstruction
 `local-D=(±L)q` before rounding and places
 `(ζ/ζ_D-1)/L²` in the fixed unit square from the selector's proved norm inequality. Thus both
-primitive moving inputs to the next LeanCompCert artifact are scale-free; that artifact must
-preserve their homogeneity through the connector coordinate and crossing expression.
+primitive moving inputs are scale-free. The selector additionally retains the outer endpoint
+motion as `O(L²)`; Lean places its normalized quotient in the same unit square and proves the
+exact connector-vector decomposition into the collapsed direction, an `L²` outer perturbation,
+and the `Lq` local perturbation. The next LeanCompCert artifact can therefore consume the entire
+connector geometry without independent moving rectangles; it must preserve this homogeneity
+through the crossing expression.
 
 This note separates three questions that are easy to conflate:
 

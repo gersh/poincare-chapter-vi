@@ -801,6 +801,37 @@ def ChapterVIDPrincipalConnectorModel.restrictParameter
     intro k hk
     exact model.globalParameter_mem_terminalCell k ⟨hk.1, hk.2.trans hκle⟩
 
+/-- The outer endpoint is continuous in the literal critical value at the collision.  This form
+is more useful to the homogeneous compiler input than continuity in the connector's unit
+parameter, because it compares the selected endpoint at `κ` directly with its collapsed value at
+zero. -/
+theorem ChapterVIDPrincipalGlobalRootModel.continuousAt_outerConnectorEndpoint_zero
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalGlobalRootModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    ContinuousAt (fun k : ℝ ↦ model.outerConnectorEndpoint side k) 0 := by
+  have hk0 : (0 : ℝ) ∈ Set.Icc 0 model.δ := ⟨le_rfl, model.δ_pos.le⟩
+  have hinverse := model.parameterInverse_analyticAt 0 hk0
+  have hcritical : ContinuousAt (fun k : ℝ ↦ (k : ℂ)) 0 :=
+    Complex.continuous_ofReal.continuousAt
+  have hinverseComp : ContinuousAt
+      (fun k : ℝ ↦ chapterVIDCriticalParameterInverseAtD (k : ℂ)) 0 :=
+    hinverse.continuousAt.comp_of_eq hcritical rfl
+  have hreal : ContinuousAt
+      (fun k : ℝ ↦ (chapterVIDCriticalParameterInverseAtD (k : ℂ)).re) 0 :=
+    Complex.continuous_re.continuousAt.comp_of_eq hinverseComp rfl
+  have hraw : ContinuousAt chapterVIDCriticalToGlobalParameterRaw 0 := by
+    unfold chapterVIDCriticalToGlobalParameterRaw
+    exact (continuousAt_const.sub hreal).div_const _
+  have hparameter : ContinuousAt chapterVIDCriticalToGlobalParameter 0 := by
+    unfold chapterVIDCriticalToGlobalParameter
+    exact (continuous_projIcc (h := zero_le_one)).continuousAt.comp_of_eq hraw rfl
+  cases side
+  · exact (continuous_chapterVIDOuterArcPoint .initial).continuousAt.comp_of_eq
+      (hparameter.prodMk continuousAt_const) rfl
+  · exact (continuous_chapterVIDOuterArcPoint .final).continuousAt.comp_of_eq
+      (hparameter.prodMk continuousAt_const) rfl
+
 structure ChapterVIDAnchoredConnectorModel
     (massProduct : ℂ) (b d : ℤ)
     extends ChapterVIDOrientedConnectorModel massProduct b d where
@@ -829,6 +860,18 @@ structure ChapterVIDAnchoredConnectorModel
     ‖toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.connectorParameterRoot 0 /
         chapterVIDZRootBase - 1‖ ≤
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L ^ 2
+  /-- The actual outer endpoint motion is also subordinate to `L²`.  Retaining this relation lets
+  a compiled trace derive the connector direction from the collapsed direction and the two
+  normalized moving inputs instead of enclosing those quantities independently. -/
+  outerEndpointDelta_norm_le_length_sq :
+    ∀ side : ChapterVIDOuterArcSide,
+      ‖ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint
+          toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel side
+            toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ -
+        ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint
+          toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel
+            side 0‖ ≤
+        toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L ^ 2
   /-- The actual initial moving endpoint retains the inverse-Morse derivative direction after
   the critical parameter is moved from zero to `κ`. -/
   initialNormalizedLocalDelta_mem_directionCone :
@@ -1152,8 +1195,25 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
             -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 :=
     (hinitDirectionContinuous.eventually (Iio_mem_nhds hinitialDirectionAtZero)).and
       (hfinalDirectionContinuous.eventually (Iio_mem_nhds hfinalDirectionAtZero))
+  have hinitialOuterContinuous : ContinuousAt
+      (fun k : ℝ ↦ ‖connector.rootModel.outerConnectorEndpoint .initial k -
+        connector.rootModel.outerConnectorEndpoint .initial 0‖) 0 :=
+    ((connector.rootModel.continuousAt_outerConnectorEndpoint_zero .initial).sub_const _).norm
+  have hfinalOuterContinuous : ContinuousAt
+      (fun k : ℝ ↦ ‖connector.rootModel.outerConnectorEndpoint .final k -
+        connector.rootModel.outerConnectorEndpoint .final 0‖) 0 :=
+    ((connector.rootModel.continuousAt_outerConnectorEndpoint_zero .final).sub_const _).norm
+  have houterSmall : ∀ᶠ k : ℝ in nhds 0,
+      ‖connector.rootModel.outerConnectorEndpoint .initial k -
+          connector.rootModel.outerConnectorEndpoint .initial 0‖ < L' ^ 2 ∧
+      ‖connector.rootModel.outerConnectorEndpoint .final k -
+          connector.rootModel.outerConnectorEndpoint .final 0‖ < L' ^ 2 :=
+    (hinitialOuterContinuous.eventually
+      (Iio_mem_nhds (by simpa using sq_pos_of_pos hL'))).and
+    (hfinalOuterContinuous.eventually
+      (Iio_mem_nhds (by simpa using sq_pos_of_pos hL')))
   obtain ⟨εk, hεk, hkBall⟩ := Metric.mem_nhds_iff.mp
-    ((hpositive.and hrelativeSmall).and hdirectional)
+    (((hpositive.and hrelativeSmall).and hdirectional).and houterSmall)
   let κ' := min (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)
   have hκ' : 0 < κ' := by
     dsimp [κ']
@@ -1178,7 +1238,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
         ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
           (min_le_right connector.κ (εk / 2)))
-      linarith)).1.1
+      linarith)).1.1.1
   have hκRelative :
       ‖chapterVIDCriticalParameterRootAtD (κ' : ℂ) /
         chapterVIDZRootBase - 1‖ ≤ L' ^ 2 := by
@@ -1187,7 +1247,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
         ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
           (min_le_right connector.κ (εk / 2)))
-      linarith)).1.2.le
+      linarith)).1.1.2.le
   have hκDirectional :
       ‖chapterVIDNormalizedLocalEndpointDelta .initial κ' L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
@@ -1200,7 +1260,20 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
         ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
           (min_le_right connector.κ (εk / 2)))
+      linarith)).1.2
+  have hκOuter : ∀ side : ChapterVIDOuterArcSide,
+      ‖connector.rootModel.outerConnectorEndpoint side κ' -
+        connector.rootModel.outerConnectorEndpoint side 0‖ ≤ L' ^ 2 := by
+    have h := (hkBall (by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
+      have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
+        ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
+          (min_le_right connector.κ (εk / 2)))
       linarith)).2
+    intro side
+    cases side with
+    | initial => exact h.1.le
+    | final => exact h.2.le
   let restrictedConnector := connector.restrictParameter κ' hκ' hκle
   let restrictedOriented : ChapterVIDOrientedConnectorModel massProduct b d := {
     toChapterVIDPrincipalConnectorModel := restrictedConnector
@@ -1214,6 +1287,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     finalRealAnchor := ?_
     parameter_le_length_sq := ?_
     parameterRootRelativeDelta_norm_le_length_sq := ?_
+    outerEndpointDelta_norm_le_length_sq := ?_
     initialNormalizedLocalDelta_mem_directionCone := ?_
     finalNormalizedLocalDelta_mem_directionCone := ?_ }, ?_, ?_⟩
   · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
@@ -1244,6 +1318,11 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       ChapterVIDPrincipalConnectorModel.criticalValue]
     rw [hrootL]
     simpa using hκRelative
+  · intro side
+    dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    exact hκOuter side
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
