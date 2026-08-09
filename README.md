@@ -573,8 +573,14 @@ The strongest newly completed component is the finite algebra in §103:
   first-factor imaginary part is strictly increasing across each complete 261-cell collar, that
   the companion factor is positive-real throughout, and that the first factor starts with the
   expected outer-oriented imaginary sign. Thus a real-axis crossing is unique if it occurs. The
-  remaining D connector task is the scale-aware positive-real chart at that possible crossing,
-  followed by the final seam-continuation assembly.
+  new `ChapterVIDConnectorFactorCrossing.lean` isolates the scale-aware positive-real claim at
+  that possible crossing as `PositiveCrossingCertificate`. From that single predicate, the
+  existing compiled runs, and connector nonvanishing, Lean now constructs the continuous product
+  of principal factor roots, identifies its outer and local values, completes both seam signs,
+  and derives the five-piece logarithmic limit. `CompiledCrossingData` and
+  `CompiledCrossingRunVerdict` provide the LeanCompCert batch and receipt boundary. The remaining
+  D connector task is to generate the two dependency-preserving crossing batches and prove their
+  semantic bridge; the final seam-continuation assembly itself is complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

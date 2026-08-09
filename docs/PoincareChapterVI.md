@@ -59,9 +59,16 @@ imaginary part is strictly increasing throughout each complete 261-cell collar, 
 boundary has the expected imaginary sign, and the companion factor remains in the positive real
 half-plane. Hence the first factor has at most one real-axis crossing in a collar. The analytic
 selection complements rather than replaces the compiled campaign: a receipt alone cannot encode
-the noncomputable inverse-Morse scale. What remains is a scale-aware proof that this possible
-crossing lies on the positive, rather than negative, real ray, followed by the final seam
-continuation assembly.
+the noncomputable inverse-Morse scale. `ChapterVIDConnectorFactorCrossing.lean` now makes the
+remaining scale-aware statement an explicit `PositiveCrossingCertificate`: at a collar point
+where the first factor has zero imaginary part, its real part is nonnegative. It proves that this
+single statement, connector nonvanishing, and the three existing compiled campaigns construct a
+continuous factor-root sheet with the correct outer and local values. The two crossing statements
+therefore imply the seam-compatible connector pair and the complete five-piece logarithmic limit.
+`CompiledCrossingData` and `CompiledCrossingRunVerdict` expose the exact LeanCompCert computation
+and receipt interface. What remains is the concrete dependency-preserving integer campaign and
+its semantic bridge to those two crossing statements; the seam-continuation assembly is no longer
+an additional gap.
 
 This note separates three questions that are easy to conflate:
 
