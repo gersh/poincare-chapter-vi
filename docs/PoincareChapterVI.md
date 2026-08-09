@@ -176,8 +176,12 @@ two literal source obligations are misstated, rather than merely absent from Lea
 
 After those corrections, the central source-level analytic and geometric steps still open are:
 
-- transporting the original §94 source-sheet integration cycle through the long parameter range
-  into the now-certified near-D five-piece family while avoiding every moving zero;
+- transporting the original §94 source-sheet integration cycle over the final `27/2744` of the
+  chosen radial parameter and deforming it into the now-certified near-D five-piece family while
+  avoiding every moving zero. The preceding interval is no longer open:
+  `ChapterVIDGlobalLiftedPrefix.lean` gives a principal lift of the ordinary angular
+  root-coordinate circle from zero through the exact cutoff `2717/2744`. Linking its initial
+  sheet through the existing `u -> t` source-coordinate homotopy is still part of the obligation;
 - proving which candidate singularities pinch the integration cycle and are genuine rather than
   apparent;
 - controlling the complementary regular arcs during the long-range transport;

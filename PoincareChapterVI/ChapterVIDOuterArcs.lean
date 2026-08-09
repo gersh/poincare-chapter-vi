@@ -125,6 +125,41 @@ theorem chapterVIDRationalUnitQuarter_im_nonneg (t : I) :
   exact div_nonneg (mul_nonneg (by norm_num) t.property.1)
     (chapterVIDRationalUnitQuarter_denominator_pos t).le
 
+/-- The rational parametrization covers the complete closed first quadrant of the unit circle.
+This lets interval certificates computed in the rational parameter be transferred to any other
+parametrization of the same geometric quarter. -/
+theorem exists_chapterVIDRationalUnitQuarter_eq
+    {z : ℂ} (hnorm : ‖z‖ = 1) (hre : 0 ≤ z.re) (him : 0 ≤ z.im) :
+    ∃ t : I, chapterVIDRationalUnitQuarter t = z := by
+  have hsq : z.re ^ 2 + z.im ^ 2 = 1 := by
+    have := congrArg (fun r : ℝ ↦ r ^ 2) hnorm
+    simp only [Complex.sq_norm, Complex.normSq_apply] at this
+    nlinarith
+  have him_le_one : z.im ≤ 1 := by
+    nlinarith [sq_nonneg z.re, sq_nonneg (z.im - 1)]
+  have hden_pos : 0 < 1 + z.re := by linarith
+  let tReal := z.im / (1 + z.re)
+  have ht0 : 0 ≤ tReal := div_nonneg him hden_pos.le
+  have ht1 : tReal ≤ 1 := by
+    rw [div_le_one hden_pos]
+    linarith
+  let t : I := ⟨tReal, ht0, ht1⟩
+  refine ⟨t, Complex.ext ?_ ?_⟩
+  · simp only [chapterVIDRationalUnitQuarter, Complex.add_re, Complex.ofReal_re,
+      Complex.mul_re, Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero,
+      zero_mul, sub_zero, add_zero]
+    change (1 - tReal ^ 2) / (1 + tReal ^ 2) = z.re
+    dsimp [tReal]
+    field_simp [hden_pos.ne']
+    nlinarith
+  · simp only [chapterVIDRationalUnitQuarter, Complex.add_im, Complex.ofReal_im,
+      Complex.mul_im, Complex.ofReal_re, Complex.I_re, Complex.I_im, mul_zero,
+      mul_one, zero_add, add_zero]
+    change (2 * tReal) / (1 + tReal ^ 2) = z.im
+    dsimp [tReal]
+    field_simp [hden_pos.ne']
+    nlinarith
+
 /-- The rational unit-circle parametrization for either regular outer quarter. -/
 noncomputable def chapterVIDRationalOuterArcUnit
     (side : ChapterVIDOuterArcSide) (t : I) : ℂ :=

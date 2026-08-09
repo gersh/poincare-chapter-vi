@@ -305,10 +305,10 @@ The strongest newly completed component is the finite algebra in §103:
   removes the former endpoint-only identification. `ChapterVIDFiberDerivative.lean` normalizes
   the local `t_D` directly to the explicit global endpoint, and
   `ChapterVIDGlobalLocalBridge.lean` proves the residual deck multiplier is `1`. The compiled
-  polar cover below now supplies
-  compatible square-root sheets on the two outer-arc rectangles. The remaining global work is to
-  join those sheets to the full deforming three-arc family and match their signs to the middle
-  Morse sheet.
+  polar cover below supplies compatible square-root sheets on the two outer-arc rectangles.
+  `ChapterVIDJointLiftedContour.lean` now joins those sheets to the complete terminal five-piece
+  family and matches both connector signs to the positive Morse sheet. The remaining global work
+  is the earlier transport from the section 94 circle into that terminal family.
 - `ChapterVISquareRootSheet.lean` proves the general sheet theorem needed for those arcs: any
   continuous nonzero complex radicand on a simply connected parameter rectangle has a continuous
   square root with a prescribed base value. It also defines the precise LeanCompCert-facing
@@ -326,6 +326,19 @@ The strongest newly completed component is the finite algebra in §103:
   nonvanishing-certificate types. The exploratory script
   `research/chapter_vi_outer_arc_scan.py` records why this radius was selected; its floating-point
   output is explicitly not accepted as proof.
+- `ChapterVIDPinchingArcPrefixCompiledGrid.lean` and its 44 generated LeanCompCert shards extend
+  the literal-radicand cover across the two quarters containing the pinch. The kernel checks all
+  1,408 new polar cells through the exact global parameter
+  `1-(6/28)^3 = 2717/2744`. `ChapterVIDGlobalLiftedPrefix.lean` proves that the rational quarter
+  map is surjective onto each geometric quadrant, transfers the tables to the ordinary angular
+  root-coordinate circle, and constructs one principal square-root sheet beginning at exactly
+  that standard angular path. The already proved exact `u -> t` map and fixed-parameter homotopy
+  identify its image with the geometric section 94 source circle, but nonvanishing along that
+  source-coordinate homotopy is not inferred merely from equality of norms. Thus the radial lift
+  is formalized through the first 99.016 percent of the chosen parameter. What remains is that
+  initial source-sheet identification, the final `27/2744` tail, and a sheet-preserving
+  deformation to the already certified terminal five-piece family; the unspecified size of the
+  analytic Morse neighborhood prevents claiming overlap from the fixed cutoff alone.
 - `ChapterVILeanCompCertRoots.lean` checks cubic- and sixth-root enclosures without evaluating a
   logarithm or fractional power numerically. Compiled signed-integer multiplication traces bound
   the cubes or sixth powers of dyadic endpoints, and a kernel proof turns those inequalities into
@@ -778,8 +791,8 @@ The strongest newly completed component is the finite algebra in §103:
   interval for Mathlib's `Real.rpow`. The LeanCompCert dependency is pinned to a revision tested
   under both Lean 4.32.1 and this project's Lean 4.33 release candidate.
 
-This does **not** complete Poincaré's proof. Two newly machine-checked source defects prevent the
-remaining obligations from being discharged by literal transcription. In §§95–100 the cycle
+This does **not yet** complete Poincaré's proof. Two machine-checked source defects prevent the
+last obligations from being discharged by literal transcription. In §§95–100 the cycle
 must move jointly with the parameter: near D the literal unit circle winds around both tracked
 zeros, whereas the continued pinching cycle separates them. In Chapter V no. 85, the printed
 normalization `-ζ H = S` is algebraically incompatible with (13 bis); substitution of

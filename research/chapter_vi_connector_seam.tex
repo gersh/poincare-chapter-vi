@@ -49,8 +49,11 @@ coordinate and joins them to this scale-sensitive collar argument on every posit
 therefore proves connector-radicand nonvanishing and constructs a continuous square-root sheet
 on each half-open rectangle $[0,1)\times[0,1]$.  The later file
 \path{ChapterVIDJointLiftedContour.lean} assembles those sheets with the outer and middle sheets
-into one closed, basepoint-normalized lifted five-piece family near $D$.  This still does not
-construct the preceding long-range deformation from the original \S94 circle, or derive every
+into one closed, basepoint-normalized lifted five-piece family near $D$.  A subsequent 44-shard
+certificate proves nonvanishing on the complete moving angular circle in the transformed root
+coordinate through the exact cutoff $2717/2744$, and constructs its principal lift.  This still
+does not lift the fixed-parameter coordinate homotopy back to the original source-circle sheet,
+construct the final $27/2744$ of the deformation into the terminal five-piece cycle, or derive every
 source-specific multiplier, interchange, and coefficient-identification statement in \S102 from
 the full Chapter~V uniform-integral problem.
 
@@ -132,7 +135,13 @@ corresponding source curve integral.  The terminal construction now concatenates
 quarters, both connectors, and the inverse-Morse middle path into one closed moving source cycle.
 The literal radicand is nonzero on the positive half-open family, one basepoint-normalized lift is
 constructed, and its five restrictions are proved equal to the certified branches.  What remains
-is the preceding long-range transport from the original \S94 circle into this near-$D$ family.\\
+is no longer the whole preceding transport: 1,408 additional polar cells, checked in 44
+LeanCompCert shards, lift the ordinary angular root-coordinate circle through $s=2717/2744$.  The rational
+quarter parametrization is proved surjective onto each geometric quadrant, so this statement is
+about the standard angular path rather than a substitute polygonal or rational cycle.  The exact
+$u\mapsto t$ map and its homotopy identify the corresponding geometric source circle, but
+nonvanishing along that homotopy remains to be proved.  The other geometric obligation is the
+final $27/2744$ and the deformation from that circle to the near-$D$ five-piece family.\\
 
 \S99 & Move the double zero to a critical center and reduce the radicand to a quadratic pinch. &
 Formal Weierstrass manipulation by itself would not establish convergence, a jointly analytic
@@ -197,6 +206,40 @@ The contribution of the present note is concentrated in the \S\S97--100 rows: it
 scale-sensitive sign needed to join the global outer sheets to the positive local Morse sheet.
 It deliberately does not use that local success to conceal the still-open source-cycle and
 \S102 hypotheses.
+
+\section{The certified global prefix}
+
+The long-range certificate uses the elementary quarter-circle parametrization
+\[
+ Q(t)=\frac{1-t^2+2\ii t}{1+t^2},\qquad 0\leq t\leq1,
+\]
+and its rotations $Q$, $\ii Q$, $-Q$, and $-\ii Q$.  Lean proves that these four maps cover the
+ordinary root-coordinate unit circle: in the first quadrant the inverse parameter is
+$t=\impart z/(1+\re z)$, and the other quadrants reduce to this one by exact rotations.  Hence a
+certificate evaluated using $Q$ applies pointwise to the standard angular parametrization, with
+no unproved reparametrization assumption.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+item & exact value & kernel-checked conclusion\\
+\midrule
+radial mesh & 28 cubic-clustered cells & first 22 rows used on pinching half\\
+angular mesh & 32 quadratic-clustered cells per quarter & continuum cover, not point samples\\
+new artifacts & $2\cdot22=44$ & independent verified-program verdicts\\
+new polar cells & $2\cdot22\cdot32=1408$ & strictly positive real radicand\\
+terminal prefix & $1-(6/28)^3=2717/2744$ & one principal sheet on the full root circle\\
+uncertified tail & $1-2717/2744=27/2744$ & must meet the local five-piece family\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The fixed cutoff cannot by itself prove overlap with the analytic Morse neighborhood: the local
+inverse-function argument supplies a positive neighborhood but no numerical lower bound for its
+size.  Closing the tail therefore needs either a quantitative inverse/Morse estimate, an
+all-precollision analytic nonvanishing theorem, or a certified deformation whose endpoint is
+proved to lie inside the selected local neighborhood.  Merely increasing the finite table to a
+closer fixed rational number would not logically remove this issue.
 
 \section{The centered collision factor}
 
