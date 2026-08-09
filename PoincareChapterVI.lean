@@ -49,6 +49,7 @@ import PoincareChapterVI.ChapterVIDEndpointOrientation
 import PoincareChapterVI.ChapterVIDEndpointAnchor
 import PoincareChapterVI.ChapterVIDConnectorFactorMonotonicity
 import PoincareChapterVI.ChapterVIDConnectorFactorCrossing
+import PoincareChapterVI.ChapterVIDConnectorFactorNormalizedDerivativeCompiled
 
 /-!
 # Poincaré's Chapter VI nonintegrability argument

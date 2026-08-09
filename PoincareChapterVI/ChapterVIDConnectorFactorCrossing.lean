@@ -5,6 +5,7 @@ Authors: Gershon Bialer
 -/
 
 import PoincareChapterVI.ChapterVIDConnectorFactorMonotonicity
+import PoincareChapterVI.ChapterVILeanCompCertDependencyPreservingFactorDerivativeTrace
 
 /-!
 # The scale-aware crossing boundary for the D connector seams
@@ -68,6 +69,42 @@ def lineDerivativeReal
         (model.rootModel.connectorTarget side (model.criticalValue 0)) (t : ℂ)) *
     (model.rootModel.connectorTarget side (model.criticalValue 0) -
       model.rootModel.connectorSource side (model.criticalValue 0))).re
+
+/-- The same path derivative evaluated through the dependency-preserving, base-centered factor
+formula used by the terminal compiler. -/
+def lineDependencyPreservingDerivativeReal
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) : ℝ → ℝ := fun t ↦
+  (chapterVIDRootFactorDerivativeDependencyPreserving
+      (model.connectorParameterRoot 0)
+      (AffineMap.lineMap
+        (model.rootModel.connectorSource side (model.criticalValue 0))
+        (model.rootModel.connectorTarget side (model.criticalValue 0)) (t : ℂ)) *
+    (model.rootModel.connectorTarget side (model.criticalValue 0) -
+      model.rootModel.connectorSource side (model.criticalValue 0))).re
+
+/-- On the certified connector segment the compiler-facing expression is exactly the literal
+path derivative. -/
+theorem lineDerivativeReal_eq_dependencyPreserving
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) {x : ℝ}
+    (hx : x ∈ Set.Icc (0 : ℝ) 1) :
+    lineDerivativeReal model side x =
+      lineDependencyPreservingDerivativeReal model side x := by
+  let t : I := ⟨x, hx⟩
+  have hcoordinate :
+      AffineMap.lineMap
+        (model.rootModel.connectorSource side (model.criticalValue 0))
+        (model.rootModel.connectorTarget side (model.criticalValue 0)) (x : ℂ) ≠ 0 := by
+    simpa [ChapterVIDPrincipalConnectorModel.rectanglePoint,
+      ChapterVIDPrincipalGlobalRootModel.connectorPoint, t,
+      AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul,
+      mul_comm] using model.rectanglePoint_ne_zero side (0, t)
+  unfold lineDerivativeReal lineDependencyPreservingDerivativeReal
+  rw [chapterVIDRootCoordinateCollisionFactorPlusDerivative_eq_dependencyPreserving
+    _ hcoordinate]
 
 /-- Real curvature of the first collision factor along the literal affine connector. -/
 def lineCurvatureReal
@@ -282,6 +319,39 @@ def normalizedOrientedLineDerivative
     (side : ChapterVIDOuterArcSide) (t : ℝ) : ℝ :=
   orientedLineDerivative model.toChapterVIDPrincipalConnectorModel side t /
     realDerivativeScale model side t
+
+/-- Literal compiler-facing normalized expression after the exact base-centered rewrite. -/
+def normalizedDependencyPreservingLineDerivative
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (t : ℝ) : ℝ :=
+  (match side with
+    | .initial =>
+        -lineDependencyPreservingDerivativeReal
+          model.toChapterVIDPrincipalConnectorModel side t
+    | .final =>
+        lineDependencyPreservingDerivativeReal
+          model.toChapterVIDPrincipalConnectorModel side t) /
+    realDerivativeScale model side t
+
+theorem normalizedOrientedLineDerivative_eq_dependencyPreserving
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    normalizedOrientedLineDerivative model side t =
+      normalizedDependencyPreservingLineDerivative model side t := by
+  cases side with
+  | initial =>
+      simp only [normalizedOrientedLineDerivative,
+        normalizedDependencyPreservingLineDerivative, orientedLineDerivative]
+      rw [lineDerivativeReal_eq_dependencyPreserving
+        model.toChapterVIDPrincipalConnectorModel .initial ht]
+  | final =>
+      simp only [normalizedOrientedLineDerivative,
+        normalizedDependencyPreservingLineDerivative, orientedLineDerivative]
+      rw [lineDerivativeReal_eq_dependencyPreserving
+        model.toChapterVIDPrincipalConnectorModel .final ht]
 
 /-- The exact semantic target of the dependency-preserving compiled campaign. -/
 structure NormalizedRealDerivativeCertificate
@@ -1115,8 +1185,9 @@ theorem exists_seamCompatibleContribution_tendsto_of_compiledRealDerivativeRuns
     initialCertificate finalCertificate
 
 /-- Scale-normalized end-to-end compiled route.  This is the preferred terminal interface: the
-compiled rows retain `L + distance²`, Lean removes that strictly positive scale, and the existing
-calculus and seam assembly consume the resulting oriented derivatives. -/
+compiled rows retain the common endpoint factors in the numerator, while Lean uses positivity of
+`L + distance²` to pass between the normalized sign and the oriented derivative consumed by the
+existing calculus and seam assembly. -/
 theorem exists_seamCompatibleContribution_tendsto_of_compiledNormalizedRealDerivativeRuns
     (outerRun : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
     {massProduct : ℂ} {b d : ℤ}

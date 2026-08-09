@@ -52,6 +52,142 @@ def chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative (ζ u : ℂ) : �
           chapterVIDRootSecondAnomalyLogDerivative u * (u⁻¹ ^ 4 + u ^ 2) +
         chapterVIDRootSecondAnomaly ζ u * (-4 * u⁻¹ ^ 5 + 2 * u))
 
+/-- The transformed second anomaly, factored relative to its exact value at `D`.  All factors
+after `chapterVIDY` equal one at the collision.  This is the arithmetic form used by the
+dependency-preserving terminal trace. -/
+def chapterVIDRootSecondAnomalyRelativeToBase (ζ u : ℂ) : ℂ :=
+  chapterVIDY * (ζ / chapterVIDZRootBase) * (u / chapterVIDCollisionLift) *
+    Complex.exp (chapterVIDRootExponentialArgument u -
+      chapterVIDRootExponentialArgument chapterVIDCollisionLift)
+
+/-- Exact base-centered factorization of the transcendental anomaly.  In particular, the
+certificate may approximate the small exponential *difference* rather than separately enclosing
+two nearly cancelling absolute exponentials. -/
+theorem chapterVIDRootSecondAnomaly_eq_relativeToBase (ζ u : ℂ) :
+    chapterVIDRootSecondAnomaly ζ u =
+      chapterVIDRootSecondAnomalyRelativeToBase ζ u := by
+  unfold chapterVIDRootSecondAnomalyRelativeToBase
+  rw [← chapterVIDRootSecondAnomaly_base]
+  unfold chapterVIDRootSecondAnomaly chapterVIDRootToOriginalContour
+  rw [Complex.exp_sub]
+  have hζ : chapterVIDZRootBase ≠ 0 := chapterVIDZRootBase_ne_zero
+  have hu : chapterVIDCollisionLift ≠ 0 := chapterVIDCollisionLift_ne_zero
+  have hexp : Complex.exp
+      (chapterVIDRootExponentialArgument chapterVIDCollisionLift) ≠ 0 :=
+    Complex.exp_ne_zero _
+  field_simp [hζ, hu, hexp]
+
+/-- The exponential argument relative to its collision value, with the common `u-D` factor
+exposed.  This is the polynomial/rational expression evaluated by the relative-exponential
+LeanCompCert trace. -/
+def chapterVIDRootExponentialArgumentDifference (u : ℂ) : ℂ :=
+  -(100 / 30003) * (u - chapterVIDCollisionLift) *
+    (u ^ 2 + u * chapterVIDCollisionLift + chapterVIDCollisionLift ^ 2) *
+    (1 + u⁻¹ ^ 3 * chapterVIDCollisionLift⁻¹ ^ 3)
+
+theorem chapterVIDRootExponentialArgument_sub_base
+    {u : ℂ} (hu : u ≠ 0) :
+    chapterVIDRootExponentialArgument u -
+        chapterVIDRootExponentialArgument chapterVIDCollisionLift =
+      chapterVIDRootExponentialArgumentDifference u := by
+  have hD : chapterVIDCollisionLift ≠ 0 := chapterVIDCollisionLift_ne_zero
+  unfold chapterVIDRootExponentialArgument chapterVIDRootExponentialArgumentDifference
+  field_simp [hu, hD]
+  ring
+
+/-- Laurent part of the first collision-factor derivative. -/
+def chapterVIDRootFactorDerivativeLaurentTerm (u : ℂ) : ℂ :=
+  (1 / 10001) * (30000 * u ^ 2 - 3 * u⁻¹ ^ 4)
+
+/-- Linear-in-anomaly quotient part of the first collision-factor derivative. -/
+def chapterVIDRootFactorDerivativeQuotientTerm (ζ u : ℂ) : ℂ :=
+  2 * chapterVIDRootSecondAnomalyRelativeToBase ζ u * u⁻¹
+
+/-- Remaining linear-in-anomaly part of the first collision-factor derivative. -/
+def chapterVIDRootFactorDerivativePowerTerm (ζ u : ℂ) : ℂ :=
+  (200 / 10001) * chapterVIDRootSecondAnomalyRelativeToBase ζ u *
+    (u⁻¹ ^ 4 + u ^ 2)
+
+/-- Exact derivative expression in which every bracket vanishes at the collision base.  This
+layout retains the cancellation that is lost by evaluating the three large absolute terms in
+independent Cartesian boxes. -/
+def chapterVIDRootFactorDerivativeBaseCentered (ζ u : ℂ) : ℂ :=
+  (chapterVIDRootFactorDerivativeLaurentTerm u -
+      chapterVIDRootFactorDerivativeLaurentTerm chapterVIDCollisionLift) -
+    (chapterVIDRootFactorDerivativeQuotientTerm ζ u -
+      chapterVIDRootFactorDerivativeQuotientTerm
+        chapterVIDZRootBase chapterVIDCollisionLift) +
+    (chapterVIDRootFactorDerivativePowerTerm ζ u -
+      chapterVIDRootFactorDerivativePowerTerm
+        chapterVIDZRootBase chapterVIDCollisionLift)
+
+/-- The anomaly multiplier after the exactly cancelling `u / D` factor is removed. -/
+def chapterVIDRootRelativeMultiplier (ζ u : ℂ) : ℂ :=
+  (ζ / chapterVIDZRootBase) *
+    Complex.exp (chapterVIDRootExponentialArgument u -
+      chapterVIDRootExponentialArgument chapterVIDCollisionLift)
+
+/-- Dependency-preserving expansion of `relativeMultiplier - 1`: both summands vanish at D. -/
+def chapterVIDRootRelativeMultiplierDelta (ζ u : ℂ) : ℂ :=
+  (ζ / chapterVIDZRootBase - 1) *
+      Complex.exp (chapterVIDRootExponentialArgument u -
+        chapterVIDRootExponentialArgument chapterVIDCollisionLift) +
+    (Complex.exp (chapterVIDRootExponentialArgument u -
+        chapterVIDRootExponentialArgument chapterVIDCollisionLift) - 1)
+
+theorem chapterVIDRootRelativeMultiplier_sub_one (ζ u : ℂ) :
+    chapterVIDRootRelativeMultiplier ζ u - 1 =
+      chapterVIDRootRelativeMultiplierDelta ζ u := by
+  unfold chapterVIDRootRelativeMultiplier chapterVIDRootRelativeMultiplierDelta
+  ring
+
+/-- Laurent derivative difference with its common `u-D` factor exposed. -/
+def chapterVIDRootFactorDerivativeLaurentDifference (u : ℂ) : ℂ :=
+  (1 / 10001) *
+    (30000 * (u - chapterVIDCollisionLift) * (u + chapterVIDCollisionLift) +
+      3 * (u - chapterVIDCollisionLift) * (u + chapterVIDCollisionLift) *
+        (u ^ 2 + chapterVIDCollisionLift ^ 2) /
+          (u ^ 4 * chapterVIDCollisionLift ^ 4))
+
+/-- Shape left by cancelling the anomaly's `u / D` against the derivative powers. -/
+def chapterVIDRootFactorDerivativePowerShape (u : ℂ) : ℂ :=
+  chapterVIDCollisionLift⁻¹ * u⁻¹ ^ 3 + u ^ 3 / chapterVIDCollisionLift
+
+/-- Difference of the power shape with all its common coordinate delta exposed. -/
+def chapterVIDRootFactorDerivativePowerShapeDifference (u : ℂ) : ℂ :=
+  (u - chapterVIDCollisionLift) *
+    (u ^ 2 + u * chapterVIDCollisionLift + chapterVIDCollisionLift ^ 2) *
+    chapterVIDCollisionLift⁻¹ *
+    (1 - u⁻¹ ^ 3 * chapterVIDCollisionLift⁻¹ ^ 3)
+
+theorem chapterVIDRootFactorDerivativePowerShape_sub_base
+    {u : ℂ} (hu : u ≠ 0) :
+    chapterVIDRootFactorDerivativePowerShape u -
+        chapterVIDRootFactorDerivativePowerShape chapterVIDCollisionLift =
+      chapterVIDRootFactorDerivativePowerShapeDifference u := by
+  have hD : chapterVIDCollisionLift ≠ 0 := chapterVIDCollisionLift_ne_zero
+  unfold chapterVIDRootFactorDerivativePowerShape
+    chapterVIDRootFactorDerivativePowerShapeDifference
+  field_simp [hu, hD]
+  ring
+
+/-- Fully dependency-preserving derivative formula.  Its inputs are the small multiplier delta,
+the common coordinate delta, and differences of a single power shape.  This is the semantic
+expression the scale-normalized LeanCompCert trace evaluates. -/
+def chapterVIDRootFactorDerivativeDependencyPreserving (ζ u : ℂ) : ℂ :=
+  chapterVIDRootFactorDerivativeLaurentDifference u -
+    2 * (chapterVIDY / chapterVIDCollisionLift) *
+      chapterVIDRootRelativeMultiplierDelta ζ u +
+    (200 / 10001) * chapterVIDY *
+      (chapterVIDRootRelativeMultiplierDelta ζ u *
+          chapterVIDRootFactorDerivativePowerShape u +
+        chapterVIDRootFactorDerivativePowerShapeDifference u)
+
+@[simp] theorem chapterVIDRootFactorDerivativeBaseCentered_base :
+    chapterVIDRootFactorDerivativeBaseCentered
+      chapterVIDZRootBase chapterVIDCollisionLift = 0 := by
+  simp [chapterVIDRootFactorDerivativeBaseCentered]
+
 /-- The named logarithmic derivative differentiates the literal transformed second anomaly. -/
 theorem hasDerivAt_chapterVIDRootSecondAnomaly
     {ζ u : ℂ} (hu : u ≠ 0) :
@@ -185,6 +321,49 @@ theorem chapterVIDRootCoordinateCollisionFactorPlusDerivative_base :
   unfold chapterVIDPolynomial at hroot
   push_cast at hroot
   linear_combination ((800 : ℂ) * chapterVIDRoot - 8) * hroot
+
+/-- The base-centered formula is definitionally faithful to Poincare's literal derivative; the
+only cancellation used is the already proved exact double-zero identity at `D`. -/
+theorem chapterVIDRootCoordinateCollisionFactorPlusDerivative_eq_baseCentered (ζ u : ℂ) :
+    chapterVIDRootCoordinateCollisionFactorPlusDerivative ζ u =
+      chapterVIDRootFactorDerivativeBaseCentered ζ u := by
+  have hbase := chapterVIDRootCoordinateCollisionFactorPlusDerivative_base
+  unfold chapterVIDRootCoordinateCollisionFactorPlusDerivative at hbase
+  rw [chapterVIDRootSecondAnomaly_eq_relativeToBase] at hbase
+  unfold chapterVIDRootCoordinateCollisionFactorPlusDerivative
+    chapterVIDRootFactorDerivativeBaseCentered
+    chapterVIDRootFactorDerivativeLaurentTerm
+    chapterVIDRootFactorDerivativeQuotientTerm
+    chapterVIDRootFactorDerivativePowerTerm
+  rw [chapterVIDRootSecondAnomaly_eq_relativeToBase]
+  linear_combination hbase
+
+/-- The dependency-preserving expression is exactly the literal derivative.  No estimate is used
+here: this is a field identity, valid away from the genuine coordinate pole `u=0`. -/
+theorem chapterVIDRootCoordinateCollisionFactorPlusDerivative_eq_dependencyPreserving
+    (ζ : ℂ) {u : ℂ} (hu : u ≠ 0) :
+    chapterVIDRootCoordinateCollisionFactorPlusDerivative ζ u =
+      chapterVIDRootFactorDerivativeDependencyPreserving ζ u := by
+  rw [chapterVIDRootCoordinateCollisionFactorPlusDerivative_eq_baseCentered]
+  unfold chapterVIDRootFactorDerivativeBaseCentered
+    chapterVIDRootFactorDerivativeLaurentTerm
+    chapterVIDRootFactorDerivativeQuotientTerm
+    chapterVIDRootFactorDerivativePowerTerm
+    chapterVIDRootFactorDerivativeDependencyPreserving
+    chapterVIDRootFactorDerivativeLaurentDifference
+    chapterVIDRootFactorDerivativePowerShape
+    chapterVIDRootFactorDerivativePowerShapeDifference
+  unfold chapterVIDRootSecondAnomalyRelativeToBase
+  unfold chapterVIDRootRelativeMultiplierDelta
+  have hD : chapterVIDCollisionLift ≠ 0 := chapterVIDCollisionLift_ne_zero
+  have hζD : chapterVIDZRootBase ≠ 0 := chapterVIDZRootBase_ne_zero
+  have hexpD : Complex.exp
+      (chapterVIDRootExponentialArgument chapterVIDCollisionLift -
+        chapterVIDRootExponentialArgument chapterVIDCollisionLift) ≠ 0 :=
+    Complex.exp_ne_zero _
+  simp only [sub_self, Complex.exp_zero]
+  field_simp [hu, hD, hζD, hexpD]
+  ring
 
 /-- Exact algebraic reduction of the second derivative at `D`.  All transcendental terms have
 disappeared: Poincaré's equation (7) reduces the result to a rational function of its isolated

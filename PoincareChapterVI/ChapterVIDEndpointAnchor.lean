@@ -704,6 +704,17 @@ structure ChapterVIDAnchoredConnectorModel
     0 < chapterVIDEndpointRealDerivativeValue .final
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L
+  /-- The critical-value perturbation is subordinate to the inverse-Morse endpoint scale.  This
+  relation is retained by the dependency-preserving terminal certificate. -/
+  parameter_le_length_sq :
+    toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ ≤
+      toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L ^ 2
+  /-- The actual relative cubic-root parameter perturbation, not merely its source coordinate,
+  is subordinate to the same Morse scale. -/
+  parameterRootRelativeDelta_norm_le_length_sq :
+    ‖toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.connectorParameterRoot 0 /
+        chapterVIDZRootBase - 1‖ ≤
+      toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L ^ 2
 
 theorem exists_chapterVIDAnchoredConnectorModel_bounded
     (massProduct : ℂ) (b d : ℤ)
@@ -791,26 +802,59 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       (hfinalCont.eventually (Ioi_mem_nhds hfinalAt))).and
     ((hinitRealCont.eventually (Iio_mem_nhds hinitRealAt)).and
       (hfinalRealCont.eventually (Ioi_mem_nhds hfinalRealAt)))
-  obtain ⟨εk, hεk, hkBall⟩ := Metric.mem_nhds_iff.mp hpositive
-  let κ' := min (min connector.κ (εk / 2)) (κmax / 2)
+  have hk0 : (0 : ℝ) ∈ Set.Icc 0 connector.rootModel.δ :=
+    ⟨le_rfl, connector.rootModel.δ_pos.le⟩
+  have hparameterRootContinuous : ContinuousAt
+      (fun k : ℝ ↦ chapterVIDCriticalParameterRootAtD (k : ℂ)) 0 :=
+    (connector.rootModel.parameterRoot_analyticAt 0 hk0).continuousAt.comp_of_eq
+      Complex.continuous_ofReal.continuousAt rfl
+  have hrelativeContinuous : ContinuousAt
+      (fun k : ℝ ↦ ‖chapterVIDCriticalParameterRootAtD (k : ℂ) /
+        chapterVIDZRootBase - 1‖) 0 :=
+    ((hparameterRootContinuous.div_const chapterVIDZRootBase).sub_const 1).norm
+  have hrelativeAt :
+      ‖chapterVIDCriticalParameterRootAtD ((0 : ℝ) : ℂ) /
+        chapterVIDZRootBase - 1‖ < L' ^ 2 := by
+    simp [chapterVIDZRootBase_ne_zero, sq_pos_of_pos hL']
+  have hrelativeSmall : ∀ᶠ k : ℝ in nhds 0,
+      ‖chapterVIDCriticalParameterRootAtD (k : ℂ) /
+        chapterVIDZRootBase - 1‖ < L' ^ 2 :=
+    hrelativeContinuous.eventually (Iio_mem_nhds hrelativeAt)
+  obtain ⟨εk, hεk, hkBall⟩ := Metric.mem_nhds_iff.mp (hpositive.and hrelativeSmall)
+  let κ' := min (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)
   have hκ' : 0 < κ' := by
     dsimp [κ']
-    exact lt_min (lt_min connector.κ_pos (by positivity))
-      (div_pos hκmaxPos (by norm_num))
+    exact lt_min
+      (lt_min (lt_min connector.κ_pos (by positivity))
+        (div_pos hκmaxPos (by norm_num)))
+      (sq_pos_of_pos hL')
   have hκle : κ' ≤ connector.κ :=
-    (min_le_left _ _).trans (min_le_left _ _)
+    (min_le_left _ _).trans
+      ((min_le_left _ _).trans (min_le_left _ _))
   have hκmax : κ' ≤ κmax := by
-    exact (min_le_right _ _).trans (by linarith [hκmaxPos])
+    exact (min_le_left _ _).trans
+      ((min_le_right _ _).trans (by linarith [hκmaxPos]))
+  have hκscale : κ' ≤ L' ^ 2 := min_le_right _ _
   have hκSigns :
       (0 < chapterVIDEndpointDerivativeValue .initial κ' L' ∧
         0 < chapterVIDEndpointDerivativeValue .final κ' L') ∧
       (chapterVIDEndpointRealDerivativeValue .initial κ' L' < 0 ∧
         0 < chapterVIDEndpointRealDerivativeValue .final κ' L') := by
-    apply hkBall
-    rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
-    have := (min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
-      (min_le_right connector.κ (εk / 2))
-    linarith
+    exact (hkBall (by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
+      have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
+        ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
+          (min_le_right connector.κ (εk / 2)))
+      linarith)).1
+  have hκRelative :
+      ‖chapterVIDCriticalParameterRootAtD (κ' : ℂ) /
+        chapterVIDZRootBase - 1‖ ≤ L' ^ 2 := by
+    exact (hkBall (by
+      rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
+      have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
+        ((min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
+          (min_le_right connector.κ (εk / 2)))
+      linarith)).2.le
   let restrictedConnector := connector.restrictParameter κ' hκ' hκle
   let restrictedOriented : ChapterVIDOrientedConnectorModel massProduct b d := {
     toChapterVIDPrincipalConnectorModel := restrictedConnector
@@ -821,7 +865,9 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     initialAnchor := ⟨?_⟩
     finalAnchor := ⟨?_⟩
     initialRealAnchor := ?_
-    finalRealAnchor := ?_ }, ?_, ?_⟩
+    finalRealAnchor := ?_
+    parameter_le_length_sq := ?_
+    parameterRootRelativeDelta_norm_le_length_sq := ?_ }, ?_, ?_⟩
   · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
     dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
@@ -840,6 +886,16 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
     exact hκSigns.2.2
+  · dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    exact hκscale
+  · dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter,
+      ChapterVIDPrincipalConnectorModel.connectorParameterRoot,
+      ChapterVIDPrincipalConnectorModel.criticalValue]
+    rw [hrootL]
+    simpa using hκRelative
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]

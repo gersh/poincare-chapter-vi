@@ -592,10 +592,18 @@ The strongest newly completed component is the finite algebra in §103:
   divided by `L + distance²`. Lean proves this denominator is strictly positive from the selected
   inverse-Morse length and removes it before invoking the completed seam theorem.
   `exists_chapterVIDAnchoredConnectorModel_bounded` additionally chooses `L` and `κ` below any
-  prescribed positive upper bounds, allowing a uniform certificate generator to fix its parameter
-  range before the noncomputable analytic selection. The remaining D connector task is to
-  generate the two dependency-preserving normalized integer batches and prove the removable
-  endpoint extension used by their interval trace; the quotient-to-sign reduction and final
+  prescribed positive upper bounds, enforces `κ ≤ L²`, and retains the stronger fact that the
+  actual relative root-parameter perturbation has norm at most `L²`.
+  `ChapterVILeanCompCertDependencyPreservingFactorDerivativeTrace.lean` now evaluates the exact
+  base-centered derivative through 24 checked complex subtraces. The companion
+  `ChapterVILeanCompCertRelativeExponentialTrace.lean` evaluates the factored argument
+  `A(u)-A(D)` and uses the rigorous complex Taylor remainder to enclose `exp(A(u)-A(D))-1` without
+  trusting transcendental floating-point evaluation.
+  `ChapterVIDConnectorFactorNormalizedDerivativeCompiled.lean` supplies the finite-cell cover,
+  terminal orientation claim, deterministic proposal, and table-to-compiled-data theorem. Thus
+  the remaining D connector task has narrowed to concrete scale-aware enclosures for the moving
+  root coordinate and connector inputs, followed by generation and execution of the two tables;
+  the arithmetic checker, exponential bridge, quotient-to-sign reduction, and final
   seam-continuation assembly are complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the

@@ -79,10 +79,16 @@ claimed. The practical target is now the explicit
 positive scale `L + distance²`, proves that a nonnegative normalized certificate recovers the raw
 derivative orientation, and feeds the result directly into the completed seam theorem. The
 strengthened `exists_chapterVIDAnchoredConnectorModel_bounded` also selects the analytic model
-below any prescribed positive upper bounds for `L` and `κ`, so a uniform generated campaign may
-fix its parameter range in advance. What remains is the concrete dependency-preserving integer
-table and the expression-level trace establishing the removable normalized endpoint extension;
-neither the quotient-to-sign reduction nor the seam-continuation assembly is an additional gap.
+below any prescribed positive upper bounds for `L` and `κ`, enforces `κ ≤ L²`, and bounds the
+actual relative cubic-root parameter perturbation by `L²`. The exact base-centered derivative is
+now reconstructed by a 24-subtrace LeanCompCert evaluator. A second compiled trace evaluates the
+factored relative exponent `A(u)-A(D)` and obtains `exp(A(u)-A(D))-1` from mathlib's rigorous
+complex Taylor remainder, so no transcendental floating-point answer is trusted. The finite-cell
+table layer proves that checked arithmetic plus one terminal oriented sign per cell yields the
+normalized derivative certificate accepted by the seam theorem. What remains is to derive
+concrete scale-aware moving-root and connector-coordinate input enclosures, generate the initial
+and final tables, and run their artifacts; neither the arithmetic checker, exponential bridge,
+quotient-to-sign reduction, nor seam-continuation assembly is an additional gap.
 
 This note separates three questions that are easy to conflate:
 
