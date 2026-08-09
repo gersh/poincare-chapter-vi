@@ -77,9 +77,12 @@ endpoint curvature is also scale-sensitive, so no passing campaign of that stron
 claimed. The practical target is now the explicit
 `CompiledNormalizedRealDerivativeData`: Lean divides the oriented derivative by the strictly
 positive scale `L + distance²`, proves that a nonnegative normalized certificate recovers the raw
-derivative orientation, and feeds the result directly into the completed seam theorem. What
-remains is the concrete dependency-preserving integer table and its expression-level interval
-trace; neither the normalization nor the seam-continuation assembly is an additional gap.
+derivative orientation, and feeds the result directly into the completed seam theorem. The
+strengthened `exists_chapterVIDAnchoredConnectorModel_bounded` also selects the analytic model
+below any prescribed positive upper bounds for `L` and `κ`, so a uniform generated campaign may
+fix its parameter range in advance. What remains is the concrete dependency-preserving integer
+table and the expression-level trace establishing the removable normalized endpoint extension;
+neither the quotient-to-sign reduction nor the seam-continuation assembly is an additional gap.
 
 This note separates three questions that are easy to conflate:
 

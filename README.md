@@ -590,9 +590,12 @@ The strongest newly completed component is the finite algebra in §103:
   scale-sensitive. The concrete interface is instead
   `CompiledNormalizedRealDerivativeData`: its checked quantity is the oriented real derivative
   divided by `L + distance²`. Lean proves this denominator is strictly positive from the selected
-  inverse-Morse length and removes it before invoking the completed seam theorem. The remaining D
-  connector task is to generate the two dependency-preserving normalized integer batches and
-  reconstruct the literal quotient from their interval traces; the normalization and final
+  inverse-Morse length and removes it before invoking the completed seam theorem.
+  `exists_chapterVIDAnchoredConnectorModel_bounded` additionally chooses `L` and `κ` below any
+  prescribed positive upper bounds, allowing a uniform certificate generator to fix its parameter
+  range before the noncomputable analytic selection. The remaining D connector task is to
+  generate the two dependency-preserving normalized integer batches and prove the removable
+  endpoint extension used by their interval trace; the quotient-to-sign reduction and final
   seam-continuation assembly are complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the

@@ -705,9 +705,12 @@ structure ChapterVIDAnchoredConnectorModel
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L
 
-theorem exists_chapterVIDAnchoredConnectorModel
-    (massProduct : ℂ) (b d : ℤ) :
-    Nonempty (ChapterVIDAnchoredConnectorModel massProduct b d) := by
+theorem exists_chapterVIDAnchoredConnectorModel_bounded
+    (massProduct : ℂ) (b d : ℤ)
+    (Lmax κmax : ℝ) (hLmaxPos : 0 < Lmax) (hκmaxPos : 0 < κmax) :
+    ∃ model : ChapterVIDAnchoredConnectorModel massProduct b d,
+      model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax ∧
+        model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax := by
   obtain ⟨oriented⟩ := exists_chapterVIDOrientedGlobalRootModel massProduct b d
   have hlengthEventually :=
     (eventually_chapterVIDInitialBaseEndpointDerivative_pos.and
@@ -715,16 +718,22 @@ theorem exists_chapterVIDAnchoredConnectorModel
     (eventually_chapterVIDInitialBaseEndpointRealDerivative_neg.and
       eventually_chapterVIDFinalBaseEndpointRealDerivative_pos)
   obtain ⟨εL, hεL, hlengthBall⟩ := Metric.mem_nhdsWithin_iff.mp hlengthEventually
-  let L' := min (oriented.L / 2) (εL / 2)
+  let L' := min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)
   have hL' : 0 < L' := by
     dsimp [L']
-    exact lt_min (div_pos oriented.L_pos (by norm_num))
-      (div_pos hεL (by norm_num))
+    exact lt_min
+      (lt_min (div_pos oriented.L_pos (by norm_num))
+        (div_pos hεL (by norm_num)))
+      (div_pos hLmaxPos (by norm_num))
   have hLle : L' ≤ oriented.L := by
-    exact (min_le_left _ _).trans (by linarith [oriented.L_pos])
+    exact (min_le_left _ _).trans
+      ((min_le_left _ _).trans (by linarith [oriented.L_pos]))
+  have hLmax : L' ≤ Lmax := by
+    exact (min_le_right _ _).trans (by linarith [hLmaxPos])
   have hLball : L' ∈ Metric.ball (0 : ℝ) εL := by
     rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hL']
-    have := min_le_right (oriented.L / 2) (εL / 2)
+    have := (min_le_left (min (oriented.L / 2) (εL / 2)) (Lmax / 2)).trans
+      (min_le_right (oriented.L / 2) (εL / 2))
     linarith
   have hbaseSigns :
       (0 < chapterVIDInitialBaseEndpointDerivative L' ∧
@@ -783,11 +792,15 @@ theorem exists_chapterVIDAnchoredConnectorModel
     ((hinitRealCont.eventually (Iio_mem_nhds hinitRealAt)).and
       (hfinalRealCont.eventually (Ioi_mem_nhds hfinalRealAt)))
   obtain ⟨εk, hεk, hkBall⟩ := Metric.mem_nhds_iff.mp hpositive
-  let κ' := min connector.κ (εk / 2)
+  let κ' := min (min connector.κ (εk / 2)) (κmax / 2)
   have hκ' : 0 < κ' := by
     dsimp [κ']
-    exact lt_min connector.κ_pos (by positivity)
-  have hκle : κ' ≤ connector.κ := min_le_left _ _
+    exact lt_min (lt_min connector.κ_pos (by positivity))
+      (div_pos hκmaxPos (by norm_num))
+  have hκle : κ' ≤ connector.κ :=
+    (min_le_left _ _).trans (min_le_left _ _)
+  have hκmax : κ' ≤ κmax := by
+    exact (min_le_right _ _).trans (by linarith [hκmaxPos])
   have hκSigns :
       (0 < chapterVIDEndpointDerivativeValue .initial κ' L' ∧
         0 < chapterVIDEndpointDerivativeValue .final κ' L') ∧
@@ -795,7 +808,8 @@ theorem exists_chapterVIDAnchoredConnectorModel
         0 < chapterVIDEndpointRealDerivativeValue .final κ' L') := by
     apply hkBall
     rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
-    have := min_le_right connector.κ (εk / 2)
+    have := (min_le_left (min connector.κ (εk / 2)) (κmax / 2)).trans
+      (min_le_right connector.κ (εk / 2))
     linarith
   let restrictedConnector := connector.restrictParameter κ' hκ' hκle
   let restrictedOriented : ChapterVIDOrientedConnectorModel massProduct b d := {
@@ -807,7 +821,7 @@ theorem exists_chapterVIDAnchoredConnectorModel
     initialAnchor := ⟨?_⟩
     finalAnchor := ⟨?_⟩
     initialRealAnchor := ?_
-    finalRealAnchor := ?_ }⟩
+    finalRealAnchor := ?_ }, ?_, ?_⟩
   · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
     dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
@@ -826,6 +840,24 @@ theorem exists_chapterVIDAnchoredConnectorModel
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
     exact hκSigns.2.2
+  · dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    exact hLmax
+  · dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    exact hκmax
+
+/-- An anchored connector exists without prescribing numerical bounds.  The bounded form above is
+the one used by a concrete finite campaign; this compatibility wrapper preserves the simpler
+analytic API. -/
+theorem exists_chapterVIDAnchoredConnectorModel
+    (massProduct : ℂ) (b d : ℤ) :
+    Nonempty (ChapterVIDAnchoredConnectorModel massProduct b d) := by
+  obtain ⟨model, _, _⟩ :=
+    exists_chapterVIDAnchoredConnectorModel_bounded massProduct b d 1 1
+      (by norm_num) (by norm_num)
+  exact ⟨model⟩
 
 /-- The selected anchors discharge the sole analytic hypothesis of the compiled 30-cell
 terminal campaign. Thus the literal first-factor path derivative is strictly positive at every
