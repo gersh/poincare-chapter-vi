@@ -556,10 +556,13 @@ The strongest newly completed component is the finite algebra in §103:
   to the exact factorization of the literal radicand, transports it through the coordinate
   change, and proves that both the centered Hadamard unit and prepared Weierstrass unit are
   negative real at D. Thus the automatically selected Morse square root is positive imaginary
-  and the inverse-Morse contour derivative points strictly downward at D. What remains for this
-  terminal route is to propagate that strict phase uniformly through the shrunken two-parameter
-  inverse-Morse endpoints. The already formalized endpoint-anchor plus punctured-bulk
-  LeanCompCert route remains the concrete fallback for the connector separation theorem.
+  and the inverse-Morse contour derivative points strictly downward at D. That strict phase is
+  now propagated uniformly after shrinking the two-parameter Morse rectangle: the zero section
+  is real, every selected real fiber is strictly downward-oriented, and the initial/final local
+  endpoints lie in the upper/lower half-planes. The remaining terminal join is to turn this
+  inverse-Morse phase into the nonnegative derivative of the literal collision factor along the
+  affine connector at its local endpoint. The already formalized endpoint-anchor plus
+  punctured-bulk LeanCompCert route remains the concrete fallback for connector separation.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

@@ -21,6 +21,7 @@ noncomputable section
 namespace PoincareChapterVI
 
 open Filter
+open scoped ComplexConjugate
 
 /-- The derivative of the literal `u -> t` map in the logarithmic-derivative form used by the
 compiled factor traces. -/
@@ -110,6 +111,34 @@ theorem deriv_chapterVIDOriginalContourToRoot_im :
   rw [deriv_chapterVIDOriginalContourToRoot, Complex.inv_im,
     deriv_chapterVIDRootToOriginalContour_collision_im]
   simp
+
+/-- Poincare's explicit real-coefficient root-coordinate change commutes with complex
+conjugation. -/
+theorem chapterVIDRootToOriginalContour_conj (u : ℂ) :
+    chapterVIDRootToOriginalContour (conj u) =
+      conj (chapterVIDRootToOriginalContour u) := by
+  unfold chapterVIDRootToOriginalContour chapterVIDRootExponentialArgument
+  rw [map_mul, ← Complex.exp_conj]
+  congr 1
+  simp only [map_mul, map_sub, map_inv₀, map_pow, map_div₀, map_ofNat]
+
+/-- The canonical local inverse therefore maps nearby real source coordinates to exactly real
+root coordinates. -/
+theorem eventually_chapterVIDOriginalContourToRoot_ofReal_im_eq_zero :
+    ∀ᶠ t : ℝ in nhds chapterVIDTBase.re,
+      (chapterVIDOriginalContourToRoot (t : ℂ)).im = 0 := by
+  have hfa : (chapterVIDRootToOriginalContour chapterVIDCollisionLift).im = 0 := by
+    change chapterVIDTBase.im = 0
+    exact Complex.conj_eq_iff_im.mp conj_chapterVIDTBase
+  have h := eventually_localInverse_ofReal_im_eq_zero
+    hasStrictDerivAt_chapterVIDRootToOriginalContour_collision
+    deriv_chapterVIDRootToOriginalContour_collision_ne_zero
+    conj_chapterVIDCollisionLift hfa
+    (Filter.Eventually.of_forall chapterVIDRootToOriginalContour_conj)
+  have hbase : chapterVIDRootToOriginalContour chapterVIDCollisionLift =
+      chapterVIDTBase := rfl
+  rw [hbase] at h
+  simpa only [chapterVIDOriginalContourToRoot] using h
 
 /-- The deck-normalized map is pointwise the literal map, hence has the same oriented
 derivative. -/
@@ -671,5 +700,330 @@ theorem deriv_chapterVIDGlobalContourFromMorse_im_neg :
     (deriv chapterVIDGlobalContourFromMorse 0).im < 0 :=
   deriv_chapterVIDGlobalContourFromMorse_im_neg_of_unit_neg
     chapterVIDPreparedUnit_base_re_neg chapterVIDPreparedUnit_base_im
+
+/-! ## Uniform propagation on a shrunken compact Morse rectangle -/
+
+/-- The inverse parametric Morse map fixes the zero section near D. -/
+theorem eventually_chapterVIDMorseFiberInverse_axis_eq_zero :
+    ∀ᶠ z : ℂ in nhds chapterVIDZBase,
+      chapterVIDMorseFiberInverse (z, 0) = 0 := by
+  have htend : Tendsto (fun z : ℂ ↦ (z, (0 : ℂ)))
+      (nhds chapterVIDZBase) (nhds (chapterVIDZBase, 0)) :=
+    continuousAt_id.prodMk continuousAt_const
+  filter_upwards [htend.eventually eventually_chapterVIDMorseInverse_left] with z hz
+  have hsnd := congrArg Prod.snd hz
+  simpa [chapterVIDMorseMap, chapterVIDMorseFiberInverse] using hsnd
+
+/-- Consequently the zero Morse coordinate reconstructs the moving critical center itself. -/
+theorem eventually_chapterVIDMorseSourcePoint_axis_eq_center :
+    ∀ᶠ z : ℂ in nhds chapterVIDZBase,
+      (chapterVIDMorseSourcePoint (z, 0)).2 = chapterVIDCriticalCenter z := by
+  filter_upwards [eventually_chapterVIDMorseFiberInverse_axis_eq_zero] with z hz
+  simp [chapterVIDMorseSourcePoint, hz]
+
+theorem eventually_chapterVIDCriticalMorseRootPoint_zero_eq_globalContour :
+    (fun v : ℂ ↦ chapterVIDCriticalMorseRootPoint (0, v)) =ᶠ[nhds 0]
+      chapterVIDGlobalContourFromMorse := by
+  have htend : Tendsto chapterVIDGlobalContourFromMorse
+      (nhds 0) (nhds chapterVIDCollisionLift) := by
+    rw [← chapterVIDGlobalContourFromMorse_zero]
+    exact analyticAt_chapterVIDGlobalContourFromMorse.continuousAt
+  have hleft := htend.eventually
+    eventually_chapterVIDOriginalContourToRoot_rootToOriginalContour
+  filter_upwards [eventually_chapterVIDGlobalSourceContourFromMorse_eq_morseSourcePoint,
+    hleft] with v hsource hleftv
+  have hsnd := congrArg Prod.snd hsource
+  unfold chapterVIDCriticalMorseRootPoint chapterVIDCriticalMorseSourcePointAtD
+    chapterVIDCriticalMorseSourcePoint chapterVIDCriticalMorseParameterMap
+  simp only [chapterVIDCriticalParameterInverse_zero]
+  change chapterVIDOriginalContourToRoot
+      (chapterVIDMorseSourcePoint (chapterVIDZBase, v)).2 = _
+  rw [← hsnd]
+  simp only [chapterVIDGlobalSourceContourFromMorse_eq]
+  exact hleftv
+
+theorem chapterVIDCriticalMorseRootFiberDerivative_base :
+    chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint (0, 0) =
+      deriv chapterVIDGlobalContourFromMorse 0 := by
+  rw [chapterVIFiberDerivative_eq_deriv
+    analyticAt_chapterVIDCriticalMorseRootPoint]
+  exact eventually_chapterVIDCriticalMorseRootPoint_zero_eq_globalContour.deriv_eq
+
+theorem chapterVIDCriticalMorseRootFiberDerivative_base_im_neg :
+    (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint (0, 0)).im < 0 := by
+  rw [chapterVIDCriticalMorseRootFiberDerivative_base]
+  exact deriv_chapterVIDGlobalContourFromMorse_im_neg
+
+theorem eventually_chapterVIDCriticalMorseRootFiberDerivative_im_neg :
+    ∀ᶠ point : ℂ × ℂ in nhds (0, 0),
+      (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint point).im < 0 := by
+  have hanalytic := analyticAt_chapterVIFiberDerivative
+    analyticAt_chapterVIDCriticalMorseRootPoint
+  have hcont : ContinuousAt
+      (fun point : ℂ × ℂ ↦
+        (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint point).im)
+      (0, 0) :=
+    Complex.continuous_im.continuousAt.comp_of_eq hanalytic.continuousAt rfl
+  exact hcont.eventually (Iio_mem_nhds
+    chapterVIDCriticalMorseRootFiberDerivative_base_im_neg)
+
+/-- Along the real critical-value axis, the zero Morse coordinate maps to the real root axis
+near D. This identifies the zero section that separates the upper and lower local branches. -/
+theorem eventually_chapterVIDCriticalMorseRootPoint_center_im_zero :
+    ∀ᶠ k : ℝ in nhds 0,
+      (chapterVIDCriticalMorseRootPoint ((k : ℂ), 0)).im = 0 := by
+  let z : ℝ → ℂ := fun k ↦ chapterVIDCriticalParameterInverseAtD (k : ℂ)
+  let center : ℝ → ℂ := fun k ↦ chapterVIDCriticalCenter (z k)
+  have hzTend : Tendsto z (nhds 0) (nhds chapterVIDZBase) := by
+    change Tendsto (chapterVIDCriticalParameterInverseAtD ∘
+      fun k : ℝ ↦ (k : ℂ)) _ _
+    have hreal : Tendsto (fun k : ℝ ↦ (k : ℂ)) (nhds 0) (nhds (0 : ℂ)) :=
+      Complex.continuous_ofReal.continuousAt
+    have hinv :=
+      analyticAt_chapterVIDCriticalParameterInverseAtD.continuousAt.tendsto.comp hreal
+    simpa only [chapterVIDCriticalParameterInverseAtD_zero] using hinv
+  have hcenterTend : Tendsto center (nhds 0) (nhds chapterVIDTBase) := by
+    change Tendsto (chapterVIDCriticalCenter ∘ z) _ _
+    have h := analyticAt_chapterVIDCriticalCenter.continuousAt.tendsto.comp hzTend
+    simpa only [chapterVIDCriticalCenter_base] using h
+  have hcenterReTend : Tendsto (fun k ↦ (center k).re)
+      (nhds 0) (nhds chapterVIDTBase.re) :=
+    Complex.continuous_re.continuousAt.tendsto.comp hcenterTend
+  have hrootReal := hcenterReTend.eventually
+    eventually_chapterVIDOriginalContourToRoot_ofReal_im_eq_zero
+  have hzReal := eventually_chapterVIDCriticalParameterInverseAtD_im_eq_zero
+  have hcenterConj := hzTend.eventually eventually_chapterVIDCriticalCenter_conj
+  have haxis := hzTend.eventually eventually_chapterVIDMorseSourcePoint_axis_eq_center
+  filter_upwards [hzReal, hcenterConj, haxis, hrootReal] with
+      k hzk hconj haxisK hroot
+  have hzConj : conj (z k) = z k := by
+    apply Complex.ext
+    · simp
+    · simp [z, hzk]
+  have hcenterIm : (center k).im = 0 := by
+    have hsymm : conj (center k) = center k := by
+      rw [← hconj, hzConj]
+    exact Complex.conj_eq_iff_im.mp hsymm
+  have hcenterEq : ((center k).re : ℂ) = center k := by
+    apply Complex.ext
+    · simp
+    · simpa only [Complex.ofReal_im] using hcenterIm.symm
+  unfold chapterVIDCriticalMorseRootPoint chapterVIDCriticalMorseSourcePointAtD
+    chapterVIDCriticalMorseSourcePoint chapterVIDCriticalMorseParameterMap
+  change (chapterVIDOriginalContourToRoot
+    (chapterVIDMorseSourcePoint (z k, 0)).2).im = 0
+  rw [haxisK]
+  change (chapterVIDOriginalContourToRoot (center k)).im = 0
+  rw [← hcenterEq]
+  exact hroot
+
+/-- A compact global root model on which increasing the real Morse coordinate moves the actual
+root coordinate strictly downward throughout the selected rectangle. -/
+structure ChapterVIDOrientedGlobalRootModel
+    (massProduct : ℂ) (b d : ℤ)
+    extends ChapterVIDPrincipalGlobalRootModel massProduct b d where
+  rootFiberDerivative_im_neg : ∀ k ∈ Set.Icc 0 δ, ∀ v ∈ Set.uIcc (-L) L,
+    (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint
+      ((k : ℂ), (v : ℂ))).im < 0
+  rootCenter_im_zero : ∀ k ∈ Set.Icc 0 δ,
+    (chapterVIDCriticalMorseRootPoint ((k : ℂ), 0)).im = 0
+
+/-- The strict base-point phase can be imposed uniformly by shrinking the compact model. -/
+theorem exists_chapterVIDOrientedGlobalRootModel
+    (massProduct : ℂ) (b d : ℤ) :
+    Nonempty (ChapterVIDOrientedGlobalRootModel massProduct b d) := by
+  obtain ⟨model⟩ := exists_chapterVIDPrincipalGlobalRootModel massProduct b d
+  obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp
+    eventually_chapterVIDCriticalMorseRootFiberDerivative_im_neg
+  obtain ⟨η, hη, hrealBall⟩ := Metric.mem_nhds_iff.mp
+    eventually_chapterVIDCriticalMorseRootPoint_center_im_zero
+  let r := min (min model.δ model.L) (min (ε / 2) (η / 2))
+  have hr : 0 < r := by
+    dsimp [r]
+    exact lt_min (lt_min model.δ_pos model.L_pos)
+      (lt_min (by positivity) (by positivity))
+  have hrδ : r ≤ model.δ := by
+    exact (min_le_left (min model.δ model.L) (min (ε / 2) (η / 2))).trans
+      (min_le_left model.δ model.L)
+  have hrL : r ≤ model.L := by
+    exact (min_le_left (min model.δ model.L) (min (ε / 2) (η / 2))).trans
+      (min_le_right model.δ model.L)
+  have hrε : r ≤ ε / 2 :=
+    (min_le_right _ _).trans (min_le_left _ _)
+  have hrη : r ≤ η / 2 :=
+    (min_le_right _ _).trans (min_le_right _ _)
+  let restricted := model.restrict r r hr hr hrδ hrL
+  refine ⟨{
+    toChapterVIDPrincipalGlobalRootModel := restricted
+    rootFiberDerivative_im_neg := ?_
+    rootCenter_im_zero := ?_ }⟩
+  intro k hk v hv
+  change k ∈ Set.Icc 0 r at hk
+  change v ∈ Set.uIcc (-r) r at hv
+  apply hball
+  rw [Metric.mem_ball, Prod.dist_eq, max_lt_iff]
+  simp only [Complex.dist_eq, sub_zero, Complex.norm_real, Real.norm_eq_abs]
+  rw [Set.uIcc_of_le (by linarith [hr])] at hv
+  constructor
+  · rw [abs_of_nonneg hk.1]
+    linarith [hk.2, hrε]
+  · rw [abs_lt]
+    constructor <;> linarith [hv.1, hv.2, hrε]
+  intro k hk
+  change k ∈ Set.Icc 0 r at hk
+  apply hrealBall
+  rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_nonneg hk.1]
+  linarith [hk.2, hrη]
+
+/-- A connector model retaining the strict inverse-Morse orientation on its complete root
+rectangle. -/
+structure ChapterVIDOrientedConnectorModel
+    (massProduct : ℂ) (b d : ℤ)
+    extends ChapterVIDPrincipalConnectorModel massProduct b d where
+  rootFiberDerivative_im_neg :
+    ∀ k ∈ Set.Icc 0 rootModel.δ, ∀ v ∈ Set.uIcc (-rootModel.L) rootModel.L,
+      (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint
+        ((k : ℂ), (v : ℂ))).im < 0
+  rootCenter_im_zero : ∀ k ∈ Set.Icc 0 rootModel.δ,
+    (chapterVIDCriticalMorseRootPoint ((k : ℂ), 0)).im = 0
+
+/-- The branch-agreement interval can be chosen after the oriented root rectangle, so both the
+compiled global sheet and the strict local phase hold in one connector model. -/
+theorem exists_chapterVIDOrientedConnectorModel
+    (massProduct : ℂ) (b d : ℤ) :
+    Nonempty (ChapterVIDOrientedConnectorModel massProduct b d) := by
+  obtain ⟨orientedRoot⟩ :=
+    exists_chapterVIDOrientedGlobalRootModel massProduct b d
+  obtain ⟨connector, hroot⟩ :=
+    exists_chapterVIDPrincipalConnectorModel_of_rootModel
+      orientedRoot.toChapterVIDPrincipalGlobalRootModel
+  refine ⟨{
+    toChapterVIDPrincipalConnectorModel := connector
+    rootFiberDerivative_im_neg := ?_
+    rootCenter_im_zero := ?_ }⟩
+  intro k hk v hv
+  rw [hroot] at hk hv
+  exact orientedRoot.rootFiberDerivative_im_neg k hk v hv
+  intro k hk
+  rw [hroot] at hk
+  exact orientedRoot.rootCenter_im_zero k hk
+
+/-- Imaginary part of the actual inverse-Morse root coordinate on a real fiber. -/
+def ChapterVIDOrientedConnectorModel.rootFiberImag
+    {massProduct : ℂ} {b d : ℤ}
+    (_model : ChapterVIDOrientedConnectorModel massProduct b d)
+    (k v : ℝ) : ℝ :=
+  (chapterVIDCriticalMorseRootPoint ((k : ℂ), (v : ℂ))).im
+
+/-- The named two-variable fiber derivative is the real derivative of the root coordinate's
+imaginary part. -/
+theorem ChapterVIDOrientedConnectorModel.hasDerivAt_rootFiberImag
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDOrientedConnectorModel massProduct b d)
+    {k v : ℝ}
+    (hk : k ∈ Set.Icc 0 model.rootModel.δ)
+    (hv : v ∈ Set.uIcc (-model.rootModel.L) model.rootModel.L) :
+    HasDerivAt (model.rootFiberImag k)
+      (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint
+        ((k : ℂ), (v : ℂ))).im v := by
+  have hpoint := model.rootModel.root_analyticAt k hk v hv
+  have hfiber : AnalyticAt ℂ
+      (fun w : ℂ ↦ chapterVIDCriticalMorseRootPoint ((k : ℂ), w)) (v : ℂ) :=
+    hpoint.comp (analyticAt_const.prod analyticAt_id)
+  have hcomplex : HasDerivAt
+      (fun w : ℂ ↦ chapterVIDCriticalMorseRootPoint ((k : ℂ), w))
+      (chapterVIFiberDerivative chapterVIDCriticalMorseRootPoint
+        ((k : ℂ), (v : ℂ))) (v : ℂ) := by
+    rw [chapterVIFiberDerivative_eq_deriv hpoint]
+    exact hfiber.differentiableAt.hasDerivAt
+  have hreal := (hcomplex.const_mul (-Complex.I)).real_of_complex
+  convert hreal using 1
+  · funext x
+    simp [ChapterVIDOrientedConnectorModel.rootFiberImag, Complex.mul_re]
+  · simp [Complex.mul_re]
+
+/-- Uniform phase propagation: on every selected real parameter fiber, increasing the Morse
+coordinate strictly lowers the imaginary part of the actual global root coordinate. -/
+theorem ChapterVIDOrientedConnectorModel.strictAntiOn_rootFiberImag
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDOrientedConnectorModel massProduct b d)
+    {k : ℝ} (hk : k ∈ Set.Icc 0 model.κ) :
+    StrictAntiOn (model.rootFiberImag k)
+      (Set.Icc (-model.rootModel.L) model.rootModel.L) := by
+  have hkRoot : k ∈ Set.Icc 0 model.rootModel.δ :=
+    ⟨hk.1, hk.2.trans model.κ_le_delta⟩
+  have hinterval : -model.rootModel.L ≤ model.rootModel.L := by
+    linarith [model.rootModel.L_pos]
+  apply strictAntiOn_of_deriv_neg (convex_Icc _ _)
+  · intro v hv
+    have hvU : v ∈ Set.uIcc (-model.rootModel.L) model.rootModel.L := by
+      rw [Set.uIcc_of_le hinterval]
+      exact hv
+    exact (model.hasDerivAt_rootFiberImag hkRoot hvU).continuousAt.continuousWithinAt
+  · intro v hv
+    have hv' : v ∈ Set.Icc (-model.rootModel.L) model.rootModel.L :=
+      interior_subset hv
+    have hvU : v ∈ Set.uIcc (-model.rootModel.L) model.rootModel.L := by
+      rw [Set.uIcc_of_le hinterval]
+      exact hv'
+    rw [(model.hasDerivAt_rootFiberImag hkRoot hvU).deriv]
+    exact model.rootFiberDerivative_im_neg k hkRoot v hvU
+
+/-- The two local connector endpoints inherit the strict vertical ordering selected at D. -/
+theorem ChapterVIDOrientedConnectorModel.initial_endpoint_im_gt_final
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDOrientedConnectorModel massProduct b d)
+    {k : ℝ} (hk : k ∈ Set.Icc 0 model.κ) :
+    (model.rootModel.localConnectorEndpoint .final k).im <
+      (model.rootModel.localConnectorEndpoint .initial k).im := by
+  have hL : -model.rootModel.L < model.rootModel.L := by
+    linarith [model.rootModel.L_pos]
+  have hanti := model.strictAntiOn_rootFiberImag hk
+  have h := hanti
+    (Set.left_mem_Icc.mpr hL.le) (Set.right_mem_Icc.mpr hL.le) hL
+  simpa [ChapterVIDOrientedConnectorModel.rootFiberImag,
+    ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint] using h
+
+/-- The initial local endpoint lies strictly above the real root axis. -/
+theorem ChapterVIDOrientedConnectorModel.initial_endpoint_im_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDOrientedConnectorModel massProduct b d)
+    {k : ℝ} (hk : k ∈ Set.Icc 0 model.κ) :
+    0 < (model.rootModel.localConnectorEndpoint .initial k).im := by
+  have hkRoot : k ∈ Set.Icc 0 model.rootModel.δ :=
+    ⟨hk.1, hk.2.trans model.κ_le_delta⟩
+  have hminus : -model.rootModel.L < 0 := by
+    linarith [model.rootModel.L_pos]
+  have hL : -model.rootModel.L ≤ model.rootModel.L := hminus.le.trans
+    model.rootModel.L_pos.le
+  have hanti := model.strictAntiOn_rootFiberImag hk
+  have h := hanti (Set.left_mem_Icc.mpr hL)
+    (Set.mem_Icc.mpr ⟨hminus.le, model.rootModel.L_pos.le⟩) hminus
+  change (chapterVIDCriticalMorseRootPoint ((k : ℂ), 0)).im <
+    (chapterVIDCriticalMorseRootPoint
+      ((k : ℂ), ((-model.rootModel.L : ℝ) : ℂ))).im at h
+  rw [model.rootCenter_im_zero k hkRoot] at h
+  simpa [ChapterVIDOrientedConnectorModel.rootFiberImag,
+    ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint] using h
+
+/-- The final local endpoint lies strictly below the real root axis. -/
+theorem ChapterVIDOrientedConnectorModel.final_endpoint_im_neg
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDOrientedConnectorModel massProduct b d)
+    {k : ℝ} (hk : k ∈ Set.Icc 0 model.κ) :
+    (model.rootModel.localConnectorEndpoint .final k).im < 0 := by
+  have hkRoot : k ∈ Set.Icc 0 model.rootModel.δ :=
+    ⟨hk.1, hk.2.trans model.κ_le_delta⟩
+  have hplus : 0 < model.rootModel.L := model.rootModel.L_pos
+  have hL : -model.rootModel.L ≤ model.rootModel.L := by linarith
+  have hanti := model.strictAntiOn_rootFiberImag hk
+  have h := hanti (Set.mem_Icc.mpr ⟨by linarith, hplus.le⟩)
+    (Set.right_mem_Icc.mpr hL) hplus
+  change (chapterVIDCriticalMorseRootPoint
+      ((k : ℂ), ((model.rootModel.L : ℝ) : ℂ))).im <
+    (chapterVIDCriticalMorseRootPoint ((k : ℂ), 0)).im at h
+  rw [model.rootCenter_im_zero k hkRoot] at h
+  simpa [ChapterVIDOrientedConnectorModel.rootFiberImag,
+    ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint] using h
 
 end PoincareChapterVI

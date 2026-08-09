@@ -59,6 +59,82 @@ structure ChapterVIDPrincipalGlobalRootModel
     chapterVIDCriticalParameterRootAtD (k : ℂ) ^ 3 =
       chapterVIDCriticalParameterInverseAtD (k : ℂ)
 
+/-- Restrict a compact global root model to a smaller positive rectangle. -/
+def ChapterVIDPrincipalGlobalRootModel.restrict
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalGlobalRootModel massProduct b d)
+    (δ' L' : ℝ) (hδ' : 0 < δ') (hL' : 0 < L')
+    (hδle : δ' ≤ model.δ) (hLle : L' ≤ model.L) :
+    ChapterVIDPrincipalGlobalRootModel massProduct b d where
+  toChapterVIDPrincipalLocalSourceModel := {
+    δ := δ'
+    L := L'
+    δ_pos := hδ'
+    L_pos := hL'
+    amplitude_contDiffOn := model.amplitude_contDiffOn.mono (by
+      rintro ⟨k, v⟩ ⟨hk, hv⟩
+      rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+      rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+      exact ⟨⟨hk.1, hk.2.trans hδle⟩,
+        ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩⟩)
+    radicand_eq := by
+      intro k hk v hv
+      apply model.radicand_eq k ⟨hk.1, hk.2.trans hδle⟩ v
+      rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+      rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+      exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+    sourceFiber_hasDerivAt := by
+      intro k hk v hv
+      apply model.sourceFiber_hasDerivAt k ⟨hk.1, hk.2.trans hδle⟩ v
+      rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+      rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+      exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩ }
+  root_analyticAt := by
+    intro k hk v hv
+    apply model.root_analyticAt k ⟨hk.1, hk.2.trans hδle⟩ v
+    rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+  parameterInverse_analyticAt := by
+    intro k hk
+    exact model.parameterInverse_analyticAt k ⟨hk.1, hk.2.trans hδle⟩
+  parameterRoot_analyticAt := by
+    intro k hk
+    exact model.parameterRoot_analyticAt k ⟨hk.1, hk.2.trans hδle⟩
+  root_source_eq := by
+    intro k hk v hv
+    apply model.root_source_eq k ⟨hk.1, hk.2.trans hδle⟩ v
+    rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+  root_radicand_eq := by
+    intro k hk v hv
+    apply model.root_radicand_eq k ⟨hk.1, hk.2.trans hδle⟩ v
+    rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+  root_ne_zero := by
+    intro k hk v hv
+    apply model.root_ne_zero k ⟨hk.1, hk.2.trans hδle⟩ v
+    rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+  root_close := by
+    intro k hk v hv
+    apply model.root_close k ⟨hk.1, hk.2.trans hδle⟩ v
+    rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+  root_close_dyadic := by
+    intro k hk v hv
+    apply model.root_close_dyadic k ⟨hk.1, hk.2.trans hδle⟩ v
+    rw [Set.uIcc_of_le (by linarith [hL'])] at hv
+    rw [Set.uIcc_of_le (by linarith [model.L_pos])]
+    exact ⟨by linarith [hv.1, hLle], by linarith [hv.2, hLle]⟩
+  parameterRoot_pow := by
+    intro k hk
+    exact model.parameterRoot_pow k ⟨hk.1, hk.2.trans hδle⟩
+
 /-- All analytic-germ identities can be imposed on one smaller compact positive rectangle. -/
 theorem exists_chapterVIDPrincipalGlobalRootModel
     (massProduct : ℂ) (b d : ℤ) :

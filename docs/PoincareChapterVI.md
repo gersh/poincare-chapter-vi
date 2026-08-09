@@ -42,8 +42,13 @@ formulas for both inverse maps. It now also closes the phase calculation: the ce
 second derivative of the literal root-coordinate radicand is transported through Poincare's exact
 `u -> t` map, proving that the centered Hadamard unit and the prepared Weierstrass unit are
 negative real at D. Consequently the selected Morse square root is positive imaginary and the
-inverse-Morse contour derivative points strictly downward at D. The remaining anchor work is its
-uniform propagation after shrinking the `(k,v)` model.
+inverse-Morse contour derivative points strictly downward at D. That phase is now propagated
+uniformly after shrinking the `(k,v)` model: the zero section maps to the real root axis, every
+selected real fiber is strictly downward-oriented, and the two local endpoints have strict
+upper/lower half-plane signs. The remaining anchor work is its connection to the derivative of
+the literal collision factor along the affine connector. This analytic statement complements
+rather than replaces the compiled 30-cell curvature campaign; a receipt alone cannot encode the
+noncomputable inverse-Morse scale.
 
 This note separates three questions that are easy to conflate:
 

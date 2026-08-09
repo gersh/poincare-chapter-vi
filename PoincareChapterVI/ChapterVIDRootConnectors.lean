@@ -59,12 +59,13 @@ structure ChapterVIDPrincipalConnectorModel
     chapterVICubicClusterNode 28 27 ≤
       (chapterVIDCriticalToGlobalParameter k : ℝ)
 
-/-- The eventual branch agreement can always be made uniform on one compact interval. -/
-theorem exists_chapterVIDPrincipalConnectorModel
-    (massProduct : ℂ) (b d : ℤ) :
-    Nonempty (ChapterVIDPrincipalConnectorModel massProduct b d) := by
-  obtain ⟨rootModel⟩ :=
-    exists_chapterVIDPrincipalGlobalRootModel massProduct b d
+/-- Any compact global root model can be shrunk in the parameter direction until its local
+cubic-root branch agrees with the compiled global branch. -/
+theorem exists_chapterVIDPrincipalConnectorModel_of_rootModel
+    {massProduct : ℂ} {b d : ℤ}
+    (rootModel : ChapterVIDPrincipalGlobalRootModel massProduct b d) :
+    ∃ model : ChapterVIDPrincipalConnectorModel massProduct b d,
+      model.rootModel = rootModel := by
   have hparameterReal : Tendsto
       (fun k : ℝ ↦ (chapterVIDCriticalToGlobalParameter k : ℝ))
       (nhdsWithin (0 : ℝ) (Set.Ioi 0)) (nhds (1 : ℝ)) :=
@@ -90,7 +91,7 @@ theorem exists_chapterVIDPrincipalConnectorModel
     κ_pos := hκ
     κ_le_delta := hκδ
     parameterRoot_eq_global := ?_
-    globalParameter_mem_terminalCell := ?_ }⟩
+    globalParameter_mem_terminalCell := ?_ }, rfl⟩
   intro k hk
   by_cases hkzero : k = 0
   · subst k
@@ -117,6 +118,16 @@ theorem exists_chapterVIDPrincipalConnectorModel
       have hκε : κ ≤ ε / 2 := min_le_right _ _
       linarith [hk.2]
     exact (hεsub ⟨hball, hkpos⟩).2
+
+/-- The eventual branch agreement can always be made uniform on one compact interval. -/
+theorem exists_chapterVIDPrincipalConnectorModel
+    (massProduct : ℂ) (b d : ℤ) :
+    Nonempty (ChapterVIDPrincipalConnectorModel massProduct b d) := by
+  obtain ⟨rootModel⟩ :=
+    exists_chapterVIDPrincipalGlobalRootModel massProduct b d
+  obtain ⟨model, _⟩ :=
+    exists_chapterVIDPrincipalConnectorModel_of_rootModel rootModel
+  exact ⟨model⟩
 
 /-- Critical value `k` on the compact connector rectangle; `s=1` is the collision. -/
 def ChapterVIDPrincipalConnectorModel.criticalValue
