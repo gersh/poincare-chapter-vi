@@ -74,10 +74,12 @@ The inverse-Morse selection now proves the missing strict real derivative signs 
 endpoints as exact analytic theorems. `NonnegativeRealCurvatureCertificate` records a sufficient
 calculus reduction from those anchors and has an optional compiled interface, but the actual
 endpoint curvature is also scale-sensitive, so no passing campaign of that stronger shape is
-claimed. The practical target remains `CompiledRealDerivativeData`, now with exact strict endpoint
-margins available to its scale-normalized semantic bridge. What remains is the concrete
-dependency-preserving real-derivative integer campaign and that bridge. The seam-continuation
-assembly is no longer an additional gap.
+claimed. The practical target is now the explicit
+`CompiledNormalizedRealDerivativeData`: Lean divides the oriented derivative by the strictly
+positive scale `L + distance²`, proves that a nonnegative normalized certificate recovers the raw
+derivative orientation, and feeds the result directly into the completed seam theorem. What
+remains is the concrete dependency-preserving integer table and its expression-level interval
+trace; neither the normalization nor the seam-continuation assembly is an additional gap.
 
 This note separates three questions that are easy to conflate:
 

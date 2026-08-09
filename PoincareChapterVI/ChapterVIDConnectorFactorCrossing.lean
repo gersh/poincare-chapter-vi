@@ -240,6 +240,80 @@ structure OrientedRealDerivativeCertificate
     | .initial => lineDerivativeReal model side (t : ℝ) ≤ 0
     | .final => 0 ≤ lineDerivativeReal model side (t : ℝ)
 
+/-- Distance from the local inverse-Morse endpoint, in the affine line parameter. -/
+def localEndpointDistance (side : ChapterVIDOuterArcSide) (t : ℝ) : ℝ :=
+  match side with
+  | .initial => 1 - t
+  | .final => t
+
+/-- Put the two required derivative orientations into one nonnegative quantity. -/
+def orientedLineDerivative
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (t : ℝ) : ℝ :=
+  match side with
+  | .initial => -lineDerivativeReal model side t
+  | .final => lineDerivativeReal model side t
+
+/-- The scale retained by the terminal certificate.  The endpoint contribution is first order in
+the selected inverse-Morse length `L`, while the collapsed connector contribution is second order
+in the distance from the local endpoint.  Their sum is therefore the natural nonvanishing
+denominator for a dependency-preserving interval campaign. -/
+def realDerivativeScale
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (t : ℝ) : ℝ :=
+  model.toChapterVIDPrincipalConnectorModel.rootModel.L + localEndpointDistance side t ^ 2
+
+theorem realDerivativeScale_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (t : ℝ) :
+    0 < realDerivativeScale model side t := by
+  exact add_pos_of_pos_of_nonneg
+    model.toChapterVIDPrincipalConnectorModel.rootModel.L_pos (sq_nonneg _)
+
+/-- Scale-normalized quantity that the concrete LeanCompCert table must enclose.  Unlike a raw
+Cartesian rectangle for the derivative, this expression does not discard the common `L` and
+endpoint-distance factors responsible for the terminal cancellation. -/
+def normalizedOrientedLineDerivative
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (t : ℝ) : ℝ :=
+  orientedLineDerivative model.toChapterVIDPrincipalConnectorModel side t /
+    realDerivativeScale model side t
+
+/-- The exact semantic target of the dependency-preserving compiled campaign. -/
+structure NormalizedRealDerivativeCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) : Prop where
+  nonnegative : ∀ t : I, (t : ℝ) ∈ collarInterval side →
+    0 ≤ normalizedOrientedLineDerivative model side (t : ℝ)
+
+/-- Positivity of `L + distance²` turns the normalized finite certificate into precisely the
+oriented derivative statement consumed by the seam proof. -/
+theorem NormalizedRealDerivativeCertificate.toOrientedRealDerivativeCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : NormalizedRealDerivativeCertificate model side) :
+    OrientedRealDerivativeCertificate
+      model.toChapterVIDPrincipalConnectorModel side := by
+  refine ⟨?_⟩
+  intro t ht
+  have hscale := realDerivativeScale_pos model side (t : ℝ)
+  have hnormalized := certificate.nonnegative t ht
+  have horiented :
+      0 ≤ orientedLineDerivative model.toChapterVIDPrincipalConnectorModel side (t : ℝ) := by
+    rw [normalizedOrientedLineDerivative, div_nonneg_iff] at hnormalized
+    rcases hnormalized with hpositive | hnegative
+    · exact hpositive.1
+    · exact (not_le_of_gt hscale hnegative.2).elim
+  cases side with
+  | initial => simpa [orientedLineDerivative] using horiented
+  | final => simpa [orientedLineDerivative] using horiented
+
 /-- Nonnegative compiled real curvature plus the exact Morse endpoint anchor proves the former
 scale-sensitive first-derivative obligation. -/
 theorem NonnegativeRealCurvatureCertificate.toOrientedRealDerivativeCertificate
@@ -381,8 +455,9 @@ theorem CompiledRealCurvatureRunVerdict.ofReceipt
   ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce
     bound admitted⟩
 
-/-- Alternative artifact shape: certify the oriented real derivative directly on the full
-collar.  The curvature route above is smaller because it reuses the exact endpoint anchors. -/
+/-- Alternative artifact shape: certify the unnormalized oriented real derivative directly on
+the full collar.  This interface is sound, but raw Cartesian boxes lose the shared endpoint scale;
+the normalized artifact below is the concrete route. -/
 structure CompiledRealDerivativeData
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -425,6 +500,55 @@ theorem CompiledRealDerivativeRunVerdict.ofReceipt
     (admitted : LeanCompCert.Attest.RunAdmission crypto
       (batchArtifact name data.operations) receipt) :
     CompiledRealDerivativeRunVerdict name data :=
+  ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce
+    bound admitted⟩
+
+/-- Preferred compiled artifact: integer operations certify the scale-normalized derivative.
+The semantic bridge supplied by a concrete table must reconstruct the literal normalized
+expression from those operations; the generic ingestion layer only handles compilation and
+receipt plumbing. -/
+structure CompiledNormalizedRealDerivativeData
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (precision : ℕ) where
+  operations : List (DyadicOperation precision)
+  admissible : LeanCompCert.Ports.SignedProductClaims.Admissible
+    (batchClaims operations)
+  sound : (∀ operation ∈ operations, operation.Sound) →
+    NormalizedRealDerivativeCertificate model side
+
+structure CompiledNormalizedRealDerivativeRunVerdict
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDAnchoredConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    (name : String) (data : CompiledNormalizedRealDerivativeData model side precision) : Prop where
+  returnsZero : (batchComputation name data.operations).Returns ((0 : ℕ) : Int)
+
+theorem CompiledNormalizedRealDerivativeRunVerdict.toNormalizedRealDerivativeCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDAnchoredConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    {name : String} {data : CompiledNormalizedRealDerivativeData model side precision}
+    (run : CompiledNormalizedRealDerivativeRunVerdict name data) :
+    NormalizedRealDerivativeCertificate model side := by
+  apply data.sound
+  intro operation hoperation
+  exact allSound_of_returns_zero name data.operations data.admissible run.returnsZero
+    operation hoperation
+
+theorem CompiledNormalizedRealDerivativeRunVerdict.ofReceipt
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDAnchoredConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    (name : String) (data : CompiledNormalizedRealDerivativeData model side precision)
+    (crypto : LeanCompCert.Attest.ReceiptCrypto)
+    (receipt : LeanCompCert.Attest.RunReceipt)
+    (kind : LeanCompCert.Attest.AttestationKind) (params nonce : String)
+    (bound : LeanCompCert.Attest.receiptBindsProved crypto
+      (batchArtifact name data.operations) kind params nonce ((0 : ℕ) : Int) receipt = true)
+    (admitted : LeanCompCert.Attest.RunAdmission crypto
+      (batchArtifact name data.operations) receipt) :
+    CompiledNormalizedRealDerivativeRunVerdict name data :=
   ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce
     bound admitted⟩
 
@@ -988,6 +1112,44 @@ theorem exists_seamCompatibleContribution_tendsto_of_compiledRealDerivativeRuns
       model derivativeRun curvatureRun .initial)
     (finalRun.toOrientedRealDerivativeCertificate.toPositiveCrossingCertificate
       model derivativeRun curvatureRun .final)
+    initialCertificate finalCertificate
+
+/-- Scale-normalized end-to-end compiled route.  This is the preferred terminal interface: the
+compiled rows retain `L + distance²`, Lean removes that strictly positive scale, and the existing
+calculus and seam assembly consume the resulting oriented derivatives. -/
+theorem exists_seamCompatibleContribution_tendsto_of_compiledNormalizedRealDerivativeRuns
+    (outerRun : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (bulkRun : ChapterVIDConnectorFactorBulkReference.ReferenceCompiledRunVerdict)
+    (derivativeRun :
+      ChapterVIDConnectorFactorDerivativeReference.ReferenceCompiledRunVerdict)
+    (curvatureRun :
+      ChapterVIDConnectorFactorSecondDerivativeReference.ReferenceCompiledRunVerdict)
+    {initialPrecision finalPrecision : ℕ}
+    {initialName finalName : String}
+    {initialData : CompiledNormalizedRealDerivativeData model .initial initialPrecision}
+    {finalData : CompiledNormalizedRealDerivativeData model .final finalPrecision}
+    (initialRun : CompiledNormalizedRealDerivativeRunVerdict initialName initialData)
+    (finalRun : CompiledNormalizedRealDerivativeRunVerdict finalName finalData)
+    (initialCertificate : ChapterVIDConnectorCompiledCertificate
+      model.toChapterVIDPrincipalConnectorModel .initial)
+    (finalCertificate : ChapterVIDConnectorCompiledCertificate
+      model.toChapterVIDPrincipalConnectorModel .final) :
+    ∃ compatible : ChapterVIDPrincipalConnectorModel.SeamCompatibleCertifiedConnectorPair
+        outerRun model.toChapterVIDPrincipalConnectorModel,
+      Filter.Tendsto
+        (fun k : ℝ ↦ (-Real.log k)⁻¹ • compatible.fivePieceContribution k)
+        (nhdsWithin 0 (Set.Ioi 0))
+        (nhds ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+          chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
+  exists_seamCompatibleContribution_tendsto outerRun model bulkRun derivativeRun curvatureRun
+    (initialRun.toNormalizedRealDerivativeCertificate
+      |>.toOrientedRealDerivativeCertificate model .initial
+      |>.toPositiveCrossingCertificate model derivativeRun curvatureRun .initial)
+    (finalRun.toNormalizedRealDerivativeCertificate
+      |>.toOrientedRealDerivativeCertificate model .final
+      |>.toPositiveCrossingCertificate model derivativeRun curvatureRun .final)
     initialCertificate finalCertificate
 
 /-- Conditional compiled curvature route. This theorem records the sound assembly if such

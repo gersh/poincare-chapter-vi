@@ -587,10 +587,13 @@ The strongest newly completed component is the finite algebra in §103:
   two local endpoints. `NonnegativeRealCurvatureCertificate` records one sufficient calculus
   route from those anchors, with a corresponding optional compiled interface; it is not
   advertised as the concrete campaign because the actual endpoint curvature is itself
-  scale-sensitive. The practical target therefore remains `CompiledRealDerivativeData`, now
-  strengthened by exact strict endpoint margins. The remaining D connector task is to generate
-  the two dependency-preserving real-derivative batches and prove their semantic bridge; the final
-  seam-continuation assembly itself is complete.
+  scale-sensitive. The concrete interface is instead
+  `CompiledNormalizedRealDerivativeData`: its checked quantity is the oriented real derivative
+  divided by `L + distance²`. Lean proves this denominator is strictly positive from the selected
+  inverse-Morse length and removes it before invoking the completed seam theorem. The remaining D
+  connector task is to generate the two dependency-preserving normalized integer batches and
+  reconstruct the literal quotient from their interval traces; the normalization and final
+  seam-continuation assembly are complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
