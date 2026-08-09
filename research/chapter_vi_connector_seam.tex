@@ -1,0 +1,321 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newcommand{\R}{\mathbb R}
+\newcommand{\re}{\operatorname{Re}}
+\newcommand{\impart}{\operatorname{Im}}
+\newcommand{\ii}{\mathrm i}
+
+\title{A scale-free proof of the connector seam sign at Poincar\'e's point \(D\)}
+\author{}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The last unresolved numerical issue in the current connector construction is caused by a
+double zero at the collision point \(D\). Direct interval evaluation loses the small common
+Morse scale and produces boxes containing zero. We retain that scale algebraically. The
+oriented real derivative is written exactly as
+\[
+  L\,\re X_s(L,\delta)+\delta^2\,\re Z_s(L,\delta).
+\]
+Here \(s=-1\) and \(s=+1\) denote the initial and final connectors. An independent
+outward-rounded Python interval calculation proves
+\(\re X_s\geq0.00419\) and \(\re Z_s\geq0.06558\) on both complete collars.
+Since \(L>0\), the required derivative orientation follows uniformly, however small the
+nonconstructively selected Morse length is. Ordinary one-variable calculus then supplies
+the missing connector seam sign.
+\end{abstract}
+
+\section{Scope}
+
+This note addresses the local-to-global seam problem for the two affine connectors at the
+specific collision point \(D\). It uses analytic facts already established in the project:
+the inverse-Morse endpoint can be chosen with the normalized bounds in
+\S\ref{sec:boxes}, the companion collision factor is positive on the collars, and the first
+factor has the required imaginary monotonicity. The new content is the real derivative sign
+for the first factor.
+
+This does not prove the global source-contour deformation in \S\S95--100 or the
+source-specific boundary-logarithm reduction in \S102. It removes the scale-sensitive seam
+obstruction that occurs before those broader tasks.
+
+\section{The centered collision factor}
+
+Let \(x_D\) be the unique root in \([-0.027,-0.026]\) of
+\[
+  2500x^3+500025x^2+12501x-25=0,
+\]
+let \(D<0\) be its real cube root, and put
+\[
+  y_D=\frac{(x_D-1/100)^2}{2(1+(1/100)^2)x_D}.
+\]
+Write \(F(\zeta,u)\) for the collision factor which vanishes twice at
+\((\zeta_D,D)\), and write \(G=\partial F/\partial u\). Direct algebra, with every
+inverse-power difference cancelled before evaluation, gives
+\begin{equation}\label{eq:centered-expansion}
+ G(\zeta,u)
+ =A(u-D)+(u-D)^2K(u)
+   +\left(\frac{\zeta}{\zeta_D}-1\right)P(u),
+\end{equation}
+where
+\[
+ A=\frac{\partial^2F}{\partial u^2}(\zeta_D,D)\in\R,
+ \qquad A<0.
+\]
+The explicit formulas used by the calculation are in Appendix~\ref{sec:formulas}.
+
+Set
+\[
+ E(a)=
+ \begin{cases}
+  0,&a=0,\\
+  \dfrac{e^a-1-a}{a^2},&a\ne0.
+ \end{cases}
+\]
+Then
+\begin{equation}\label{eq:exp-remainder}
+ e^a=1+a+a^2E(a),
+ \qquad |a|\leq1\Longrightarrow |E(a)|\leq1.
+\end{equation}
+The nonstandard value at \(a=0\) is harmless because it is multiplied by \(a^2\).
+
+\section{Scale-free connector coordinates}\label{sec:boxes}
+
+Let \(s=-1\) on the initial connector and \(s=+1\) on the final connector. Let \(L>0\)
+be the selected Morse half-length and let \(\delta\) be distance from the local endpoint:
+\[
+ \delta=1-t\quad(s=-1),\qquad \delta=t\quad(s=+1).
+\]
+On both collars, \(0\leq\delta\leq261/1024\). Normalize the moving inputs by
+\[
+ u_{\mathrm{loc},s}-D=sLq_s,\qquad
+ u_{\mathrm{out},s}(\kappa)-u_{\mathrm{out},s}(0)=L^2r_s,\qquad
+ \frac{\zeta}{\zeta_D}-1=L^2p.
+\]
+The inverse-Morse model can be shrunk so that
+\begin{equation}\label{eq:primitive-bounds}
+ 0<L\leq2^{-20},\qquad
+ |\re r_s|,|\impart r_s|,|\re p|,|\impart p|\leq1,
+\end{equation}
+and
+\begin{equation}\label{eq:q-box}
+ -\frac{1024}{2^{20}}\leq\re q_s\leq\frac{1024}{2^{20}},
+ \qquad
+ -\frac{158311}{2^{20}}\leq\impart q_s\leq-\frac{130048}{2^{20}}.
+\end{equation}
+This last box is the quantitative form of the downward inverse-Morse tangent.
+
+At collapsed scale the local-to-outer directions are
+\[
+ B_-=-D(1+\ii),\qquad B_+=-D(1-\ii).
+\]
+Define the actual direction and coordinate by
+\begin{equation}\label{eq:direction-coordinate}
+ V_s=B_s+L^2r_s-sLq_s,\qquad
+ u-D=sLq_s+\delta V_s.
+\end{equation}
+These are identities. In particular, all occurrences of the small endpoint displacement
+share the same \(L\).
+
+\section{The homogeneous real-part identity}
+
+Substitute \eqref{eq:direction-coordinate} and the normalized parameter displacement into
+\eqref{eq:centered-expansion}. Define
+\begin{align}
+ X_s={}&Asq_sV_s
+ +\delta A(Lr_s-sq_s)(V_s+B_s) \notag\\
+ &+\bigl(Lq_s^2+2s\delta q_sV_s\bigr)K(u)V_s
+ +LpP(u)V_s,\label{eq:X}\\[3pt]
+ Z_s={}&V_s^3K(u).\label{eq:Z}
+\end{align}
+
+\begin{lemma}[Exact cancellation]\label{lem:cancellation}
+For either connector,
+\begin{equation}\label{eq:homogeneous-identity}
+ \re\bigl(G(\zeta,u)V_s\bigr)=L\re X_s+\delta^2\re Z_s.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Expand the left side using \eqref{eq:centered-expansion} and
+\(u-D=sLq_s+\delta V_s\). Also write
+\(V_s=B_s+L(Lr_s-sq_s)\). Collect every term containing \(L\) into
+\(LX_s\), and collect the quadratic-distance term into \(\delta^2Z_s\).
+The only apparent term left over is \(\delta AB_s^2\). Since \(A\) is real and
+\[
+ B_-^2=2\ii D^2,\qquad B_+^2=-2\ii D^2,
+\]
+its real part is exactly zero.
+\end{proof}
+
+Neither coefficient in \eqref{eq:homogeneous-identity} is divided by \(L\). The first term
+retains a positive factor \(L\), while the collapsed part begins at order \(\delta^2\).
+Thus the coefficient boxes can remain separated from zero as \(L\to0^+\).
+
+\section{Finite interval lemma}
+
+The primitive dyadic boxes, all at denominator \(2^{20}\), are
+\begin{align*}
+ D&\in[-314053,-314047]2^{-20},&
+ y_D&\in[-28312,-25000]2^{-20},\\
+ \frac{100}{30003}&\in[3494,3495]2^{-20},&
+ \frac{200}{10001}&\in[20969,20970]2^{-20},\\
+ \frac1{10001}&\in[104,105]2^{-20}.&&
+\end{align*}
+The cubic is strictly decreasing on
+\([-0.026865395705,-0.026865395704]\), takes opposite signs at its endpoints,
+and its negative real cube root lies in the displayed \(D\)-box. Substitution in the
+formula for \(y_D\) gives the displayed \(y_D\)-box.
+
+Cover the distance interval by the 160 uniform cells
+\[
+ I_j=[1671j/2^{20},1671(j+1)/2^{20}],\qquad 0\leq j<160.
+\]
+Indeed, (160\cdot1671/2^{20}=0.254974365234375>261/1024).
+On each cell and side, rectangular complex interval arithmetic evaluates
+\eqref{eq:direction-coordinate}, the Appendix formulas, and \eqref{eq:X}--\eqref{eq:Z}.
+The exponential remainder \(E(a)\) is enclosed by
+\([-1,1]+\ii[-1,1]\), using \eqref{eq:exp-remainder}; the same interval evaluation first
+checks \(|a|\leq0.218249762481<1\) on every cell. All other normalized moving
+inputs use \eqref{eq:primitive-bounds}--\eqref{eq:q-box} independently, deliberately
+overestimating their joint range.
+
+\begin{proposition}[Interval result]\label{prop:interval}
+For \(s=-1,+1\), every admissible normalized input, and
+\(0\leq\delta\leq261/1024\),
+\[
+ \re X_s\geq0.0041922727090,\qquad
+ \re Z_s\geq0.0655826074416.
+\]
+\end{proposition}
+
+The independently computed enclosures are:
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & initial connector & final connector\\
+\midrule
+minimum lower endpoint of \(\re X_s\) & 0.00419227270907 & 0.00419227270907\\
+maximum upper endpoint of \(\re X_s\) & 0.218433271265 & 0.218433271265\\
+minimum lower endpoint of \(\re Z_s\) & 0.0655826074417 & 0.0655826074417\\
+maximum upper endpoint of \(\re Z_s\) & 0.776610992074 & 0.776610992074\\
+\bottomrule
+\end{tabular}
+\end{center}
+The worst lower bound for \(X_s\) occurs in cell \(159\), at the outer collar boundary;
+the worst lower bound for \(Z_s\) occurs in cell \(0\), at the local endpoint.
+The two row lists agree exactly after conjugating the imaginary coordinate, so the checked
+one-side table in \texttt{research/chapter\_vi\_connector\_seam\_table.csv} represents both
+connectors. The verifier recomputes this symmetry rather than assuming it.
+
+The calculation is reproduced by
+\begin{verbatim}
+python3 research/check_chapter_vi_connector_seam.py
+\end{verbatim}
+The script uses only the Python standard library. Every elementary binary64 result is widened
+by one representable number toward each infinity. This is strong independent evidence and is
+close to a conventional interval proof, but it is not a kernel-checked certificate.
+
+\section{Conclusion for the seam}
+
+\begin{theorem}[Oriented derivative on both collars]\label{thm:orientation}
+For a sufficiently small anchored Morse model satisfying
+\eqref{eq:primitive-bounds}--\eqref{eq:q-box},
+\[
+ -\frac{d}{dt}\re F(\zeta,u_-(t))>0
+ \quad\text{on the initial collar},
+\]
+and
+\[
+ \frac{d}{dt}\re F(\zeta,u_+(t))>0
+ \quad\text{on the final collar}.
+\]
+\end{theorem}
+
+\begin{proof}
+The oriented derivative is the left side of \eqref{eq:homogeneous-identity}.
+Proposition~\ref{prop:interval}, \(L>0\), and \(\delta^2\geq0\) give
+\[
+ L\re X_s+\delta^2\re Z_s
+ \geq0.0041922727090L+0.0655826074416\delta^2>0.
+\]
+The orientation reverses the initial connector and leaves the final connector unchanged.
+\end{proof}
+
+At the local endpoint, the real part of the first factor is already strictly positive:
+the product radicand is positive real there and the companion factor has positive real part.
+On the initial connector, Theorem~\ref{thm:orientation} says that the first factor's real part
+is nonincreasing as \(t\) approaches \(1\), so every earlier collar value is at least its
+positive endpoint value. On the final connector it is nondecreasing away from \(t=0\).
+Consequently
+\[
+ \re F(\zeta,u_s(t))>0
+ \quad\text{throughout both endpoint collars}.
+\]
+
+In particular, if the imaginary part of the first factor vanishes at its unique possible
+crossing, its real part is positive. The principal square root therefore extends from the
+outer boundary to the prescribed local Morse root without crossing its branch cut. The
+existing positive-real result for the companion factor supplies the other square root.
+Their product gives the compatible radicand sheet on each connector, and the two local seam
+signs are the required positive Morse signs. Together with the already constructed outer arcs
+and pinched middle arc, this supplies the seam-compatible five-piece logarithmic contribution.
+
+\appendix
+\section{Explicit coefficient formulas}\label{sec:formulas}
+
+Put
+\[
+ c=\frac{100}{30003},\qquad b=\frac{200}{10001},\qquad
+ Q=u^2+uD+D^2,\qquad Q_1=u+2D.
+\]
+The coefficient of \(u-D\) in the relative exponential argument and the multiplier are
+\begin{align*}
+ H(u)&=-cQ\bigl(1+u^{-3}D^{-3}\bigr),\\
+ M(u)&=-2y_DD^{-1}+by_DD^{-1}(u^{-3}+u^3).
+\end{align*}
+The argument in \eqref{eq:exp-remainder} is \(a=(u-D)H(u)\), and
+\[
+ P(u)=\bigl(1+a+a^2E(a)\bigr)M(u).
+\]
+
+For the quadratic coefficient, introduce
+\begin{align*}
+ \eta_2&=-\frac{u+D}{u^2D^2},&
+ \eta_4&=-\frac{u^3+u^2D+uD^2+D^3}{u^4D^4},\\
+ T&=D^{-4}(u^{-2}+D^2u^{-4}),&
+ T_1&=D^{-4}(\eta_2+D^2\eta_4),\\
+ R_L(u)&=\frac1{10001}\bigl((30000+3T)+6DT_1\bigr),\\
+ \eta_3&=-\frac{Q}{u^3D^3},\\
+ R_S(u)&=D^{-1}\left[Q_1(1-u^{-3}D^{-3})
+      +3D^2(-D^{-3}\eta_3)\right],\\
+ H_1(u)&=-c\left[Q_1(1+u^{-3}D^{-3})+3D^2(D^{-3}\eta_3)\right],\\
+ M_1(u)&=by_DD^{-1}(\eta_3+Q).
+\end{align*}
+Then
+\[
+ K(u)=R_L(u)+by_DR_S(u)+H_1(u)M(u)+H(D)M_1(u)+H(u)^2E(a)M(u).
+\]
+
+Finally, define
+\begin{align*}
+ C_L(u)&=\frac{u+D}{10001}
+ \left(30000+3\frac{u^2+D^2}{u^4D^4}\right),\\
+ C_S(u)&=QD^{-1}(1-u^{-3}D^{-3}),\\
+ C(u)&=C_L(u)+by_DC_S(u).
+\end{align*}
+The base coefficient is evaluated without numerical differentiation:
+\[
+ A=C(D)+H(D)M(D),\qquad
+ -2.69848482771\leq A\leq-2.56120107040.
+\]
+
+\end{document}

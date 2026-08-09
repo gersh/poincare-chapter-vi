@@ -1036,12 +1036,19 @@ theorem ChapterVIDAnchoredConnectorModel.finalLocalEndpointDelta_im_lt_length_mu
   simpa only [zero_add, chapterVIDNormalizedLocalEndpointDelta, mul_comm] using
     (mul_lt_mul_of_pos_right hq model.rootModel.L_pos)
 
-theorem exists_chapterVIDAnchoredConnectorModel_bounded
+theorem exists_chapterVIDAnchoredConnectorModel_bounded_direction
     (massProduct : ℂ) (b d : ℤ)
-    (Lmax κmax : ℝ) (hLmaxPos : 0 < Lmax) (hκmaxPos : 0 < κmax) :
+    (Lmax κmax directionRadius : ℝ)
+    (hLmaxPos : 0 < Lmax) (hκmaxPos : 0 < κmax)
+    (hDirectionRadiusPos : 0 < directionRadius) :
     ∃ model : ChapterVIDAnchoredConnectorModel massProduct b d,
       model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax ∧
-        model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax := by
+        model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax ∧
+        (∀ side : ChapterVIDOuterArcSide,
+          ‖chapterVIDNormalizedLocalEndpointDelta side
+              model.toChapterVIDPrincipalConnectorModel.κ
+              model.toChapterVIDPrincipalConnectorModel.rootModel.L -
+            deriv chapterVIDGlobalContourFromMorse 0‖ < directionRadius) := by
   obtain ⟨oriented⟩ := exists_chapterVIDOrientedGlobalRootModel massProduct b d
   have hlengthEventually :=
     (eventually_chapterVIDInitialBaseEndpointDerivative_pos.and
@@ -1049,9 +1056,22 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     (eventually_chapterVIDInitialBaseEndpointRealDerivative_neg.and
       eventually_chapterVIDFinalBaseEndpointRealDerivative_pos)
   obtain ⟨εL, hεL, hlengthBall⟩ := Metric.mem_nhdsWithin_iff.mp hlengthEventually
-  obtain ⟨εCone, hεCone, hconeBall⟩ := Metric.mem_nhdsWithin_iff.mp
-    eventually_chapterVIDCriticalMorseRootFiber_normalizedDelta_mem_directionCone
-  let L' := min (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εCone / 2)
+  let directionBound := min directionRadius
+    (-(deriv chapterVIDGlobalContourFromMorse 0).im / 2)
+  have hDirectionBoundPos : 0 < directionBound := by
+    exact lt_min hDirectionRadiusPos (by
+      linarith [deriv_chapterVIDGlobalContourFromMorse_im_neg])
+  have hdirectionEventually : ∀ᶠ v : ℂ in nhdsWithin 0 {0}ᶜ,
+      ‖(chapterVIDCriticalMorseRootPoint (0, v) - chapterVIDCollisionLift) / v -
+          deriv chapterVIDGlobalContourFromMorse 0‖ < directionBound :=
+    by
+      simpa only [Metric.mem_ball, dist_eq_norm] using
+        tendsto_chapterVIDCriticalMorseRootFiber_normalizedDelta.eventually
+          (Metric.ball_mem_nhds _ hDirectionBoundPos)
+  obtain ⟨εDirection, hεDirection, hdirectionBall⟩ :=
+    Metric.mem_nhdsWithin_iff.mp hdirectionEventually
+  let L' := min (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2))
+    (εDirection / 2)
   have hL' : 0 < L' := by
     dsimp [L']
     exact lt_min
@@ -1059,7 +1079,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
         (lt_min (div_pos oriented.L_pos (by norm_num))
           (div_pos hεL (by norm_num)))
         (div_pos hLmaxPos (by norm_num)))
-      (div_pos hεCone (by norm_num))
+      (div_pos hεDirection (by norm_num))
   have hLle : L' ≤ oriented.L := by
     exact (min_le_left _ _).trans ((min_le_left _ _).trans
       ((min_le_left _ _).trans (by linarith [oriented.L_pos])))
@@ -1069,7 +1089,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
   have hLball : L' ∈ Metric.ball (0 : ℝ) εL := by
     rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hL']
     have := (min_le_left (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2))
-      (εCone / 2)).trans ((min_le_left _ _).trans
+      (εDirection / 2)).trans ((min_le_left _ _).trans
         (min_le_right (oriented.L / 2) (εL / 2)))
     linarith
   have hbaseSigns :
@@ -1078,31 +1098,31 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
       (chapterVIDInitialBaseEndpointRealDerivative L' < 0 ∧
         0 < chapterVIDFinalBaseEndpointRealDerivative L') :=
     hlengthBall ⟨hLball, hL'⟩
-  have hLComplexBall : (L' : ℂ) ∈ Metric.ball (0 : ℂ) εCone := by
+  have hLComplexBall : (L' : ℂ) ∈ Metric.ball (0 : ℂ) εDirection := by
     rw [Metric.mem_ball, dist_zero_right, Complex.norm_real, Real.norm_eq_abs,
       abs_of_pos hL']
     have := min_le_right
-      (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εCone / 2)
+      (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εDirection / 2)
     linarith
-  have hnegLComplexBall : ((-L' : ℝ) : ℂ) ∈ Metric.ball (0 : ℂ) εCone := by
+  have hnegLComplexBall : ((-L' : ℝ) : ℂ) ∈ Metric.ball (0 : ℂ) εDirection := by
     rw [Metric.mem_ball, dist_zero_right, Complex.norm_real, Real.norm_eq_abs,
       abs_neg, abs_of_pos hL']
     have := min_le_right
-      (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εCone / 2)
+      (min (min (oriented.L / 2) (εL / 2)) (Lmax / 2)) (εDirection / 2)
     linarith
   have hinitialDirectionAtZero :
       ‖chapterVIDNormalizedLocalEndpointDelta .initial 0 L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
-        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
-    apply hconeBall
+        directionBound := by
+    apply hdirectionBall
     refine ⟨hnegLComplexBall, ?_⟩
     simpa only [Set.mem_compl_iff, Set.mem_singleton_iff] using
       (Complex.ofReal_ne_zero.mpr (neg_ne_zero.mpr hL'.ne'))
   have hfinalDirectionAtZero :
       ‖chapterVIDNormalizedLocalEndpointDelta .final 0 L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
-        -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
-    apply hconeBall
+        directionBound := by
+    apply hdirectionBall
     refine ⟨hLComplexBall, ?_⟩
     simpa only [Set.mem_compl_iff, Set.mem_singleton_iff] using
       (Complex.ofReal_ne_zero.mpr hL'.ne')
@@ -1189,10 +1209,10 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
   have hdirectional : ∀ᶠ k : ℝ in nhds 0,
       ‖chapterVIDNormalizedLocalEndpointDelta .initial k L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
-            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 ∧
+            directionBound ∧
       ‖chapterVIDNormalizedLocalEndpointDelta .final k L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
-            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 :=
+            directionBound :=
     (hinitDirectionContinuous.eventually (Iio_mem_nhds hinitialDirectionAtZero)).and
       (hfinalDirectionContinuous.eventually (Iio_mem_nhds hfinalDirectionAtZero))
   have hinitialOuterContinuous : ContinuousAt
@@ -1251,10 +1271,10 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
   have hκDirectional :
       ‖chapterVIDNormalizedLocalEndpointDelta .initial κ' L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
-            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 ∧
+            directionBound ∧
       ‖chapterVIDNormalizedLocalEndpointDelta .final κ' L' -
           deriv chapterVIDGlobalContourFromMorse 0‖ <
-            -(deriv chapterVIDGlobalContourFromMorse 0).im / 2 := by
+            directionBound := by
     exact (hkBall (by
       rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos hκ']
       have := (min_le_left (min (min connector.κ (εk / 2)) (κmax / 2)) (L' ^ 2)).trans
@@ -1289,7 +1309,7 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
     parameterRootRelativeDelta_norm_le_length_sq := ?_
     outerEndpointDelta_norm_le_length_sq := ?_
     initialNormalizedLocalDelta_mem_directionCone := ?_
-    finalNormalizedLocalDelta_mem_directionCone := ?_ }, ?_, ?_⟩
+    finalNormalizedLocalDelta_mem_directionCone := ?_ }, ?_, ?_, ?_⟩
   · rw [lineDerivativeImag_local_eq_chapterVIDEndpointDerivativeValue]
     dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
@@ -1326,11 +1346,11 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
-    exact hκDirectional.1
+    exact hκDirectional.1.trans_le (min_le_right _ _)
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
-    exact hκDirectional.2
+    exact hκDirectional.2.trans_le (min_le_right _ _)
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
@@ -1338,6 +1358,24 @@ theorem exists_chapterVIDAnchoredConnectorModel_bounded
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     exact hκmax
+  · intro side
+    dsimp only [restrictedOriented, restrictedConnector,
+      ChapterVIDPrincipalConnectorModel.restrictParameter]
+    rw [hrootL]
+    cases side with
+    | initial => exact hκDirectional.1.trans_le (min_le_left _ _)
+    | final => exact hκDirectional.2.trans_le (min_le_left _ _)
+
+theorem exists_chapterVIDAnchoredConnectorModel_bounded
+    (massProduct : ℂ) (b d : ℤ)
+    (Lmax κmax : ℝ) (hLmaxPos : 0 < Lmax) (hκmaxPos : 0 < κmax) :
+    ∃ model : ChapterVIDAnchoredConnectorModel massProduct b d,
+      model.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ Lmax ∧
+        model.toChapterVIDPrincipalConnectorModel.κ ≤ κmax := by
+  obtain ⟨model, hL, hκ, _⟩ :=
+    exists_chapterVIDAnchoredConnectorModel_bounded_direction
+      massProduct b d Lmax κmax 1 hLmaxPos hκmaxPos (by norm_num)
+  exact ⟨model, hL, hκ⟩
 
 /-- The inverse-Morse endpoint input required by a compiled certificate can be made smaller than
 any prescribed positive real radius.  This is the quantitative bridge from analyticity to a
