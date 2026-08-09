@@ -578,9 +578,15 @@ The strongest newly completed component is the finite algebra in §103:
   existing compiled runs, and connector nonvanishing, Lean now constructs the continuous product
   of principal factor roots, identifies its outer and local values, completes both seam signs,
   and derives the five-piece logarithmic limit. `CompiledCrossingData` and
-  `CompiledCrossingRunVerdict` provide the LeanCompCert batch and receipt boundary. The remaining
-  D connector task is to generate the two dependency-preserving crossing batches and prove their
-  semantic bridge; the final seam-continuation assembly itself is complete.
+  `CompiledCrossingRunVerdict` provide the LeanCompCert batch and receipt boundary. A stronger
+  and more conventional certificate target is now proved sufficient as well:
+  `OrientedRealDerivativeCertificate` asks for a nonpositive first-factor real derivative on the
+  initial collar and a nonnegative one on the final collar. Ordinary derivative monotonicity and
+  the exact positive local endpoint then make the first-factor real part positive on the entire
+  collar. `CompiledRealDerivativeData` and its run-verdict/receipt interface expose this preferred
+  route. The remaining D connector task is to generate those two dependency-preserving derivative
+  batches and prove their semantic bridge; the final seam-continuation assembly itself is
+  complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

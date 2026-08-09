@@ -66,9 +66,14 @@ single statement, connector nonvanishing, and the three existing compiled campai
 continuous factor-root sheet with the correct outer and local values. The two crossing statements
 therefore imply the seam-compatible connector pair and the complete five-piece logarithmic limit.
 `CompiledCrossingData` and `CompiledCrossingRunVerdict` expose the exact LeanCompCert computation
-and receipt interface. What remains is the concrete dependency-preserving integer campaign and
-its semantic bridge to those two crossing statements; the seam-continuation assembly is no longer
-an additional gap.
+and receipt interface. The same file now supplies a stronger preferred target,
+`OrientedRealDerivativeCertificate`. If the first factor's real derivative is nonpositive on the
+initial collar and nonnegative on the final collar, Lean's derivative monotonicity theorem compares
+every collar point with the exact positive Morse endpoint and proves both crossing statements.
+`CompiledRealDerivativeData` and `CompiledRealDerivativeRunVerdict` give that target its own
+LeanCompCert and receipt interface. What remains is the concrete scale-normalized integer campaign
+proving these oriented derivative signs and its semantic bridge; the seam-continuation assembly is
+no longer an additional gap.
 
 This note separates three questions that are easy to conflate:
 
