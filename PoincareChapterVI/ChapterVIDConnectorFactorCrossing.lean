@@ -69,6 +69,19 @@ def lineDerivativeReal
     (model.rootModel.connectorTarget side (model.criticalValue 0) -
       model.rootModel.connectorSource side (model.criticalValue 0))).re
 
+/-- Real curvature of the first collision factor along the literal affine connector. -/
+def lineCurvatureReal
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) : ℝ → ℝ := fun t ↦
+  (chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+      (model.connectorParameterRoot 0)
+      (AffineMap.lineMap
+        (model.rootModel.connectorSource side (model.criticalValue 0))
+        (model.rootModel.connectorTarget side (model.criticalValue 0)) (t : ℂ)) *
+    (model.rootModel.connectorTarget side (model.criticalValue 0) -
+      model.rootModel.connectorSource side (model.criticalValue 0)) ^ 2).re
+
 theorem hasDerivAt_lineReal
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -118,6 +131,89 @@ theorem continuousOn_lineReal
   exact (hasDerivAt_lineReal model side
     (collarInterval_subset_unit side hx)).continuousAt.continuousWithinAt
 
+theorem hasDerivAt_lineDerivativeReal
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) {x : ℝ}
+    (hx : x ∈ Set.Icc (0 : ℝ) 1) :
+    HasDerivAt (lineDerivativeReal model side) (lineCurvatureReal model side x) x := by
+  let t : I := ⟨x, hx⟩
+  let source := model.rootModel.connectorSource side (model.criticalValue 0)
+  let target := model.rootModel.connectorTarget side (model.criticalValue 0)
+  let coordinate := AffineMap.lineMap source target (x : ℂ)
+  let direction := target - source
+  have hcoordinate : coordinate ≠ 0 := by
+    simpa [coordinate, source, target, ChapterVIDPrincipalConnectorModel.rectanglePoint,
+      ChapterVIDPrincipalGlobalRootModel.connectorPoint, t,
+      AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul,
+      mul_comm] using model.rectanglePoint_ne_zero side (0, t)
+  have hfactor : HasDerivAt
+      (chapterVIDRootCoordinateCollisionFactorPlusDerivative
+        (model.connectorParameterRoot 0))
+      (chapterVIDRootCoordinateCollisionFactorPlusSecondDerivative
+        (model.connectorParameterRoot 0) coordinate) coordinate :=
+    hasDerivAt_chapterVIDRootCoordinateCollisionFactorPlusDerivative hcoordinate
+  have hline : HasDerivAt
+      (fun w : ℂ ↦ AffineMap.lineMap source target w) direction (x : ℂ) := by
+    simpa [source, target, direction, AffineMap.lineMap_apply, vsub_eq_sub,
+      vadd_eq_add, smul_eq_mul, mul_comm] using
+      (((hasDerivAt_id (x : ℂ)).const_mul direction).add_const source)
+  have hcomp := hfactor.comp (x : ℂ) hline
+  have hproduct := hcomp.mul_const direction
+  unfold lineDerivativeReal lineCurvatureReal
+  simpa [source, target, coordinate, direction, Function.comp_apply, pow_two,
+    mul_assoc] using hproduct.real_of_complex
+
+theorem continuousOn_lineDerivativeReal
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    ContinuousOn (lineDerivativeReal model side) (collarInterval side) := by
+  intro x hx
+  exact (hasDerivAt_lineDerivativeReal model side
+    (collarInterval_subset_unit side hx)).continuousAt.continuousWithinAt
+
+/-- The selected inverse-Morse endpoint has the required real derivative orientation. -/
+theorem lineDerivativeReal_local_oriented
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    match side with
+    | .initial => lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 1 ≤ 0
+    | .final => 0 ≤ lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 0 := by
+  have hk : model.κ ∈ Set.Icc 0 model.κ := ⟨model.κ_pos.le, le_rfl⟩
+  have hroot := model.parameterRoot_eq_global model.κ hk
+  cases side with
+  | initial =>
+      simpa [lineDerivativeReal, chapterVIDEndpointRealDerivativeValue,
+        ChapterVIDPrincipalConnectorModel.connectorParameterRoot,
+        ChapterVIDPrincipalConnectorModel.criticalValue_zero, hroot,
+        ChapterVIDPrincipalGlobalRootModel.connectorSource,
+        ChapterVIDPrincipalGlobalRootModel.connectorTarget,
+        ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+        ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint,
+        AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul] using
+        model.initialRealAnchor
+  | final =>
+      simpa [lineDerivativeReal, chapterVIDEndpointRealDerivativeValue,
+        ChapterVIDPrincipalConnectorModel.connectorParameterRoot,
+        ChapterVIDPrincipalConnectorModel.criticalValue_zero, hroot,
+        ChapterVIDPrincipalGlobalRootModel.connectorSource,
+        ChapterVIDPrincipalGlobalRootModel.connectorTarget,
+        ChapterVIDPrincipalGlobalRootModel.localConnectorEndpoint,
+        ChapterVIDPrincipalGlobalRootModel.outerConnectorEndpoint,
+        AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul] using
+        model.finalRealAnchor
+
+/-- Preferred finite target: the compiled campaign only has to prove nonnegative real
+curvature.  The exact inverse-Morse endpoint signs then orient the first derivative everywhere. -/
+structure NonnegativeRealCurvatureCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) : Prop where
+  nonnegative : ∀ t : I, (t : ℝ) ∈ collarInterval side →
+    0 ≤ lineCurvatureReal model side (t : ℝ)
+
 /-- A scale-aware derivative campaign may equivalently orient the real derivative throughout
 the collar.  This form is particularly convenient for interval compilation: it compares the
 crossing value with the already positive exact Morse endpoint. -/
@@ -129,6 +225,48 @@ structure OrientedRealDerivativeCertificate
     match side with
     | .initial => lineDerivativeReal model side (t : ℝ) ≤ 0
     | .final => 0 ≤ lineDerivativeReal model side (t : ℝ)
+
+/-- Nonnegative compiled real curvature plus the exact Morse endpoint anchor proves the former
+scale-sensitive first-derivative obligation. -/
+theorem NonnegativeRealCurvatureCertificate.toOrientedRealDerivativeCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (certificate : NonnegativeRealCurvatureCertificate
+      model.toChapterVIDPrincipalConnectorModel side) :
+    OrientedRealDerivativeCertificate
+      model.toChapterVIDPrincipalConnectorModel side := by
+  have hmono : MonotoneOn
+      (lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side)
+      (collarInterval side) := by
+    apply monotoneOn_of_deriv_nonneg (convex_collarInterval side)
+      (continuousOn_lineDerivativeReal
+        model.toChapterVIDPrincipalConnectorModel side)
+    · intro x hx
+      have hx' : x ∈ collarInterval side := interior_subset hx
+      exact (hasDerivAt_lineDerivativeReal
+        model.toChapterVIDPrincipalConnectorModel side
+        (collarInterval_subset_unit side hx')).differentiableAt.differentiableWithinAt
+    · intro x hx
+      have hx' : x ∈ collarInterval side := interior_subset hx
+      let tx : I := ⟨x, collarInterval_subset_unit side hx'⟩
+      have hderiv := hasDerivAt_lineDerivativeReal
+        model.toChapterVIDPrincipalConnectorModel side
+        (collarInterval_subset_unit side hx')
+      rw [hderiv.deriv]
+      exact certificate.nonnegative tx hx'
+  refine ⟨?_⟩
+  intro t ht
+  have hanchor := lineDerivativeReal_local_oriented model side
+  cases side with
+  | initial =>
+      have hlocalMem : (1 : ℝ) ∈ collarInterval .initial := by
+        norm_num [collarInterval]
+      exact (hmono ht hlocalMem t.property.2).trans hanchor
+  | final =>
+      have hlocalMem : (0 : ℝ) ∈ collarInterval .final := by
+        norm_num [collarInterval]
+      exact hanchor.trans (hmono hlocalMem ht t.property.1)
 
 /-- A dependency-preserving finite crossing campaign.  The generated data chooses the integer
 claims; its semantic bridge proves that soundness of those claims implies the crossing theorem.
@@ -182,9 +320,56 @@ theorem CompiledCrossingRunVerdict.ofReceipt
   ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce
     bound admitted⟩
 
-/-- Preferred concrete artifact shape: certify the oriented real derivative on the full collar.
-The preceding calculus theorem then turns this stronger, interval-friendly fact into the exact
-positive-crossing predicate. -/
+/-- Smallest preferred artifact shape: certify nonnegative real curvature on the collar.  The
+endpoint derivative signs are exact consequences of the inverse-Morse construction and are not
+part of the empirical run. -/
+structure CompiledRealCurvatureData
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (precision : ℕ) where
+  operations : List (DyadicOperation precision)
+  admissible : LeanCompCert.Ports.SignedProductClaims.Admissible
+    (batchClaims operations)
+  sound : (∀ operation ∈ operations, operation.Sound) →
+    NonnegativeRealCurvatureCertificate model side
+
+structure CompiledRealCurvatureRunVerdict
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    (name : String) (data : CompiledRealCurvatureData model side precision) : Prop where
+  returnsZero : (batchComputation name data.operations).Returns ((0 : ℕ) : Int)
+
+theorem CompiledRealCurvatureRunVerdict.toNonnegativeRealCurvatureCertificate
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    {name : String} {data : CompiledRealCurvatureData model side precision}
+    (run : CompiledRealCurvatureRunVerdict name data) :
+    NonnegativeRealCurvatureCertificate model side := by
+  apply data.sound
+  intro operation hoperation
+  exact allSound_of_returns_zero name data.operations data.admissible run.returnsZero
+    operation hoperation
+
+theorem CompiledRealCurvatureRunVerdict.ofReceipt
+    {massProduct : ℂ} {b d : ℤ}
+    {model : ChapterVIDPrincipalConnectorModel massProduct b d}
+    {side : ChapterVIDOuterArcSide} {precision : ℕ}
+    (name : String) (data : CompiledRealCurvatureData model side precision)
+    (crypto : LeanCompCert.Attest.ReceiptCrypto)
+    (receipt : LeanCompCert.Attest.RunReceipt)
+    (kind : LeanCompCert.Attest.AttestationKind) (params nonce : String)
+    (bound : LeanCompCert.Attest.receiptBindsProved crypto
+      (batchArtifact name data.operations) kind params nonce ((0 : ℕ) : Int) receipt = true)
+    (admitted : LeanCompCert.Attest.RunAdmission crypto
+      (batchArtifact name data.operations) receipt) :
+    CompiledRealCurvatureRunVerdict name data :=
+  ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce
+    bound admitted⟩
+
+/-- Alternative artifact shape: certify the oriented real derivative directly on the full
+collar.  The curvature route above is smaller because it reuses the exact endpoint anchors. -/
 structure CompiledRealDerivativeData
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -790,6 +975,47 @@ theorem exists_seamCompatibleContribution_tendsto_of_compiledRealDerivativeRuns
       model derivativeRun curvatureRun .initial)
     (finalRun.toOrientedRealDerivativeCertificate.toPositiveCrossingCertificate
       model derivativeRun curvatureRun .final)
+    initialCertificate finalCertificate
+
+/-- Preferred compiled route after extracting the endpoint signs analytically: the two artifacts
+check only nonnegative real curvature.  Lean propagates that curvature from the exact local
+anchors, obtains the oriented derivatives and crossing signs, and then assembles Poincare's
+five-piece logarithmic limit. -/
+theorem exists_seamCompatibleContribution_tendsto_of_compiledRealCurvatureRuns
+    (outerRun : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (bulkRun : ChapterVIDConnectorFactorBulkReference.ReferenceCompiledRunVerdict)
+    (derivativeRun :
+      ChapterVIDConnectorFactorDerivativeReference.ReferenceCompiledRunVerdict)
+    (curvatureRun :
+      ChapterVIDConnectorFactorSecondDerivativeReference.ReferenceCompiledRunVerdict)
+    {initialPrecision finalPrecision : ℕ}
+    {initialName finalName : String}
+    {initialData : CompiledRealCurvatureData
+      model.toChapterVIDPrincipalConnectorModel .initial initialPrecision}
+    {finalData : CompiledRealCurvatureData
+      model.toChapterVIDPrincipalConnectorModel .final finalPrecision}
+    (initialRun : CompiledRealCurvatureRunVerdict initialName initialData)
+    (finalRun : CompiledRealCurvatureRunVerdict finalName finalData)
+    (initialCertificate : ChapterVIDConnectorCompiledCertificate
+      model.toChapterVIDPrincipalConnectorModel .initial)
+    (finalCertificate : ChapterVIDConnectorCompiledCertificate
+      model.toChapterVIDPrincipalConnectorModel .final) :
+    ∃ compatible : ChapterVIDPrincipalConnectorModel.SeamCompatibleCertifiedConnectorPair
+        outerRun model.toChapterVIDPrincipalConnectorModel,
+      Filter.Tendsto
+        (fun k : ℝ ↦ (-Real.log k)⁻¹ • compatible.fivePieceContribution k)
+        (nhdsWithin 0 (Set.Ioi 0))
+        (nhds ((2 * Real.pi * Complex.I : ℂ)⁻¹ *
+          chapterVIDPrincipalMorseAmplitude massProduct b d (0, 0))) :=
+  exists_seamCompatibleContribution_tendsto outerRun model bulkRun derivativeRun curvatureRun
+    (initialRun.toNonnegativeRealCurvatureCertificate
+      |>.toOrientedRealDerivativeCertificate model .initial
+      |>.toPositiveCrossingCertificate model derivativeRun curvatureRun .initial)
+    (finalRun.toNonnegativeRealCurvatureCertificate
+      |>.toOrientedRealDerivativeCertificate model .final
+      |>.toPositiveCrossingCertificate model derivativeRun curvatureRun .final)
     initialCertificate finalCertificate
 
 end ChapterVIDConnectorFactorCrossing

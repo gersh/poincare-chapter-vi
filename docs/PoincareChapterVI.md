@@ -70,10 +70,14 @@ and receipt interface. The same file now supplies a stronger preferred target,
 `OrientedRealDerivativeCertificate`. If the first factor's real derivative is nonpositive on the
 initial collar and nonnegative on the final collar, Lean's derivative monotonicity theorem compares
 every collar point with the exact positive Morse endpoint and proves both crossing statements.
-`CompiledRealDerivativeData` and `CompiledRealDerivativeRunVerdict` give that target its own
-LeanCompCert and receipt interface. What remains is the concrete scale-normalized integer campaign
-proving these oriented derivative signs and its semantic bridge; the seam-continuation assembly is
-no longer an additional gap.
+The inverse-Morse selection now proves the missing real derivative signs at the two local
+endpoints as exact analytic theorems. Therefore a smaller compiled target suffices:
+`NonnegativeRealCurvatureCertificate` checks nonnegative real curvature on each collar, and Lean
+propagates it from those endpoint anchors to an `OrientedRealDerivativeCertificate`.
+`CompiledRealCurvatureData` and `CompiledRealCurvatureRunVerdict` expose this preferred
+LeanCompCert/receipt boundary; the direct derivative interface remains as an alternative. What
+remains is the concrete dependency-preserving real-curvature integer campaign and its semantic
+bridge. The seam-continuation assembly is no longer an additional gap.
 
 This note separates three questions that are easy to conflate:
 
