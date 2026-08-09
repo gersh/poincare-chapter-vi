@@ -583,14 +583,14 @@ The strongest newly completed component is the finite algebra in §103:
   `OrientedRealDerivativeCertificate` asks for a nonpositive first-factor real derivative on the
   initial collar and a nonnegative one on the final collar. Ordinary derivative monotonicity and
   the exact positive local endpoint then make the first-factor real part positive on the entire
-  collar. The inverse-Morse construction now also proves the real path-derivative signs at the
-  two local endpoints. Consequently the smallest preferred finite target is only nonnegative real
-  curvature on each collar: `NonnegativeRealCurvatureCertificate` and
-  `CompiledRealCurvatureData` propagate that checked curvature from the exact endpoint anchors to
-  the oriented derivative and then to the crossing verdict. The older direct
-  `CompiledRealDerivativeData` interface remains available. The remaining D connector task is to
-  generate the two dependency-preserving real-curvature batches and prove their semantic bridge;
-  the final seam-continuation assembly itself is complete.
+  collar. The inverse-Morse construction now also proves strict real path-derivative signs at the
+  two local endpoints. `NonnegativeRealCurvatureCertificate` records one sufficient calculus
+  route from those anchors, with a corresponding optional compiled interface; it is not
+  advertised as the concrete campaign because the actual endpoint curvature is itself
+  scale-sensitive. The practical target therefore remains `CompiledRealDerivativeData`, now
+  strengthened by exact strict endpoint margins. The remaining D connector task is to generate
+  the two dependency-preserving real-derivative batches and prove their semantic bridge; the final
+  seam-continuation assembly itself is complete.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.

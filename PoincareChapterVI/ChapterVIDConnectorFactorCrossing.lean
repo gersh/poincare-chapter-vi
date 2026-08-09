@@ -173,14 +173,15 @@ theorem continuousOn_lineDerivativeReal
   exact (hasDerivAt_lineDerivativeReal model side
     (collarInterval_subset_unit side hx)).continuousAt.continuousWithinAt
 
-/-- The selected inverse-Morse endpoint has the required real derivative orientation. -/
-theorem lineDerivativeReal_local_oriented
+/-- The selected inverse-Morse endpoint has a strict real derivative margin with the required
+orientation. -/
+theorem lineDerivativeReal_local_strictly_oriented
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDAnchoredConnectorModel massProduct b d)
     (side : ChapterVIDOuterArcSide) :
     match side with
-    | .initial => lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 1 ≤ 0
-    | .final => 0 ≤ lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 0 := by
+    | .initial => lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 1 < 0
+    | .final => 0 < lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 0 := by
   have hk : model.κ ∈ Set.Icc 0 model.κ := ⟨model.κ_pos.le, le_rfl⟩
   have hroot := model.parameterRoot_eq_global model.κ hk
   cases side with
@@ -205,8 +206,21 @@ theorem lineDerivativeReal_local_oriented
         AffineMap.lineMap_apply, vsub_eq_sub, vadd_eq_add, smul_eq_mul] using
         model.finalRealAnchor
 
-/-- Preferred finite target: the compiled campaign only has to prove nonnegative real
-curvature.  The exact inverse-Morse endpoint signs then orient the first derivative everywhere. -/
+theorem lineDerivativeReal_local_oriented
+    {massProduct : ℂ} {b d : ℤ}
+    (model : ChapterVIDAnchoredConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) :
+    match side with
+    | .initial => lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 1 ≤ 0
+    | .final => 0 ≤ lineDerivativeReal model.toChapterVIDPrincipalConnectorModel side 0 := by
+  cases side with
+  | initial => exact (lineDerivativeReal_local_strictly_oriented model .initial).le
+  | final => exact (lineDerivativeReal_local_strictly_oriented model .final).le
+
+/-- Auxiliary sufficient target: if a campaign proves nonnegative real curvature, the exact
+inverse-Morse endpoint signs orient the first derivative everywhere. This is a sound calculus
+interface, but the actual endpoint curvature is scale-sensitive, so no concrete campaign of this
+shape is claimed below. -/
 structure NonnegativeRealCurvatureCertificate
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -320,9 +334,8 @@ theorem CompiledCrossingRunVerdict.ofReceipt
   ⟨returns_zero_of_receipt name data.operations crypto receipt kind params nonce
     bound admitted⟩
 
-/-- Smallest preferred artifact shape: certify nonnegative real curvature on the collar.  The
-endpoint derivative signs are exact consequences of the inverse-Morse construction and are not
-part of the empirical run. -/
+/-- Optional artifact shape for the sufficient nonnegative-curvature condition above. The
+interface is sound, but no concrete passing campaign is claimed for Poincare's endpoint geometry. -/
 structure CompiledRealCurvatureData
     {massProduct : ℂ} {b d : ℤ}
     (model : ChapterVIDPrincipalConnectorModel massProduct b d)
@@ -977,10 +990,9 @@ theorem exists_seamCompatibleContribution_tendsto_of_compiledRealDerivativeRuns
       model derivativeRun curvatureRun .final)
     initialCertificate finalCertificate
 
-/-- Preferred compiled route after extracting the endpoint signs analytically: the two artifacts
-check only nonnegative real curvature.  Lean propagates that curvature from the exact local
-anchors, obtains the oriented derivatives and crossing signs, and then assembles Poincare's
-five-piece logarithmic limit. -/
+/-- Conditional compiled curvature route. This theorem records the sound assembly if such
+campaigns are supplied; it does not assert that nonnegative curvature is the feasible numerical
+condition for the selected inverse-Morse endpoints. -/
 theorem exists_seamCompatibleContribution_tendsto_of_compiledRealCurvatureRuns
     (outerRun : ChapterVIDOuterArcPolarCompiledGrid.CompiledRunVerdict)
     {massProduct : ℂ} {b d : ℤ}

@@ -699,9 +699,9 @@ structure ChapterVIDAnchoredConnectorModel
   initialRealAnchor :
     chapterVIDEndpointRealDerivativeValue .initial
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ
-      toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L ≤ 0
+      toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L < 0
   finalRealAnchor :
-    0 ≤ chapterVIDEndpointRealDerivativeValue .final
+    0 < chapterVIDEndpointRealDerivativeValue .final
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.κ
       toChapterVIDOrientedConnectorModel.toChapterVIDPrincipalConnectorModel.rootModel.L
 
@@ -821,11 +821,11 @@ theorem exists_chapterVIDAnchoredConnectorModel
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
-    exact hκSigns.2.1.le
+    exact hκSigns.2.1
   · dsimp only [restrictedOriented, restrictedConnector,
       ChapterVIDPrincipalConnectorModel.restrictParameter]
     rw [hrootL]
-    exact hκSigns.2.2.le
+    exact hκSigns.2.2
 
 /-- The selected anchors discharge the sole analytic hypothesis of the compiled 30-cell
 terminal campaign. Thus the literal first-factor path derivative is strictly positive at every
