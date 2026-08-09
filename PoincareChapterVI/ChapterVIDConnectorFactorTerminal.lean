@@ -113,6 +113,19 @@ theorem exists_terminal_cell
             rfl
           simpa [hindex] using hrawMem
 
+/-- The curvature campaign's companion-factor checks cover the whole closed terminal interval,
+including the local endpoint. -/
+theorem ReferenceCompiledRunVerdict.modelCompanion_re_pos_on_terminal
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ReferenceCompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide)
+    (x : ℝ) (hx : x ∈ terminalInterval side) :
+    0 < (model.rectangleFactorMinus side
+      (0, terminalParameter side x hx)).re := by
+  obtain ⟨index, hregion⟩ := exists_terminal_cell side x hx
+  exact run.modelCompanion_re_pos model side index _ hregion
+
 /-- Imaginary part of the first factor's derivative along the seam connector (`s = 0`). -/
 def lineDerivativeImag
     {massProduct : ℂ} {b d : ℤ}

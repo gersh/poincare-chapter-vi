@@ -12,8 +12,9 @@ import PoincareChapterVI.ChapterVILeanCompCertAttestation
 
 Ten three-cell artifacts cover the 30 cells omitted by the first-derivative campaign.  A zero
 compiled verdict reconstructs the literal value of `f''(u) * Δ²`, proves negative imaginary
-curvature on the initial side and positive imaginary curvature on the final side, and identifies
-that value as the derivative of the actual affine path derivative.
+curvature on the initial side and positive imaginary curvature on the final side, keeps the
+companion factor in the positive real half-plane, and identifies the curvature value as the
+derivative of the actual affine path derivative.
 -/
 
 noncomputable section
@@ -136,6 +137,19 @@ theorem ReferenceCompiledRunVerdict.curvature_separated
   exact (separation side).value_pos_of_lower_pos hcontains
     (by simpa [separationOperation, DyadicOperation.Sound] using hsound)
 
+/-- The same terminal row keeps the companion collision factor in the positive real half-plane. -/
+theorem ReferenceCompiledRunVerdict.companion_re_pos
+    (run : ReferenceCompiledRunVerdict)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    {z : ℂ}
+    (hz : (radicandTrace side (meshIndex side index)).factorMinus.Contains z) : 0 < z.re := by
+  have hsound := run.cellOperationSound side index
+    (separationOperation
+      (radicandTrace side (meshIndex side index)).factorMinus .realPositive)
+    (by simp [cellOperations])
+  exact SlitPlaneSeparation.realPositive.value_pos_of_lower_pos hz
+    (by simpa [separationOperation, DyadicOperation.Sound] using hsound)
+
 /-- A compiled curvature row applies to the literal affine connector in the selected model. -/
 theorem ReferenceCompiledRunVerdict.modelCurvature_separated
     {massProduct : ℂ} {b d : ℤ}
@@ -200,6 +214,67 @@ theorem ReferenceCompiledRunVerdict.modelCurvature_separated
     rw [haffineTarget, haffineSource] at hsub
     exact hsub
   exact run.curvature_separated side index hu hy hdirection
+
+/-- A compiled terminal row puts the actual companion collision factor in the positive real
+half-plane.  The proof reconstructs both the affine coordinate and the reciprocal anomaly from
+the checked row before applying the row's separation claim. -/
+theorem ReferenceCompiledRunVerdict.modelCompanion_re_pos
+    {massProduct : ℂ} {b d : ℤ}
+    (run : ReferenceCompiledRunVerdict)
+    (model : ChapterVIDPrincipalConnectorModel massProduct b d)
+    (side : ChapterVIDOuterArcSide) (index : Fin (cells side))
+    (point : I × I)
+    (hregion : point ∈ ChapterVIDConnectorFactorBulkReference.meshRegion
+      (meshIndex side index)) :
+    0 < (model.rectangleFactorMinus side point).re := by
+  let terminal := ChapterVIDConnectorFactorBulkReference.terminalCell
+    model side (meshIndex side index)
+  let affine := terminal.toCoarseEndpointCell.toAffineCell
+  have haffineRegion : affine.region =
+      ChapterVIDConnectorFactorBulkReference.meshRegion (meshIndex side index) := by
+    cases side <;> rfl
+  have haffineCoordinateOperations : affine.coordinateTrace.operations =
+      (coordinateTrace side (meshIndex side index)).operations := by
+    cases side <;> rfl
+  have haffineCoordinateOutput : affine.coordinateTrace.output =
+      (coordinateTrace side (meshIndex side index)).output := by
+    cases side <;> rfl
+  have hcoordinate : ∀ operation ∈ affine.coordinateTrace.operations, operation.Sound := by
+    intro operation hoperation
+    rw [haffineCoordinateOperations] at hoperation
+    exact run.coordinateOperationSound side index operation hoperation
+  have hu : (coordinateTrace side (meshIndex side index)).output.Contains
+      (model.rectanglePoint side point) := by
+    have hline := affine.coordinateTrace.output_contains_lineMap_of_allSound hcoordinate
+      (affine.source_contains point (by rw [haffineRegion]; exact hregion))
+      (affine.target_contains point (by rw [haffineRegion]; exact hregion))
+      (affine.parameter_contains point (by rw [haffineRegion]; exact hregion))
+    rw [haffineCoordinateOutput] at hline
+    simpa [ChapterVIDPrincipalConnectorModel.rectanglePoint,
+      ChapterVIDPrincipalGlobalRootModel.connectorPoint] using hline
+  have hζ : ChapterVIDConnectorInputBounds.terminalZetaRectangle.Contains
+      (model.connectorParameterRoot point.1) := by
+    simpa [ChapterVIDPrincipalConnectorModel.connectorParameterRoot] using
+      ChapterVIDConnectorInputBounds.terminalZetaRectangle_contains model point.1
+  have hanomalies :=
+    (radicandTrace side (meshIndex side index)).anomalies_contain_of_allSound
+      (run.radicandOperationSound side index) hζ hu
+      ChapterVIDOuterArcPolarCompiledGrid.exponentialCoefficient_contains
+      (model.connectorParameterRoot_ne_zero point.1)
+      (model.rectanglePoint_ne_zero side point)
+  have hfactors :=
+    (radicandTrace side (meshIndex side index)).factors_contain_sparse_of_allSound
+      (run.radicandOperationSound side index) hu
+      ChapterVIDOuterArcPolarCompiledGrid.inverse10001_contains
+      hanomalies.1 hanomalies.2
+  apply run.companion_re_pos side index
+  rw [show model.rectangleFactorMinus side point =
+        chapterVIDRootCoordinateCollisionFactorMinus
+          (model.connectorParameterRoot point.1) (model.rectanglePoint side point) by rfl,
+      chapterVIDRootCoordinateCollisionFactorMinus_eq_polarCertificateFormula
+        (model.connectorParameterRoot_ne_zero point.1)
+        (model.rectanglePoint_ne_zero side point)]
+  exact hfactors.2
 
 /-- The compiled value is the derivative of the actual path derivative, with the expected
 opposite curvature orientations on the two connector sides. -/

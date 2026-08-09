@@ -51,6 +51,8 @@ proves them strictly positive from the certified collision curvature and the exa
 then selects a small positive Morse length and shrinks the critical-value interval by continuity.
 This constructs both endpoint anchors internally. The ten LeanCompCert curvature shards therefore
 prove strict first-factor path-derivative positivity throughout all 30 punctured terminal cells.
+Those same shards also check a positive-real separation for the companion factor throughout the
+closed terminal intervals, and Lean reconstructs the literal model factor from each accepted row.
 The analytic selection complements rather than replaces the compiled campaign: a receipt alone
 cannot encode the noncomputable inverse-Morse scale. What remains is packaging the terminal
 monotonicity with the bulk factor certificates into the final seam continuation.

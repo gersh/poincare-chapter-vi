@@ -13,8 +13,9 @@ import PoincareChapterVI.ChapterVILeanCompCertCartesianFactorSecondDerivativeTra
 The first-order campaign stops 21 cells before the initial local endpoint and starts 9 cells
 after the final local endpoint.  On exactly those 30 cells this campaign certifies the affine
 curvature `f''(u) * Δ²`: its imaginary part is negative on the initial connector and positive on
-the final connector.  Unlike an absolute first-derivative enclosure, this quantity retains the
-quadratic connector scale at the double zero.
+the final connector.  Every row also checks that the companion collision factor remains in the
+positive real half-plane.  Unlike an absolute first-derivative enclosure, the curvature quantity
+retains the quadratic connector scale at the double zero.
 -/
 
 namespace PoincareChapterVI.ChapterVIDConnectorFactorSecondDerivativeReference
@@ -77,12 +78,15 @@ def separation : ChapterVIDOuterArcSide → SlitPlaneSeparation
   | .initial => .imagNegative
   | .final => .imagPositive
 
-/-- Each row checks the side-appropriate strict imaginary curvature sign. -/
+/-- Each row checks the side-appropriate strict imaginary curvature sign and keeps the companion
+factor in the positive real half-plane. -/
 def cellOperations (side : ChapterVIDOuterArcSide) (index : Fin (cells side)) :
     List (DyadicOperation 20) :=
   (coordinateTrace side (meshIndex side index)).operations ++
     (trace side index).operations ++
-    [separationOperation (trace side index).output (separation side)]
+    [separationOperation (trace side index).output (separation side),
+      separationOperation
+        (radicandTrace side (meshIndex side index)).factorMinus .realPositive]
 
 def operations (side : ChapterVIDOuterArcSide) : List (DyadicOperation 20) :=
   (List.finRange (cells side)).flatMap (cellOperations side)

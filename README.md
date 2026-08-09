@@ -565,9 +565,11 @@ The strongest newly completed component is the finite algebra in §103:
   curvature, selects a small positive Morse length, and then shrinks the critical-value interval
   by continuity. The resulting connector supplies both endpoint anchors rather than assuming
   them. Combined with the ten LeanCompCert curvature shards, this proves strict first-factor path
-  derivative positivity on every non-endpoint point of all 30 terminal cells. The remaining D
-  connector task is to package this terminal monotonicity with the bulk factor certificates into
-  the final seam-continuation theorem.
+  derivative positivity on every non-endpoint point of all 30 terminal cells. The same ten
+  terminal artifacts also certify that the companion collision factor stays in the positive real
+  half-plane on all 30 cells; Lean reconstructs this as a fact about the literal connector model.
+  The remaining D connector task is to package this terminal monotonicity with the bulk factor
+  certificates into the final seam-continuation theorem.
 
   `ChapterVILeanCompCertAttestation.lean` supplies the production ingestion route: it derives the
   emitted straight-line C artifact and its zero-checking `main` from the exact batch computation.
