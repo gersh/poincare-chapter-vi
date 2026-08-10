@@ -42,6 +42,105 @@ def positiveReciprocal (precision : ℕ) (x : Interval precision) : Interval pre
   let numerator := scaleInt precision * scaleInt precision
   ⟨floorDiv numerator x.upper, ceilDiv numerator x.lower⟩
 
+/-! ## Soundness of arbitrary-precision outward rounding
+
+These facts deliberately use Lean's mathematical integers.  They are useful when a fixed-point
+campaign exceeds the `u64 × u64` range of the optional compiled signed-product checker. -/
+
+private theorem scaleInt_pos (precision : ℕ) : 0 < scaleInt precision := by
+  simp [scaleInt]
+
+private theorem floorDiv_mul_le (numerator : ℤ) (precision : ℕ) :
+    floorDiv numerator (scaleInt precision) * scaleInt precision ≤ numerator := by
+  exact Int.ediv_mul_le numerator (ne_of_gt (scaleInt_pos precision))
+
+private theorem le_ceilDiv_mul (numerator : ℤ) (precision : ℕ) :
+    numerator ≤ ceilDiv numerator (scaleInt precision) * scaleInt precision := by
+  have h := Int.ediv_mul_le (-numerator) (ne_of_gt (scaleInt_pos precision))
+  rw [ceilDiv]
+  calc
+    numerator = -(-numerator) := by ring
+    _ ≤ -((-numerator).ediv (scaleInt precision) * scaleInt precision) := neg_le_neg h
+    _ = -((-numerator).ediv (scaleInt precision)) * scaleInt precision := by ring
+
+theorem mul_sound (precision : ℕ) (x y : Interval precision) :
+    ChapterVISignedDyadicInterval.MulCertificate x y (mul precision x y) := by
+  let ll := x.lower * y.lower
+  let lu := x.lower * y.upper
+  let ul := x.upper * y.lower
+  let uu := x.upper * y.upper
+  let lower := min (min ll lu) (min ul uu)
+  let upper := max (max ll lu) (max ul uu)
+  have hlower : floorDiv lower (scaleInt precision) * scaleInt precision ≤ lower :=
+    floorDiv_mul_le lower precision
+  have hupper : upper ≤ ceilDiv upper (scaleInt precision) * scaleInt precision :=
+    le_ceilDiv_mul upper precision
+  have hs : scaleInt precision = (2 ^ precision : ℤ) := rfl
+  have hllLower : lower ≤ ll := by simp [lower]
+  have hluLower : lower ≤ lu := by simp [lower]
+  have hulLower : lower ≤ ul := by simp [lower]
+  have huuLower : lower ≤ uu := by simp [lower]
+  have hllUpper : ll ≤ upper := by simp [upper]
+  have hluUpper : lu ≤ upper := by simp [upper]
+  have hulUpper : ul ≤ upper := by simp [upper]
+  have huuUpper : uu ≤ upper := by simp [upper]
+  change ChapterVISignedDyadicInterval.MulCertificate x y
+    ⟨floorDiv lower (scaleInt precision), ceilDiv upper (scaleInt precision)⟩
+  refine
+    { output_wf := ?_
+      lower_ll := ?_, lower_lu := ?_, lower_ul := ?_, lower_uu := ?_
+      upper_ll := ?_, upper_lu := ?_, upper_ul := ?_, upper_uu := ?_ }
+  · exact le_of_mul_le_mul_right
+      (hlower.trans (hllLower.trans (hllUpper.trans hupper)))
+      (scaleInt_pos precision)
+  · rw [← hs]; exact hlower.trans hllLower
+  · rw [← hs]; exact hlower.trans hluLower
+  · rw [← hs]; exact hlower.trans hulLower
+  · rw [← hs]; exact hlower.trans huuLower
+  · rw [← hs]; exact hllUpper.trans hupper
+  · rw [← hs]; exact hluUpper.trans hupper
+  · rw [← hs]; exact hulUpper.trans hupper
+  · rw [← hs]; exact huuUpper.trans hupper
+
+theorem positiveReciprocal_sound (precision : ℕ) (x : Interval precision)
+    (hlower : 0 < x.lower) (hwf : x.lower ≤ x.upper) :
+    ChapterVISignedDyadicInterval.PositiveReciprocalCertificate x
+      (positiveReciprocal precision x) := by
+  let scale := scaleInt precision
+  let numerator := scale * scale
+  have hscale : 0 < scale := scaleInt_pos precision
+  have hupper : 0 < x.upper := hlower.trans_le hwf
+  have hnumerator : 0 ≤ numerator := mul_nonneg hscale.le hscale.le
+  have houtLower : 0 ≤ floorDiv numerator x.upper := by
+    exact Int.ediv_nonneg hnumerator hupper.le
+  have hlowerCross : floorDiv numerator x.upper * x.upper ≤ numerator :=
+    Int.ediv_mul_le numerator hupper.ne'
+  have hupperCross : numerator ≤ ceilDiv numerator x.lower * x.lower := by
+    have h := Int.ediv_mul_le (-numerator) hlower.ne'
+    rw [ceilDiv]
+    calc
+      numerator = -(-numerator) := by ring
+      _ ≤ -((-numerator).ediv x.lower * x.lower) := neg_le_neg h
+      _ = -((-numerator).ediv x.lower) * x.lower := by ring
+  have houtputWf : floorDiv numerator x.upper ≤ ceilDiv numerator x.lower := by
+    apply le_of_mul_le_mul_right _ hlower
+    exact calc
+      floorDiv numerator x.upper * x.lower ≤
+          floorDiv numerator x.upper * x.upper :=
+        mul_le_mul_of_nonneg_left hwf houtLower
+      _ ≤ numerator := hlowerCross
+      _ ≤ ceilDiv numerator x.lower * x.lower := hupperCross
+  change ChapterVISignedDyadicInterval.PositiveReciprocalCertificate x
+    ⟨floorDiv numerator x.upper, ceilDiv numerator x.lower⟩
+  refine
+    { input_lower_pos := hlower
+      output_wf := houtputWf
+      output_lower_nonneg := houtLower
+      lower_cross := ?_
+      upper_cross := ?_ }
+  · simpa [numerator, scale, scaleInt, pow_two] using hlowerCross
+  · simpa [numerator, scale, scaleInt, pow_two] using hupperCross
+
 def realMulTrace {precision : ℕ} (scalar : Interval precision)
     (input : Rectangle precision) :
     ChapterVISignedDyadicComplexRectangle.RealMulTrace scalar input where
@@ -68,6 +167,32 @@ def invTrace {precision : ℕ} (input : Rectangle precision) :
   ⟨realSq, imagSq, normInv,
     mul precision input.real normInv,
     mul precision input.imag.neg normInv⟩
+
+theorem mulTrace_operations_sound {precision : ℕ} (x y : Rectangle precision) :
+    ∀ operation ∈ (mulTrace x y).operations, operation.Sound := by
+  intro operation hoperation
+  simp [mulTrace, ChapterVISignedDyadicComplexRectangle.MulTrace.operations] at hoperation
+  rcases hoperation with rfl | rfl | rfl | rfl
+  all_goals exact mul_sound precision _ _
+
+theorem invTrace_operations_sound {precision : ℕ} (input : Rectangle precision)
+    (hnorm : 0 < (invTrace input).normSq.lower) :
+    ∀ operation ∈ (invTrace input).operations, operation.Sound := by
+  have hre := mul_sound precision input.real input.real
+  have him := mul_sound precision input.imag input.imag
+  have hnormWf : (invTrace input).normSq.lower ≤ (invTrace input).normSq.upper := by
+    change (mul precision input.real input.real).lower +
+        (mul precision input.imag input.imag).lower ≤
+      (mul precision input.real input.real).upper +
+        (mul precision input.imag input.imag).upper
+    exact add_le_add hre.output_wf him.output_wf
+  intro operation hoperation
+  simp [invTrace, ChapterVISignedDyadicComplexRectangle.InvTrace.operations] at hoperation
+  rcases hoperation with rfl | rfl | rfl | rfl | rfl
+  · exact hre
+  · exact him
+  · exact positiveReciprocal_sound precision _ hnorm hnormWf
+  all_goals exact mul_sound precision _ _
 
 /-- An exact integer budget for the absolute value of every number in a dyadic interval. -/
 def componentBudget {precision : ℕ} (input : Interval precision) : ℤ :=
@@ -130,6 +255,38 @@ def sixthRootTrace {precision : ℕ} (input output : Interval precision) :
     ChapterVILeanCompCertRoots.SixthRootTrace input output :=
   ⟨powSixTrace (ChapterVILeanCompCertRoots.endpoint output.lower),
     powSixTrace (ChapterVILeanCompCertRoots.endpoint output.upper)⟩
+
+theorem powThreeTrace_operations_sound {precision : ℕ} (input : Interval precision) :
+    ∀ operation ∈ (powThreeTrace input).operations, operation.Sound := by
+  intro operation hoperation
+  simp [powThreeTrace, ChapterVILeanCompCertRoots.PowThreeTrace.operations] at hoperation
+  rcases hoperation with rfl | rfl
+  all_goals exact mul_sound precision _ _
+
+theorem powSixTrace_operations_sound {precision : ℕ} (input : Interval precision) :
+    ∀ operation ∈ (powSixTrace input).operations, operation.Sound := by
+  intro operation hoperation
+  simp [powSixTrace, ChapterVILeanCompCertRoots.PowSixTrace.operations] at hoperation
+  rcases hoperation with rfl | rfl | rfl
+  all_goals exact mul_sound precision _ _
+
+theorem cubicRootTrace_operations_sound {precision : ℕ} (input output : Interval precision) :
+    ∀ operation ∈ (cubicRootTrace input output).operations, operation.Sound := by
+  intro operation hoperation
+  change operation ∈
+    (powThreeTrace (ChapterVILeanCompCertRoots.endpoint output.lower)).operations ++
+      (powThreeTrace (ChapterVILeanCompCertRoots.endpoint output.upper)).operations at hoperation
+  rcases List.mem_append.mp hoperation with h | h
+  all_goals exact powThreeTrace_operations_sound _ operation h
+
+theorem sixthRootTrace_operations_sound {precision : ℕ} (input output : Interval precision) :
+    ∀ operation ∈ (sixthRootTrace input output).operations, operation.Sound := by
+  intro operation hoperation
+  change operation ∈
+    (powSixTrace (ChapterVILeanCompCertRoots.endpoint output.lower)).operations ++
+      (powSixTrace (ChapterVILeanCompCertRoots.endpoint output.upper)).operations at hoperation
+  rcases List.mem_append.mp hoperation with h | h
+  all_goals exact powSixTrace_operations_sound _ operation h
 
 def radialEndpointTrace {precision : ℕ} (qD qDSixthRoot xAbs collisionRadius : Interval precision) :
     ChapterVIDRadialTrace.EndpointTrace (precision := precision) :=

@@ -334,11 +334,12 @@ The strongest newly completed component is the finite algebra in §103:
   root-coordinate circle, and constructs one principal square-root sheet beginning at exactly
   that standard angular path. The already proved exact `u -> t` map and fixed-parameter homotopy
   identify its image with the geometric section 94 source circle, but nonvanishing along that
-  source-coordinate homotopy is not inferred merely from equality of norms. Thus the radial lift
-  is formalized through the first 99.016 percent of the chosen parameter. What remains is that
-  initial source-sheet identification, the final `27/2744` tail, and a sheet-preserving
-  deformation to the already certified terminal five-piece family; the unspecified size of the
-  analytic Morse neighborhood prevents claiming overlap from the fixed cutoff alone.
+  source-coordinate homotopy is not inferred merely from equality of norms. The later centered
+  radial-tail certificate now extends the principal lift across every pre-collision parameter,
+  including the former final `27/2744` gap. What remains on this geometric route is the corrected
+  jointly moving source-cycle transport and a sheet-preserving deformation to the already
+  certified terminal five-piece family; equality of norms alone does not prove either homotopy
+  avoids the moving zeros.
 - `ChapterVILeanCompCertRoots.lean` checks cubic- and sixth-root enclosures without evaluating a
   logarithm or fractional power numerically. Compiled signed-integer multiplication traces bound
   the cubes or sixth powers of dyadic endpoints, and a kernel proof turns those inequalities into
@@ -756,10 +757,8 @@ The strongest newly completed component is the finite algebra in §103:
 - `ChapterVIDRadialTailReduction.lean` gives a bounded monotonicity target for the last
   `27/2744`. A nonnegative endpoint-circle real part plus strict negativity of its radial
   derivative implies strict positivity at every pre-collision point and joins automatically to
-  the existing 44-shard prefix. The exploratory
-  `research/chapter_vi_radial_tail_scan.py` reports substantial margins on all six remaining
-  cubic rows; these sampled values select the next interval table but are not themselves used as
-  proof.
+  the existing 44-shard prefix. The exploratory `research/chapter_vi_radial_tail_scan.py` was
+  used only to select the mesh; sampled floating-point values are not proof premises.
 - `ChapterVIDRadialTailDerivative.lean` and
   `ChapterVIDRadialTailPathDerivative.lean` now close the analytic differentiation step. Lean
   proves the total chain rule while both `ζ(s)` and `u(s)` move, differentiates the actual affine
@@ -767,18 +766,35 @@ The strongest newly completed component is the finite algebra in §103:
   derivative enclosure by the mean-value theorem. The product derivative is also rewritten in a
   cancellation-preserving form before interval evaluation.
 - `ChapterVILeanCompCertRadialTailDerivativeTrace.lean` and
-  `ChapterVIDRadialTailDerivativeCompiledGrid.lean` define the signed-dyadic trace, the six-row
-  continuum cover, and the semantic reconstruction theorem. They intentionally do not export a
-  reference run verdict yet. The first 20-bit direct evaluation failed: even after cancelling the
-  two exact `4L` terms, independent enclosures leave terms of size hundreds around a true
-  derivative margin of about five. `ChapterVILeanCompCertHighOrderAnomalyTrace.lean` now proves
-  and checks a degree-five exponential enclosure with remainder `|a|^6/512`; substituting it into
-  the derivative trace shows that the exponential estimate was not the controlling loss. The
-  first upper-row output remains about `3.94e8 / 2^20`, and even a point-sized angular box leaves
-  roughly `[-3.02e8,2.94e8]/2^20` because the radial cell is evaluated as unrelated large Laurent
-  terms. The next certificate therefore needs a cell-centered Taylor model (or an equivalent
-  dependency-preserving factorization in the radial variable), not merely a higher-order
-  exponential. Merely asserting the sampled table would be unsound.
+  `ChapterVIDRadialTailDerivativeCompiledGrid.lean` retain the first signed-dyadic formulation
+  and its semantic reconstruction theorem as the documented failed route. The direct 20-bit
+  evaluation loses radial dependency among large Laurent terms: even at a point-sized angular
+  box it produces approximately `[-3.02e8,2.94e8]/2^20` around a true derivative margin of about
+  five. Raising the exponential order does not repair that loss.
+- `ChapterVIFieldExpressionTrace.lean`, the `ChapterVIDRadialTailBaseCentered*` modules, and
+  `ChapterVIDRadialTailCenteredCertificate.lean` implement the proper repair. They expand around
+  each radial-cell center, retain the affine radial and angular coefficients, and bound only the
+  higher-order remainder. At precision 40, Lean checks 14,336 whole cells (six radial rows,
+  sixteen subcells per row, and 64 or 128 quadratically clustered angular cells per side/row),
+  proves every interval operation sound, identifies output register 52 with the literal radial
+  derivative, and proves its real part is negative everywhere on the tail. The computation uses
+  arbitrary-precision integers and is split into 896 independent 16-angle chunks whose Boolean
+  facts are proved by `decide +kernel`, so no `native_decide` axiom, unproved 64-bit admissibility
+  premise, or execution receipt remains.
+- `ChapterVIDRadialTailEndpointTrace.lean`,
+  `ChapterVIDRadialTailEndpointCompiledGrid.lean`, and
+  `ChapterVIDRadialTailEndpointCertificate.lean` repair the collision endpoint. Direct interval
+  positivity covers 62 upper cells and 124 lower cells away from the pinch. At the genuine double
+  zero, Lean proves the value and first derivative vanish exactly, then a jet trace proves the
+  second derivative positive on 63 upper collar cells and one lower collar cell. Convexity fills
+  the collars, including the zero itself. The upper collar has exactly 63 cells covering
+  `[961/1024,1]`; the discarded 64-cell draft accidentally extended to `1025/1024`. These finite
+  facts are likewise split into 256 fixed-index `decide +kernel` modules.
+- `ChapterVIDRadialTailFinal.lean` combines the endpoint theorem and centered derivative theorem
+  into an unconditional `ChapterVIDRadialTailMonotonicityCertificate`. Consequently the literal
+  radicand has positive real part on the complete standard angular circle for every
+  pre-collision parameter, and Lean constructs its continuous principal square-root sheet. The
+  former `27/2744` numerical hole is closed.
 - The exploratory scan was used only to choose the clustered mesh. The formal result uses
   interval enclosures on entire cells, so it needs neither floating-point trust nor a separate
   global Lipschitz estimate.

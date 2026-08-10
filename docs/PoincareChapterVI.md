@@ -176,27 +176,31 @@ two literal source obligations are misstated, rather than merely absent from Lea
 
 After those corrections, the central source-level analytic and geometric steps still open are:
 
-- transporting the original §94 source-sheet integration cycle over the final `27/2744` of the
-  chosen radial parameter and deforming it into the now-certified near-D five-piece family while
-  avoiding every moving zero. The preceding interval is no longer open:
+- transporting the original §94 source-sheet integration cycle into the now-certified near-D
+  five-piece family while avoiding every moving zero. The numerical `27/2744` radial gap on the
+  ordinary angular circle is no longer open:
   `ChapterVIDGlobalLiftedPrefix.lean` gives a principal lift of the ordinary angular
   root-coordinate circle from zero through the exact cutoff `2717/2744`.
   `ChapterVIDCircleReparametrization.lean` now closes the initial link: the exact `u -> t` map on
   the unit circle is the strictly increasing angular warp
   `θ - (200/30003) sin(3θ)`, and the certified initial principal sheet is transported through
-  its continuous inverse. `ChapterVIDRadialTailReduction.lean` reduces the remaining tail to a
+  its continuous inverse. `ChapterVIDRadialTailReduction.lean` reduces the tail to a
   nonnegative endpoint-circle table and a strictly negative radial-derivative table.
   `ChapterVIDRadialTailDerivative.lean` and `ChapterVIDRadialTailPathDerivative.lean` prove the
   exact total derivative, specialize it to the sixth-root radial path, and turn a negative table
-  into strict antitonicity. The signed-dyadic trace and six-row cover are implemented in
+  into strict antitonicity. The first signed-dyadic trace and six-row cover are retained in
   `ChapterVILeanCompCertRadialTailDerivativeTrace.lean` and
-  `ChapterVIDRadialTailDerivativeCompiledGrid.lean`, but no unconditional verdict is claimed:
-  the first direct 20-bit layout loses radial dependency across large cancelling Laurent terms.
+  `ChapterVIDRadialTailDerivativeCompiledGrid.lean` as a documented failed route: the direct
+  20-bit layout loses radial dependency across large cancelling Laurent terms.
   `ChapterVILeanCompCertHighOrderAnomalyTrace.lean` proves a degree-five Taylor enclosure with
   `|a|^6/512` remainder and the derivative trace now uses it. The failed verdict is essentially
-  unchanged, which rules out the exponential remainder as the main loss. A cell-centered radial
-  Taylor model (or equivalent dependency-preserving factorization), the endpoint table, and the
-  deformation to the five-piece family are still required;
+  unchanged, which rules out the exponential remainder as the main loss. The replacement
+  `ChapterVIDRadialTailBaseCentered*` trace keeps radial and angular affine dependencies at
+  precision 40. Kernel-checked tables cover all 14,336 derivative cells, 186 direct endpoint
+  cells, and 64 convexity cells; `ChapterVIDRadialTailFinal.lean` consequently proves positive
+  real part and constructs the principal square-root sheet on the complete pre-collision
+  standard circle. What remains here is the historical identification and deformation of the
+  original §94 source cycle, not a radial interval-certificate computation;
 - proving which candidate singularities pinch the integration cycle and are genuine rather than
   apparent;
 - controlling the complementary regular arcs during the long-range transport;

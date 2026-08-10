@@ -33,6 +33,12 @@ outward-rounded Python interval calculation proves
 Since \(L>0\), the required derivative orientation follows uniformly, however small the
 nonconstructively selected Morse length is. Ordinary one-variable calculus then supplies
 the missing connector seam sign.
+
+The remaining $27/2744$ radial gap is now closed as well.  A 40-bit centered Taylor table
+certifies strict decrease on 14,336 continuum cells.  A separate endpoint certificate uses
+direct positivity away from the pinch and exact double-zero anchors plus positive second
+derivative on the collision collars.  Lean reconstructs both tables semantically and obtains
+an unconditional principal square-root sheet on the complete pre-collision standard circle.
 \end{abstract}
 
 \section{Scope}
@@ -51,14 +57,15 @@ on each half-open rectangle $[0,1)\times[0,1]$.  The later file
 \path{ChapterVIDJointLiftedContour.lean} assembles those sheets with the outer and middle sheets
 into one closed, basepoint-normalized lifted five-piece family near $D$.  A subsequent 44-shard
 certificate proves nonvanishing on the complete moving angular circle in the transformed root
-coordinate through the exact cutoff $2717/2744$, and constructs its principal lift.  This still
-left an initial source-circle identification, the final $27/2744$ deformation into the terminal
-five-piece cycle, and the source-specific \S102 inputs.  The first item is now closed: on the unit
+coordinate through the exact cutoff $2717/2744$, and constructs its principal lift.  The initial
+source-circle identification is also closed: on the unit
 circle the exact coordinate map is the orientation-preserving angular reparametrization
 $\theta\mapsto\theta-(200/30003)\sin(3\theta)$, and Lean transports the principal sheet through
-its continuous inverse.  It remains to construct the final $27/2744$ and derive every
-source-specific multiplier, interchange, and coefficient-identification statement in \S102 from
-the full Chapter~V uniform-integral problem.
+its continuous inverse.  The centered derivative and endpoint tables described below now close
+the final $27/2744$ too.  What remains is not a numerical radial gap: it is the corrected global
+jointly moving source-cycle transport, its deformation into the terminal five-piece cycle, and
+the derivation of every source-specific multiplier, interchange, and coefficient-identification
+statement in \S102 from the full Chapter~V uniform-integral problem.
 
 \section{Map to Poincar\'e's printed proof}\label{sec:source-map}
 
@@ -137,14 +144,15 @@ $[0,1)\times[0,1]$.  Lean also proves that each transformed connector integral i
 corresponding source curve integral.  The terminal construction now concatenates the two outer
 quarters, both connectors, and the inverse-Morse middle path into one closed moving source cycle.
 The literal radicand is nonzero on the positive half-open family, one basepoint-normalized lift is
-constructed, and its five restrictions are proved equal to the certified branches.  What remains
-is no longer the whole preceding transport: 1,408 additional polar cells, checked in 44
-LeanCompCert shards, lift the ordinary angular root-coordinate circle through $s=2717/2744$.  The rational
-quarter parametrization is proved surjective onto each geometric quadrant, so this statement is
-about the standard angular path rather than a substitute polygonal or rational cycle.  The exact
-$u\mapsto t$ map and its homotopy identify the corresponding geometric source circle, but
-nonvanishing along that homotopy remains to be proved.  The other geometric obligation is the
-final $27/2744$ and the deformation from that circle to the near-$D$ five-piece family.\\
+constructed, and its five restrictions are proved equal to the certified branches.  The long
+radial certificate first used 1,408 polar cells in 44 LeanCompCert shards through
+$s=2717/2744$.  The repaired centered certificate now proves strict radial decrease on the final
+$27/2744$, while a direct/convex endpoint certificate supplies the collision-circle
+nonnegativity.  Together they prove positive real part and a principal lift on the ordinary
+angular root-coordinate circle for every $s<1$.  The rational quarter parametrization is proved
+surjective onto each geometric quadrant.  The remaining geometric obligation is the corrected
+jointly moving source-cycle and sheet transport into the near-$D$ five-piece family; equality of
+norms does not prove that this source-coordinate homotopy avoids the moving zeros.\\
 
 \S99 & Move the double zero to a critical center and reduce the radicand to a quadratic pinch. &
 Formal Weierstrass manipulation by itself would not establish convergence, a jointly analytic
@@ -165,8 +173,8 @@ passage to the global source contour and the larger-common-disk control of varyi
 amplitudes are omitted.  Nonconstant log amplitudes cannot simply be absorbed into an analytic
 remainder. & Lean proves the function-level logarithmic primitive, straight-arc integral, nonzero
 local coefficient, three- and five-piece asymptotic interfaces, and the required Darboux transfer
-under explicit uniform hypotheses.  The source-cycle deformation and regular remainder are still
-needed.\\
+under explicit uniform hypotheses.  The radial numerical gap is now closed; the source-cycle
+deformation and regular remainder are still needed.\\
 
 \S101 & Give the Pallas numerical example. & No defect relevant to the logical nonintegrability
 argument is asserted; this is an application rather than a required proof step. & Not formalized,
@@ -206,9 +214,8 @@ finite rank contradiction.\\
 \endgroup
 
 The contribution of the present note is concentrated in the \S\S97--100 rows: it closes the
-scale-sensitive sign needed to join the global outer sheets to the positive local Morse sheet.
-It deliberately does not use that local success to conceal the still-open source-cycle and
-\S102 hypotheses.
+scale-sensitive connector sign and the former radial-tail numerical gap.  It deliberately does
+not use those local successes to conceal the still-open source-cycle and \S102 hypotheses.
 
 \section{The certified global prefix}
 
@@ -232,17 +239,16 @@ angular mesh & 32 quadratic-clustered cells per quarter & continuum cover, not p
 new artifacts & $2\cdot22=44$ & independent verified-program verdicts\\
 new polar cells & $2\cdot22\cdot32=1408$ & strictly positive real radicand\\
 terminal prefix & $1-(6/28)^3=2717/2744$ & one principal sheet on the full root circle\\
-uncertified tail & $1-2717/2744=27/2744$ & must meet the local five-piece family\\
+repaired tail & $1-2717/2744=27/2744$ & strict radial decrease plus endpoint nonnegativity\\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The fixed cutoff cannot by itself prove overlap with the analytic Morse neighborhood: the local
+The fixed cutoff by itself did not prove overlap with the analytic Morse neighborhood: the local
 inverse-function argument supplies a positive neighborhood but no numerical lower bound for its
-size.  Closing the tail therefore needs either a quantitative inverse/Morse estimate, an
-all-precollision analytic nonvanishing theorem, or a certified deformation whose endpoint is
-proved to lie inside the selected local neighborhood.  Merely increasing the finite table to a
-closer fixed rational number would not logically remove this issue.
+size.  Merely moving the cutoff closer to one would not have removed that logical issue.  The
+repair instead proves a global monotonicity statement all the way to the collision endpoint, so
+it does not need a quantitative size for the Morse neighborhood.
 
 There is, however, a scale-free monotonicity reduction.  Write $R(s,h)$ for the radicand on
 either left quarter, where $h$ is angular distance from the negative-real pinch.  It is enough to
@@ -253,9 +259,11 @@ certify
   \quad(2717/2744\leq s<1).
 \]
 The mean-value theorem then gives $\Re R(s,h)>0$ for every pre-collision point.  The first
-quantity has a quadratic zero at $h=0$, so the bounded endpoint table evaluates
-$\Re R(1,h)/h^2$ with its removable value.  The following exploratory values select the mesh;
-they are not proof certificates.
+quantity has a genuine quadratic zero at $h=0$.  The implemented endpoint proof uses direct
+positivity away from that zero, and on a small collar proves the value and first derivative
+vanish exactly and the second derivative is positive.  Convexity then gives the nonnegative
+endpoint value without dividing by a vanishing interval.  The following exploratory values
+selected the mesh; they are not proof certificates.
 
 \begin{center}
 \begin{tabular}{rrrr}
@@ -284,12 +292,11 @@ radius.  They also prove that a negative derivative table supplies the semantic 
 hypothesis by the mean-value theorem.  The product rule is expanded first so that its two exact
 $4L$ contributions cancel symbolically.
 
-The signed-dyadic evaluator and the six-row continuum cover are now encoded in
+The first signed-dyadic evaluator and six-row cover were encoded in
 \path{ChapterVILeanCompCertRadialTailDerivativeTrace.lean} and
-\path{ChapterVIDRadialTailDerivativeCompiledGrid.lean}.  No reference verdict is asserted.  A
-trial of the direct 20-bit layout failed for a mathematically meaningful reason: independent
-boxes leave intermediate terms of size hundreds while the true first-row margin is about
-$4.57$.  A new degree-five anomaly trace proves
+\path{ChapterVIDRadialTailDerivativeCompiledGrid.lean}.  That direct 20-bit layout failed for a
+mathematically meaningful reason: independent boxes leave intermediate terms of size hundreds
+while the true first-row margin is about $4.57$.  A degree-five anomaly trace proves
 
 \[
  \left|e^a-\sum_{k=0}^{5}\frac{a^k}{k!}\right|
@@ -300,10 +307,59 @@ from Mathlib's complex exponential bound and checks every polynomial operation a
 with signed dyadics.  Substituting that trace leaves the first upper-row bound near
 $3.94\cdot10^8/2^{20}$; even making the angular box a point leaves approximately
 $[-3.02\cdot10^8,2.94\cdot10^8]/2^{20}$ on the first radial cell.  Therefore the controlling
-loss is radial dependency among large Laurent terms, not the exponential remainder.  The next
-computation must use a cell-centered radial Taylor model or an equivalent dependency-preserving
-factorization, followed by the endpoint quotient table; the sampled numbers above are not
-silently promoted to proof certificates.
+loss is radial dependency among large Laurent terms, not the exponential remainder.
+
+The completed computation uses the required dependency-preserving repair.  The files
+\path{ChapterVIDRadialTailBaseCenteredProgram.lean} and
+\path{ChapterVIDRadialTailCenteredExpression.lean} expand the expression at each radial-cell
+center, carry radial and angular affine coefficients separately, and bound the remaining Taylor
+error.  The generic semantics in \path{ChapterVIFieldExpressionTrace.lean} prove that a valid
+trace encloses the literal expression and that a jet trace encloses its directional derivative.
+At denominator $2^{40}$, kernel-evaluated integer comparisons verify every whole cell and prove
+that output register 52 is the actual radial derivative with negative real upper endpoint.
+
+The endpoint uses a second, deliberately nonuniform proof.  Direct positivity handles cells with
+a strict margin.  On the upper collar $[961/1024,1]$, exactly 63 cells of width $1/1024$ bound
+the second derivative from below; the lower collar is the single cell $[0,1/1024]$.  Lean proves
+the endpoint value and first derivative vanish at the collision and uses convexity to fill both
+collars.  This also repairs an off-by-one draft in which 64 upper collar cells would have extended
+beyond the unit interval to $1025/1024$.
+
+\begin{center}
+\begin{tabular}{L{0.30\textwidth}rL{0.42\textwidth}}
+\toprule
+certificate component & checked cells & exact formal conclusion\\
+\midrule
+upper centered derivative & $6\cdot16\cdot64=6144$ & $\partial_s\Re R<0$ on every upper-tail cell\\
+lower centered derivative & $2\cdot16\cdot128+4\cdot16\cdot64=8192$ & $\partial_s\Re R<0$ on every lower-tail cell\\
+upper endpoint, direct & 62 & $\Re R(1,h)>0$ through $961/1024$\\
+lower endpoint, direct & 124 & $\Re R(1,h)>0$ from $1/1024$ onward\\
+upper endpoint, curvature & 63 & $\partial_h^2\Re R>0$ on $[961/1024,1]$\\
+lower endpoint, curvature & 1 & $\partial_h^2\Re R>0$ on $[0,1/1024]$\\
+\midrule
+centered derivative total & 14,336 & strict radial antitonicity on the final $27/2744$\\
+endpoint total & 186 direct $+$ 64 curvature & collision-circle nonnegativity\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The least curvature lower numerators actually evaluated are
+$9912363499575/2^{40}$ on the upper collar and
+$43455431609765/2^{40}$ on the lower collar.  These numbers are not trusted annotations: the
+corresponding \texttt{decide +kernel} theorems reduce the Boolean interval checks in Lean, and
+the trace-soundness theorems reconstruct their real-analysis meaning.  No CSV, floating-point
+sample, external execution receipt, or admitted computation enters the final theorem.
+
+The large centered check is split into 896 independent 16-angle chunks, with separate
+program-validity, derivative-sign, and Taylor-radius theorems.  The 2,688 computational modules
+and 192 lightweight radial aggregators keep kernel reduction bounded and parallelizable.  The
+endpoint calculation is similarly split into 256 fixed-index modules.  This sharding is only a
+resource-control device: the aggregate theorems quantify over the original complete cell sets.
+
+Finally, \path{ChapterVIDRadialTailFinal.lean} combines these results into an unconditional
+\path{ChapterVIDRadialTailMonotonicityCertificate}.  The prefix and tail therefore give
+$\Re R(s,h)>0$ for every $s<1$ on the complete standard angular circle and construct the
+canonical continuous principal square-root sheet.
 
 \section{The centered collision factor}
 
@@ -774,6 +830,8 @@ reproduce the checks from the repository root:
 \begin{verbatim}
 python3 research/check_chapter_vi_connector_seam.py
 lake build PoincareChapterVI.ChapterVIDHomogeneousAdmissibility
+python3 research/generate_radial_tail_kernel_shards.py
+lake build PoincareChapterVI.ChapterVIDRadialTailFinal
 lake exe chapter-vi-connector-cert reference-homogeneous-shards
 lake env lean PoincareChapterVI/AxiomAudit.lean
 lake build
@@ -801,7 +859,8 @@ optional independently compiled rerun; it is not required for the unconditional 
 
 \section{Precise project status}
 
-This work closes the local connector-seam obstruction at the certified point \(D\).  It also
+This work closes the local connector-seam obstruction at the certified point \(D\) and the
+former final radial-tail obstruction.  It also
 shows that the two obligations previously described as literal source transcription cannot both
 be proved as stated: the fixed-current-unit-circle continuation is topologically impossible, and
 the normalization printed in Chapter~V no.~85 is algebraically false.  The corrected finite
@@ -849,6 +908,16 @@ rectangles\\
 \path{ChapterVIDJointLiftedContour.lean} & one closed terminal five-piece source contour,
 literal-radicand nonvanishing on its positive half-open parameter family, a basepoint-normalized
 joint square-root sheet, and exact identification with all five certified branches\\
+\path{ChapterVIDRadialTailCenteredCertificate.lean} & 14,336-cell centered affine/Taylor
+certificate and semantic proof that the literal radial derivative has negative real part\\
+\path{ChapterVIDRadialTailEndpointCertificate.lean} & direct endpoint table, exact double-zero
+anchors, positive-curvature collars, and endpoint nonnegativity\\
+\path{ChapterVIDRadialTailFinal.lean} & unconditional full-tail monotonicity certificate,
+complete pre-collision real-part positivity, and principal square-root sheet\\
+\path{RadialTailCenteredKernel/*.lean}, \path{RadialTailEndpointKernel/*.lean} & generated,
+independently buildable \texttt{decide +kernel} shards for every finite table assertion\\
+\path{generate_radial_tail_kernel_shards.py} & deterministic generator for the centered and
+endpoint kernel modules and their aggregate theorems\\
 \path{ChapterVIWindingObstruction.lean}, \path{ChapterVIDRadialContour.lean} & winding invariance,
 the concrete outside-to-inside crossing, and impossibility of the former fixed-unit-circle
 continuation premise\\
